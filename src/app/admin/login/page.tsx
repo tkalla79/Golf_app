@@ -91,6 +91,15 @@ export default function AdminLoginPage() {
             {loading ? 'Logowanie...' : 'Zaloguj się'}
           </button>
         </form>
+
+        <div className="text-center mt-6">
+          <a
+            href="/"
+            className="text-sm text-[var(--color-primary)] hover:text-[var(--color-accent)] transition-colors font-medium"
+          >
+            &larr; Wróć na stronę główną
+          </a>
+        </div>
       </div>
     </div>
   )

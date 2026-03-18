@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { useSession, SessionProvider } from 'next-auth/react'
+import { useSession, SessionProvider, signOut } from 'next-auth/react'
 import { PL } from '@/constants/pl'
 
 function AdminNavInner({ children }: { children: React.ReactNode }) {
@@ -81,12 +81,12 @@ function AdminNavInner({ children }: { children: React.ReactNode }) {
 
             <div className="flex items-center gap-4">
               <span className="text-white/40 text-xs hidden sm:block">{session.user?.name}</span>
-              <Link
-                href="/api/auth/signout"
-                className="text-xs text-white/40 hover:text-white/80 transition-colors font-medium"
+              <button
+                onClick={() => signOut({ callbackUrl: '/admin/login' })}
+                className="text-xs bg-white/10 hover:bg-white/20 text-white/60 hover:text-white px-3 py-1.5 rounded transition-colors font-semibold uppercase tracking-wider"
               >
                 {PL.nav.logout}
-              </Link>
+              </button>
             </div>
           </div>
         </div>
