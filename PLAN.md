@@ -429,3 +429,4 @@ CMD ["node", "server.js"]
 5. **Brak daty meczu** - tylko status played/unplayed
 6. **DOCS/ nie trafia do buildu Docker** (.dockerignore)
 7. **.ssh/ nie trafia do repo** (.gitignore)
+8. **Instrukcje deploy** - pełna dokumentacja w `DEPLOY.md` (serwer, Docker, migracje, logi, restart)
