@@ -188,7 +188,7 @@ async function main() {
     } else {
       p1Big = config.scoring.win
       p2Big = config.scoring.loss
-      const sp = config.small_points_map[result.resultCode] || [0, 0]
+      const sp = (config.small_points_map as Record<string, number[]>)[result.resultCode] || [0, 0]
       p1Small = sp[0]
       p2Small = sp[1]
     }
