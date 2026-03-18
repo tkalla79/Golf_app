@@ -171,20 +171,21 @@ karolinkagolfpark/
 
 ## Schemat bazy danych
 
-### users
+### admins (osobna tabela — admin i gracz mogą być tą samą osobą z tym samym emailem)
 - `id` INT PK AUTO_INCREMENT
 - `email` VARCHAR(255) UNIQUE NOT NULL
-- `password_hash` VARCHAR(255) NULL — nullable, przyszły login gracza
-- `role` ENUM('admin', 'player') DEFAULT 'player'
-- `player_id` INT NULL FK -> players.id — link do gracza (przyszłość)
+- `password_hash` VARCHAR(255) NOT NULL
+- `first_name` VARCHAR(100) NOT NULL
+- `last_name` VARCHAR(100) NOT NULL
 - `created_at`, `updated_at` TIMESTAMP
 
 ### players
 - `id` INT PK AUTO_INCREMENT
 - `first_name` VARCHAR(100) NOT NULL
 - `last_name` VARCHAR(100) NOT NULL
-- `email` VARCHAR(255) NULL
+- `email` VARCHAR(255) NULL — opcjonalny, nie każdy gracz ma email
 - `phone` VARCHAR(20) NULL
+- `password_hash` VARCHAR(255) NULL — gotowe na przyszły login gracza
 - `slug` VARCHAR(255) UNIQUE NOT NULL — "jan-kowalski" do URL
 - `hcp` DECIMAL(4,1) NULL
 - `active` BOOLEAN DEFAULT TRUE
@@ -424,7 +425,7 @@ CMD ["node", "server.js"]
 1. **Season config jako JSON** - zasady punktacji per sezon, zmiana reguł = nowy wpis z innym config
 2. **Pre-computed points** na rekordzie meczu - nie liczymy za każdym razem
 3. **Next.js API Routes jako backend** - wystarczy dla 48 graczy
-4. **Brak loginu gracza w MVP** - tabela users gotowa (password_hash nullable)
+4. **Osobna tabela admins** - adminy oddzielone od graczy, ten sam email może być w obu tabelach. Przyszły login gracza = password_hash w players (nullable)
 5. **Brak daty meczu** - tylko status played/unplayed
 6. **DOCS/ nie trafia do buildu Docker** (.dockerignore)
 7. **.ssh/ nie trafia do repo** (.gitignore)
