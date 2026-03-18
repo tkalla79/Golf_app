@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  firstName    String   @map("first_name") @db.VarChar(100)
+  lastName     String   @map("last_name") @db.VarChar(100)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("admins")
+}
+
+model Player {
+  id           Int      @id @default(autoincrement())
+  firstName    String   @map("first_name") @db.VarChar(100)
+  lastName     String   @map("last_name") @db.VarChar(100)
+  email        String?  @db.VarChar(255)
+  phone        String?  @db.VarChar(20)
+  passwordHash String?  @map("password_hash") @db.VarChar(255)
+  slug         String   @unique @db.VarChar(255)
+  hcp          Decimal? @db.Decimal(4, 1)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  groupPlayers GroupPlayer[]
+  matchesAsP1  Match[]       @relation("player1")
+  matchesAsP2  Match[]       @relation("player2")
+  matchesWon   Match[]       @relation("winner")
+
+  @@map("players")
+}
+
+model Season {
+  id        Int          @id @default(autoincrement())
+  name      String       @db.VarChar(100)
+  year      Int
+  status    SeasonStatus @default(DRAFT)
+  config    Json?
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  rounds Round[]
+
+  @@map("seasons")
+}
+
+enum SeasonStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+}
+
+model Round {
+  id          Int         @id @default(autoincrement())
+  seasonId    Int         @map("season_id")
+  name        String      @db.VarChar(100)
+  roundNumber Int         @map("round_number")
+  type        RoundType   @default(ROUND_ROBIN)
+  holes       Int         @default(9)
+  dateStart   DateTime?   @map("date_start") @db.Date
+  dateEnd     DateTime?   @map("date_end") @db.Date
+  status      RoundStatus @default(DRAFT)
+  config      Json?
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  season Season  @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  groups Group[]
+
+  @@map("rounds")
+}
+
+enum RoundType {
+  ROUND_ROBIN
+  PLAYOFF
+}
+
+enum RoundStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+}
+
+model Group {
+  id        Int        @id @default(autoincrement())
+  roundId   Int        @map("round_id")
+  name      String     @db.VarChar(50)
+  sortOrder Int        @default(0) @map("sort_order")
+  status    GroupStatus @default(DRAFT)
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  round   Round         @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  players GroupPlayer[]
+  matches Match[]
+
+  @@map("groups")
+}
+
+enum GroupStatus {
+  DRAFT
+  APPROVED
+  ACTIVE
+  COMPLETED
+}
+
+model GroupPlayer {
+  id            Int      @id @default(autoincrement())
+  groupId       Int      @map("group_id")
+  playerId      Int      @map("player_id")
+  hcpAtStart    Decimal? @map("hcp_at_start") @db.Decimal(4, 1)
+  finalPosition Int?     @map("final_position")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  group  Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, playerId])
+  @@map("group_players")
+}
+
+model Match {
+  id                 Int      @id @default(autoincrement())
+  groupId            Int      @map("group_id")
+  player1Id          Int      @map("player1_id")
+  player2Id          Int      @map("player2_id")
+  resultCode         String?  @map("result_code") @db.VarChar(20)
+  winnerId           Int?     @map("winner_id")
+  player1BigPoints   Int      @default(0) @map("player1_big_points")
+  player2BigPoints   Int      @default(0) @map("player2_big_points")
+  player1SmallPoints Int      @default(0) @map("player1_small_points")
+  player2SmallPoints Int      @default(0) @map("player2_small_points")
+  played             Boolean  @default(false)
+  isWalkover         Boolean  @default(false) @map("is_walkover")
+  notes              String?  @db.Text
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  group   Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  player1 Player  @relation("player1", fields: [player1Id], references: [id], onDelete: Cascade)
+  player2 Player  @relation("player2", fields: [player2Id], references: [id], onDelete: Cascade)
+  winner  Player? @relation("winner", fields: [winnerId], references: [id], onDelete: SetNull)
+
+  @@map("matches")
+}
