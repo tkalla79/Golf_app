@@ -18,22 +18,14 @@ export default function AdminPlayersPage() {
   const [players, setPlayers] = useState<Player[]>([])
   const [showForm, setShowForm] = useState(false)
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null)
-  const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    hcp: '',
-  })
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', hcp: '' })
 
   const loadPlayers = useCallback(async () => {
     const res = await fetch('/api/players')
     setPlayers(await res.json())
   }, [])
 
-  useEffect(() => {
-    loadPlayers()
-  }, [loadPlayers])
+  useEffect(() => { loadPlayers() }, [loadPlayers])
 
   const resetForm = () => {
     setForm({ firstName: '', lastName: '', email: '', phone: '', hcp: '' })
@@ -43,7 +35,6 @@ export default function AdminPlayersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
     if (editingPlayer) {
       await fetch(`/api/players/${editingPlayer.id}`, {
         method: 'PUT',
@@ -57,7 +48,6 @@ export default function AdminPlayersPage() {
         body: JSON.stringify(form),
       })
     }
-
     resetForm()
     loadPlayers()
   }
@@ -82,93 +72,66 @@ export default function AdminPlayersPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">{PL.nav.managePlayers}</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-[var(--color-primary)] text-white px-4 py-2 rounded hover:bg-[var(--color-primary-light)] transition-colors"
-        >
-          {PL.player.addPlayer}
+      <div className="flex justify-between items-center mb-10">
+        <div>
+          <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+            {PL.nav.managePlayers}
+          </h1>
+          <div className="flex items-center gap-3 mt-2">
+            <span className="inline-block w-10 h-0.5 bg-[var(--color-accent)]"></span>
+            <span className="text-[var(--color-text-body)]/60 text-sm">{players.length} zawodników</span>
+          </div>
+        </div>
+        <button onClick={() => setShowForm(true)} className="btn-primary text-sm">
+          + {PL.player.addPlayer}
         </button>
       </div>
 
       {/* Form */}
       {showForm && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-lg font-bold mb-4">
+        <div className="card p-6 mb-8">
+          <h3 className="font-bold text-[var(--color-text-dark)] mb-4">
             {editingPlayer ? PL.player.editPlayer : PL.player.addPlayer}
-          </h2>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          </h3>
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--color-text-body)]/60 mb-2">
                 {PL.player.firstName} *
               </label>
-              <input
-                type="text"
-                value={form.firstName}
-                onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[var(--color-primary)]"
-              />
+              <input type="text" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                required className="w-full px-4 py-2.5 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)]" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--color-text-body)]/60 mb-2">
                 {PL.player.lastName} *
               </label>
-              <input
-                type="text"
-                value={form.lastName}
-                onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[var(--color-primary)]"
-              />
+              <input type="text" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                required className="w-full px-4 py-2.5 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)]" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--color-text-body)]/60 mb-2">
                 {PL.player.email}
               </label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[var(--color-primary)]"
-              />
+              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="w-full px-4 py-2.5 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)]" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--color-text-body)]/60 mb-2">
                 {PL.player.phone}
               </label>
-              <input
-                type="text"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[var(--color-primary)]"
-              />
+              <input type="text" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                className="w-full px-4 py-2.5 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)]" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--color-text-body)]/60 mb-2">
                 {PL.player.hcp}
               </label>
-              <input
-                type="number"
-                step="0.1"
-                value={form.hcp}
-                onChange={(e) => setForm({ ...form, hcp: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[var(--color-primary)]"
-              />
+              <input type="number" step="0.1" value={form.hcp} onChange={(e) => setForm({ ...form, hcp: e.target.value })}
+                className="w-full px-4 py-2.5 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)]" />
             </div>
-            <div className="flex items-end gap-2">
-              <button
-                type="submit"
-                className="bg-[var(--color-primary)] text-white px-6 py-2 rounded hover:bg-[var(--color-primary-light)]"
-              >
-                {PL.common.save}
-              </button>
-              <button
-                type="button"
-                onClick={resetForm}
-                className="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400"
-              >
+            <div className="flex items-end gap-3">
+              <button type="submit" className="btn-secondary text-sm">{PL.common.save}</button>
+              <button type="button" onClick={resetForm} className="text-sm text-[var(--color-text-body)] hover:text-[var(--color-text-dark)]">
                 {PL.common.cancel}
               </button>
             </div>
@@ -177,46 +140,37 @@ export default function AdminPlayersPage() {
       )}
 
       {/* Table */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="card p-0 overflow-hidden">
+        <table className="standings-table w-full text-sm">
           <thead>
-            <tr className="bg-gray-800 text-white">
-              <th className="text-left py-3 px-4">{PL.standings.player}</th>
-              <th className="text-center py-3 px-4 hidden md:table-cell">{PL.player.email}</th>
-              <th className="text-center py-3 px-4 hidden md:table-cell">{PL.player.phone}</th>
-              <th className="text-center py-3 px-4">{PL.player.hcp}</th>
-              <th className="text-right py-3 px-4">Akcje</th>
+            <tr>
+              <th className="text-left">{PL.standings.player}</th>
+              <th className="text-center hidden md:table-cell">{PL.player.email}</th>
+              <th className="text-center hidden md:table-cell">{PL.player.phone}</th>
+              <th className="text-center">{PL.player.hcp}</th>
+              <th className="text-right">Akcje</th>
             </tr>
           </thead>
           <tbody>
-            {players.map((player, i) => (
-              <tr
-                key={player.id}
-                className={`border-b hover:bg-gray-50 ${i % 2 === 0 ? 'bg-gray-50' : ''}`}
-              >
-                <td className="py-3 px-4 font-medium">
+            {players.map((player) => (
+              <tr key={player.id}>
+                <td className="font-semibold text-[var(--color-text-dark)]">
                   {player.firstName} {player.lastName}
                 </td>
-                <td className="py-3 px-4 text-center text-gray-500 hidden md:table-cell">
-                  {player.email || '-'}
+                <td className="text-center text-[var(--color-text-body)]/50 text-xs hidden md:table-cell">
+                  {player.email || '–'}
                 </td>
-                <td className="py-3 px-4 text-center text-gray-500 hidden md:table-cell">
-                  {player.phone || '-'}
+                <td className="text-center text-[var(--color-text-body)]/50 text-xs hidden md:table-cell">
+                  {player.phone || '–'}
                 </td>
-                <td className="py-3 px-4 text-center">
-                  {player.hcp !== null ? Number(player.hcp).toFixed(1) : '-'}
+                <td className="text-center text-[var(--color-text-body)]/70">
+                  {player.hcp !== null ? Number(player.hcp).toFixed(1) : '–'}
                 </td>
-                <td className="py-3 px-4 text-right space-x-2">
-                  <button
-                    onClick={() => handleEdit(player)}
-                    className="text-[var(--color-primary)] hover:underline text-sm"
-                  >
+                <td className="text-right">
+                  <button onClick={() => handleEdit(player)} className="text-[var(--color-primary)] hover:text-[var(--color-accent)] text-xs font-semibold mr-3 transition-colors">
                     {PL.common.edit}
                   </button>
-                  <button
-                    onClick={() => handleDelete(player.id)}
-                    className="text-red-600 hover:underline text-sm"
-                  >
+                  <button onClick={() => handleDelete(player.id)} className="text-[var(--color-danger)] hover:text-[var(--color-danger)]/70 text-xs font-semibold transition-colors">
                     {PL.common.delete}
                   </button>
                 </td>

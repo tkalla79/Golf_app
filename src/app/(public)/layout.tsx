@@ -1,4 +1,5 @@
 import Navbar from '@/components/Navbar'
+import Image from 'next/image'
 
 export default function PublicLayout({
   children,
@@ -6,12 +7,37 @@ export default function PublicLayout({
   children: React.ReactNode
 }) {
   return (
-    <>
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>
-      <footer className="bg-[var(--color-primary)] text-white text-center py-4 mt-auto text-sm">
-        &copy; {new Date().getFullYear()} Karolinka Golf Park &middot; Don Papa Match Play
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10">
+        {children}
+      </main>
+      <footer className="bg-[var(--color-bg-dark)] text-white/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <Image
+                src="/logo.png"
+                alt="Karolinka Golf Park"
+                width={60}
+                height={48}
+                className="brightness-0 invert opacity-60"
+              />
+              <div>
+                <div className="text-white font-bold text-sm" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                  Don Papa Match Play
+                </div>
+                <div className="text-xs text-white/40 mt-1">
+                  Karolinka Golf Park &middot; Kamień Śląski
+                </div>
+              </div>
+            </div>
+            <div className="text-xs text-white/30">
+              &copy; {new Date().getFullYear()} Karolinka Golf Park. Wszelkie prawa zastrzeżone.
+            </div>
+          </div>
+        </div>
       </footer>
-    </>
+    </div>
   )
 }

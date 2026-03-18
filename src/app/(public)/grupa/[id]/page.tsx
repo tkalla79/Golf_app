@@ -3,6 +3,7 @@ import { computeStandings } from '@/lib/standings'
 import { PL } from '@/constants/pl'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import MatchesView from '@/components/MatchesView'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,66 +30,70 @@ export default async function GrupaPage({
   if (!group) return notFound()
 
   const standings = computeStandings(group.players, group.matches)
-  const playedMatches = group.matches.filter((m) => m.played)
-  const unplayedMatches = group.matches.filter((m) => !m.played)
 
   return (
     <div>
-      <div className="mb-2">
-        <Link href="/grupy" className="text-sm text-[var(--color-primary)] hover:underline">
-          &larr; {PL.common.back}
+      {/* Breadcrumb */}
+      <div className="mb-6">
+        <Link href="/grupy" className="text-sm text-[var(--color-primary)] hover:text-[var(--color-accent)] transition-colors font-medium">
+          &larr; Wszystkie grupy
         </Link>
       </div>
 
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-[var(--color-primary)]">
+      {/* Header */}
+      <div className="mb-10">
+        <h1 className="text-4xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
           {group.name}
         </h1>
-        <p className="text-gray-600">
-          {group.round.name} &middot; {group.round.season.name}
-        </p>
+        <div className="flex items-center gap-3 mt-2">
+          <span className="inline-block w-10 h-0.5 bg-[var(--color-accent)]"></span>
+          <p className="text-[var(--color-text-body)]">
+            {group.round.name} &middot; {group.round.season.name}
+          </p>
+        </div>
       </div>
 
       {/* Standings table */}
-      <div className="bg-white rounded-lg shadow-md p-4 mb-8">
-        <h2 className="text-lg font-bold mb-3 text-[var(--color-primary)]">
-          {PL.group.standings}
-        </h2>
+      <div className="card p-0 mb-10 overflow-hidden">
+        <div className="bg-[var(--color-primary)] px-6 py-4">
+          <h2 className="text-white font-bold text-lg tracking-wide" style={{ fontFamily: 'Raleway, sans-serif' }}>
+            {PL.group.standings}
+          </h2>
+        </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="standings-table w-full text-sm">
             <thead>
-              <tr className="border-b-2 border-[var(--color-primary)] text-gray-600">
-                <th className="text-left py-2 px-1">{PL.standings.position}</th>
-                <th className="text-left py-2 px-1">{PL.standings.player}</th>
-                <th className="text-center py-2 px-1">{PL.standings.played}</th>
-                <th className="text-center py-2 px-1">{PL.standings.won}</th>
-                <th className="text-center py-2 px-1">{PL.standings.drawn}</th>
-                <th className="text-center py-2 px-1">{PL.standings.lost}</th>
-                <th className="text-center py-2 px-1 font-bold">{PL.standings.bigPoints}</th>
-                <th className="text-center py-2 px-1">{PL.standings.smallPoints}</th>
+              <tr>
+                <th className="text-left !rounded-none">{PL.standings.position}</th>
+                <th className="text-left !rounded-none">{PL.standings.player}</th>
+                <th className="text-center !rounded-none">{PL.standings.played}</th>
+                <th className="text-center !rounded-none">{PL.standings.won}</th>
+                <th className="text-center !rounded-none">{PL.standings.drawn}</th>
+                <th className="text-center !rounded-none">{PL.standings.lost}</th>
+                <th className="text-center !rounded-none">{PL.standings.bigPoints}</th>
+                <th className="text-center !rounded-none">{PL.standings.smallPoints}</th>
               </tr>
             </thead>
             <tbody>
               {standings.map((s, i) => (
-                <tr
-                  key={s.playerId}
-                  className={`border-b ${i < 1 ? 'bg-green-50' : ''}`}
-                >
-                  <td className="py-2 px-1 font-bold text-gray-400">{s.position}</td>
-                  <td className="py-2 px-1">
+                <tr key={s.playerId}>
+                  <td className={`font-bold text-[var(--color-primary)] ${i === 0 ? 'bg-[var(--color-accent)]/10' : ''}`}>
+                    {s.position}
+                  </td>
+                  <td className={i === 0 ? 'bg-[var(--color-accent)]/10' : ''}>
                     <Link
                       href={`/zawodnik/${s.slug}`}
-                      className="font-medium text-[var(--color-primary)] hover:underline"
+                      className="font-semibold text-[var(--color-text-dark)] hover:text-[var(--color-primary)] transition-colors"
                     >
                       {s.firstName} {s.lastName}
                     </Link>
                   </td>
-                  <td className="py-2 px-1 text-center">{s.played}</td>
-                  <td className="py-2 px-1 text-center text-green-600">{s.won}</td>
-                  <td className="py-2 px-1 text-center text-yellow-600">{s.drawn}</td>
-                  <td className="py-2 px-1 text-center text-red-600">{s.lost}</td>
-                  <td className="py-2 px-1 text-center font-bold text-lg">{s.bigPoints}</td>
-                  <td className="py-2 px-1 text-center text-gray-600">
+                  <td className={`text-center ${i === 0 ? 'bg-[var(--color-accent)]/10' : ''}`}>{s.played}</td>
+                  <td className={`text-center text-[var(--color-success)] font-semibold ${i === 0 ? 'bg-[var(--color-accent)]/10' : ''}`}>{s.won}</td>
+                  <td className={`text-center text-[var(--color-warning)] font-semibold ${i === 0 ? 'bg-[var(--color-accent)]/10' : ''}`}>{s.drawn}</td>
+                  <td className={`text-center text-[var(--color-danger)] font-semibold ${i === 0 ? 'bg-[var(--color-accent)]/10' : ''}`}>{s.lost}</td>
+                  <td className={`text-center font-bold text-lg text-[var(--color-primary)] ${i === 0 ? 'bg-[var(--color-accent)]/10' : ''}`}>{s.bigPoints}</td>
+                  <td className={`text-center text-[var(--color-text-body)]/60 ${i === 0 ? 'bg-[var(--color-accent)]/10' : ''}`}>
                     {s.smallPoints > 0 ? `+${s.smallPoints}` : s.smallPoints}
                   </td>
                 </tr>
@@ -98,75 +103,11 @@ export default async function GrupaPage({
         </div>
       </div>
 
-      {/* Unplayed matches */}
-      {unplayedMatches.length > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-4 mb-8">
-          <h2 className="text-lg font-bold mb-3 text-gray-700">
-            {PL.match.unplayed} ({unplayedMatches.length})
-          </h2>
-          <div className="space-y-2">
-            {unplayedMatches.map((match) => (
-              <div
-                key={match.id}
-                className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded"
-              >
-                <span className="font-medium">
-                  {match.player1.firstName} {match.player1.lastName}
-                </span>
-                <span className="text-gray-400 text-sm mx-2">{PL.match.vs}</span>
-                <span className="font-medium">
-                  {match.player2.firstName} {match.player2.lastName}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Played matches */}
-      {playedMatches.length > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h2 className="text-lg font-bold mb-3 text-gray-700">
-            {PL.group.matches} ({playedMatches.length})
-          </h2>
-          <div className="space-y-2">
-            {playedMatches.map((match) => {
-              const p1Won = match.winnerId === match.player1Id
-              const p2Won = match.winnerId === match.player2Id
-              const isDraw = match.played && !match.winnerId
-
-              return (
-                <div
-                  key={match.id}
-                  className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded"
-                >
-                  <span
-                    className={`font-medium ${p1Won ? 'text-green-700' : ''}`}
-                  >
-                    {match.player1.firstName} {match.player1.lastName}
-                  </span>
-                  <span
-                    className={`text-sm font-bold px-3 py-1 rounded ${
-                      isDraw
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : match.isWalkover
-                        ? 'bg-gray-200 text-gray-600'
-                        : 'bg-[var(--color-primary)] text-white'
-                    }`}
-                  >
-                    {match.isWalkover ? 'W/O' : match.resultCode}
-                  </span>
-                  <span
-                    className={`font-medium ${p2Won ? 'text-green-700' : ''}`}
-                  >
-                    {match.player2.firstName} {match.player2.lastName}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
+      {/* Matches with list/matrix toggle */}
+      <MatchesView
+        matches={JSON.parse(JSON.stringify(group.matches))}
+        standings={JSON.parse(JSON.stringify(standings))}
+      />
     </div>
   )
 }

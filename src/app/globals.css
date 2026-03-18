@@ -1,8 +1,195 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&family=Raleway:wght@500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --color-primary: #0a632f;
-  --color-primary-light: #0a902f;
-  --color-accent: #dd9933;
-  --color-accent-light: #e6ad5c;
+  --color-primary: #134a56;
+  --color-primary-dark: #0e3640;
+  --color-primary-light: #1a6275;
+  --color-accent: #d5b665;
+  --color-accent-hover: #aa9251;
+  --color-text-dark: #204a56;
+  --color-text-body: #4a4a4a;
+  --color-bg-dark: #292929;
+  --color-bg-section: #f7f5f0;
+  --color-border: #e0ddd5;
+  --color-success: #2d7a3a;
+  --color-warning: #c4952a;
+  --color-danger: #a63d2f;
+}
+
+body {
+  font-family: 'Lato', sans-serif;
+  color: var(--color-text-body);
+  background-color: #f7f5f0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Raleway', sans-serif;
+}
+
+/* Elegant table styling */
+.standings-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.standings-table thead tr {
+  background: var(--color-primary);
+  color: white;
+}
+
+.standings-table thead th {
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.standings-table thead th:first-child {
+  border-radius: 8px 0 0 0;
+}
+
+.standings-table thead th:last-child {
+  border-radius: 0 8px 0 0;
+}
+
+.standings-table tbody tr {
+  transition: background-color 0.15s;
+}
+
+.standings-table tbody tr:hover {
+  background-color: rgba(19, 74, 86, 0.04);
+}
+
+.standings-table tbody td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.standings-table tbody tr:last-child td:first-child {
+  border-radius: 0 0 0 8px;
+}
+
+.standings-table tbody tr:last-child td:last-child {
+  border-radius: 0 0 8px 0;
+}
+
+/* Card styling */
+.card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(19, 74, 86, 0.08);
+  border: 1px solid rgba(19, 74, 86, 0.08);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 20px rgba(19, 74, 86, 0.12);
+}
+
+.card-clickable:hover {
+  transform: translateY(-2px);
+}
+
+/* Button styles */
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-primary-dark);
+  font-weight: 700;
+  padding: 10px 24px;
+  border-radius: 6px;
+  transition: background-color 0.2s, transform 0.1s;
+  font-family: 'Raleway', sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.btn-primary:hover {
+  background: var(--color-accent-hover);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  background: var(--color-primary);
+  color: white;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  font-family: 'Raleway', sans-serif;
+}
+
+.btn-secondary:hover {
+  background: var(--color-primary-light);
+}
+
+/* Badge styles */
+.badge-win {
+  background: var(--color-primary);
+  color: white;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.badge-draw {
+  background: var(--color-accent);
+  color: var(--color-primary-dark);
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.badge-unplayed {
+  background: #e8e5de;
+  color: #7a7567;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.badge-walkover {
+  background: #d4d0c8;
+  color: #5a5548;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+/* Match row */
+.match-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: white;
+  transition: border-color 0.15s;
+}
+
+.match-row:hover {
+  border-color: var(--color-primary);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-section);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 3px;
 }

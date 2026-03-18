@@ -12,43 +12,51 @@ export default async function ZawodnicyPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[var(--color-primary)] mb-6">
-        {PL.nav.players}
-      </h1>
+      {/* Header */}
+      <div className="mb-10">
+        <h1 className="text-4xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          {PL.nav.players}
+        </h1>
+        <div className="flex items-center gap-3 mt-3">
+          <span className="inline-block w-12 h-0.5 bg-[var(--color-accent)]"></span>
+          <p className="text-[var(--color-text-body)]">
+            {players.length} zawodników w sezonie
+          </p>
+        </div>
+      </div>
 
       {players.length === 0 ? (
-        <p className="text-gray-500">{PL.common.noData}</p>
+        <p className="text-[var(--color-text-body)]">{PL.common.noData}</p>
       ) : (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="card p-0 overflow-hidden">
+          <table className="standings-table w-full text-sm">
             <thead>
-              <tr className="bg-[var(--color-primary)] text-white">
-                <th className="text-left py-3 px-4">{PL.standings.player}</th>
-                <th className="text-center py-3 px-4 hidden md:table-cell">{PL.standings.hcp}</th>
-                <th className="text-center py-3 px-4 hidden md:table-cell">{PL.player.email}</th>
+              <tr>
+                <th className="text-left">{PL.standings.player}</th>
+                <th className="text-center hidden md:table-cell">{PL.standings.hcp}</th>
+                <th className="text-center hidden md:table-cell">{PL.player.email}</th>
+                <th className="text-center hidden md:table-cell">{PL.player.phone}</th>
               </tr>
             </thead>
             <tbody>
-              {players.map((player, i) => (
-                <tr
-                  key={player.id}
-                  className={`border-b hover:bg-green-50 transition-colors ${
-                    i % 2 === 0 ? 'bg-gray-50' : ''
-                  }`}
-                >
-                  <td className="py-3 px-4">
+              {players.map((player) => (
+                <tr key={player.id}>
+                  <td>
                     <Link
                       href={`/zawodnik/${player.slug}`}
-                      className="font-medium text-[var(--color-primary)] hover:underline"
+                      className="font-semibold text-[var(--color-text-dark)] hover:text-[var(--color-primary)] transition-colors"
                     >
                       {player.firstName} {player.lastName}
                     </Link>
                   </td>
-                  <td className="py-3 px-4 text-center hidden md:table-cell">
-                    {player.hcp !== null ? Number(player.hcp).toFixed(1) : '-'}
+                  <td className="text-center hidden md:table-cell text-[var(--color-text-body)]/70">
+                    {player.hcp !== null ? Number(player.hcp).toFixed(1) : '–'}
                   </td>
-                  <td className="py-3 px-4 text-center text-gray-500 hidden md:table-cell">
-                    {player.email || '-'}
+                  <td className="text-center hidden md:table-cell text-[var(--color-text-body)]/50 text-xs">
+                    {player.email || '–'}
+                  </td>
+                  <td className="text-center hidden md:table-cell text-[var(--color-text-body)]/50 text-xs">
+                    {player.phone || '–'}
                   </td>
                 </tr>
               ))}

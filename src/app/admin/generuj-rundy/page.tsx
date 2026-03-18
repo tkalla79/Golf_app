@@ -33,9 +33,7 @@ export default function GenerateRoundsPage() {
     if (res.ok) setSeason(await res.json())
   }, [])
 
-  useEffect(() => {
-    loadSeason()
-  }, [loadSeason])
+  useEffect(() => { loadSeason() }, [loadSeason])
 
   const completedRounds = season?.rounds.filter((r) => r.status === 'COMPLETED') || []
 
@@ -43,19 +41,13 @@ export default function GenerateRoundsPage() {
     setLoading(true)
     setError('')
     setPreview(null)
-
-    const res = await fetch(`/api/rounds/${roundId}/generate-groups`, {
-      method: 'POST',
-    })
-
+    const res = await fetch(`/api/rounds/${roundId}/generate-groups`, { method: 'POST' })
     setLoading(false)
-
     if (!res.ok) {
       const data = await res.json()
       setError(data.error || 'Błąd generowania')
       return
     }
-
     setPreview(await res.json())
     setSelectedRound(completedRounds.find((r) => r.id === roundId) || null)
   }
@@ -63,20 +55,16 @@ export default function GenerateRoundsPage() {
   const handleApprove = async () => {
     if (!selectedRound) return
     setLoading(true)
-
     const res = await fetch(`/api/rounds/${selectedRound.id}/approve-groups`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ groups: preview }),
     })
-
     setLoading(false)
-
     if (res.ok) {
       setPreview(null)
       setSelectedRound(null)
       loadSeason()
-      alert('Grupy zatwierdzone!')
     } else {
       const data = await res.json()
       setError(data.error || 'Błąd zatwierdzania')
@@ -85,58 +73,84 @@ export default function GenerateRoundsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">{PL.nav.generateRounds}</h1>
+      <div className="mb-10">
+        <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          {PL.nav.generateRounds}
+        </h1>
+        <div className="flex items-center gap-3 mt-2">
+          <span className="inline-block w-10 h-0.5 bg-[var(--color-accent)]"></span>
+          <span className="text-[var(--color-text-body)]/60 text-sm">
+            Automatyczne tworzenie grup na podstawie wyników
+          </span>
+        </div>
+      </div>
 
       {completedRounds.length === 0 ? (
-        <p className="text-gray-500">
-          Brak zakończonych rund. Zakończ bieżącą rundę aby wygenerować grupy dla kolejnej.
-        </p>
+        <div className="card p-10 text-center">
+          <p className="text-[var(--color-text-body)]/50">
+            Brak zakończonych rund. Zakończ bieżącą rundę w sekcji Sezon, aby wygenerować grupy dla kolejnej.
+          </p>
+        </div>
       ) : (
-        <div className="space-y-4 mb-8">
-          <h2 className="text-lg font-bold">Zakończone rundy:</h2>
+        <div className="space-y-4 mb-10">
+          <h2 className="text-lg font-bold text-[var(--color-text-dark)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+            Zakończone rundy
+          </h2>
           {completedRounds.map((round) => (
-            <div key={round.id} className="flex items-center justify-between bg-white rounded-lg shadow p-4">
-              <span className="font-medium">{round.name}</span>
+            <div key={round.id} className="card p-5 flex items-center justify-between">
+              <span className="font-semibold text-[var(--color-text-dark)]">{round.name}</span>
               <button
                 onClick={() => handleGenerate(round.id)}
                 disabled={loading}
-                className="bg-[var(--color-primary)] text-white px-4 py-2 rounded hover:bg-[var(--color-primary-light)] disabled:opacity-50"
+                className="btn-primary text-sm disabled:opacity-50"
               >
-                {PL.round.generate}
+                Generuj grupy
               </button>
             </div>
           ))}
         </div>
       )}
 
-      {error && <p className="text-red-600 mb-4">{error}</p>}
+      {error && (
+        <div className="bg-[var(--color-danger)]/10 text-[var(--color-danger)] px-4 py-3 rounded-lg mb-6 font-medium text-sm">
+          {error}
+        </div>
+      )}
 
       {preview && (
         <div>
-          <h2 className="text-lg font-bold mb-4">{PL.round.preview}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          <h2 className="text-xl font-bold text-[var(--color-text-dark)] mb-6" style={{ fontFamily: 'Raleway, sans-serif' }}>
+            Podgląd nowych grup
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {preview.map((group, i) => (
-              <div key={i} className="bg-white rounded-lg shadow p-4">
-                <h3 className="font-bold text-[var(--color-primary)] mb-2">{group.name}</h3>
-                <ul className="space-y-1">
+              <div key={i} className="card p-5">
+                <h3 className="font-bold text-[var(--color-primary)] mb-3" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                  {group.name}
+                </h3>
+                <div className="space-y-2">
                   {group.players.map((p) => (
-                    <li key={p.playerId} className="text-sm">
-                      {p.firstName} {p.lastName}
+                    <div key={p.playerId} className="flex justify-between text-sm">
+                      <span className="font-medium text-[var(--color-text-dark)]">
+                        {p.firstName} {p.lastName}
+                      </span>
                       {p.hcp !== null && (
-                        <span className="text-gray-400 ml-2">(HCP: {p.hcp})</span>
+                        <span className="text-[var(--color-text-body)]/40 text-xs">
+                          HCP {p.hcp}
+                        </span>
                       )}
-                    </li>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             ))}
           </div>
           <button
             onClick={handleApprove}
             disabled={loading}
-            className="bg-[var(--color-accent)] text-white px-8 py-3 rounded-lg text-lg font-bold hover:bg-[var(--color-accent-light)] disabled:opacity-50"
+            className="btn-primary text-lg px-10 py-3 disabled:opacity-50"
           >
-            {PL.round.approve}
+            Zatwierdź i utwórz rundę
           </button>
         </div>
       )}

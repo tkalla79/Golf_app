@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useSession, SessionProvider } from 'next-auth/react'
 import { PL } from '@/constants/pl'
@@ -15,8 +16,8 @@ function AdminNavInner({ children }: { children: React.ReactNode }) {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">{PL.common.loading}</p>
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-section)]">
+        <div className="text-[var(--color-text-body)]/50 animate-pulse">{PL.common.loading}</div>
       </div>
     )
   }
@@ -29,23 +30,34 @@ function AdminNavInner({ children }: { children: React.ReactNode }) {
   }
 
   const navLinks = [
-    { href: '/admin', label: PL.nav.dashboard, exact: true },
-    { href: '/admin/zawodnicy', label: PL.nav.managePlayers },
-    { href: '/admin/sezon', label: PL.nav.manageSeason },
-    { href: '/admin/generuj-rundy', label: PL.nav.generateRounds },
-    { href: '/admin/uzytkownicy', label: PL.nav.manageAdmins },
+    { href: '/admin', label: 'Dashboard', exact: true },
+    { href: '/admin/zawodnicy', label: 'Zawodnicy' },
+    { href: '/admin/sezon', label: 'Sezon' },
+    { href: '/admin/generuj-rundy', label: 'Generuj rundy' },
+    { href: '/admin/uzytkownicy', label: 'Administratorzy' },
   ]
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-gray-800 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-center h-14">
-            <div className="flex items-center space-x-6">
-              <Link href="/" className="text-[var(--color-accent)] font-bold">
-                {PL.appName}
+    <div className="min-h-screen bg-[var(--color-bg-section)]">
+      {/* Admin navbar */}
+      <nav className="bg-[var(--color-bg-dark)] shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-6">
+              <Link href="/" className="flex items-center gap-2">
+                <Image
+                  src="/logo.png"
+                  alt="Karolinka"
+                  width={32}
+                  height={26}
+                  className="brightness-0 invert opacity-60"
+                />
+                <span className="text-[var(--color-accent)] font-bold text-sm" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                  ADMIN
+                </span>
               </Link>
-              <div className="hidden md:flex space-x-4">
+
+              <div className="hidden lg:flex items-center gap-1">
                 {navLinks.map((link) => {
                   const isActive = link.exact
                     ? pathname === link.href
@@ -54,8 +66,10 @@ function AdminNavInner({ children }: { children: React.ReactNode }) {
                     <Link
                       key={link.href}
                       href={link.href}
-                      className={`text-sm hover:text-[var(--color-accent)] transition-colors ${
-                        isActive ? 'text-[var(--color-accent)] font-semibold' : ''
+                      className={`px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-colors ${
+                        isActive
+                          ? 'text-[var(--color-accent)] bg-white/5'
+                          : 'text-white/50 hover:text-white/80'
                       }`}
                     >
                       {link.label}
@@ -64,11 +78,12 @@ function AdminNavInner({ children }: { children: React.ReactNode }) {
                 })}
               </div>
             </div>
-            <div className="flex items-center space-x-4 text-sm">
-              <span className="text-gray-400">{session.user?.name}</span>
+
+            <div className="flex items-center gap-4">
+              <span className="text-white/40 text-xs hidden sm:block">{session.user?.name}</span>
               <Link
                 href="/api/auth/signout"
-                className="bg-red-600 px-3 py-1 rounded hover:bg-red-700 transition-colors"
+                className="text-xs text-white/40 hover:text-white/80 transition-colors font-medium"
               >
                 {PL.nav.logout}
               </Link>
@@ -76,7 +91,8 @@ function AdminNavInner({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </nav>
-      <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10">{children}</main>
     </div>
   )
 }

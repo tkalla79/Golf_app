@@ -3,7 +3,7 @@
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { PL } from '@/constants/pl'
+import Image from 'next/image'
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -33,52 +33,62 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-primary)]">
+      <div className="card p-10 w-full max-w-md mx-4">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-[var(--color-primary)]">
-            {PL.appName}
+          <Image
+            src="/logo.png"
+            alt="Karolinka Golf Park"
+            width={80}
+            height={64}
+            className="mx-auto mb-4"
+          />
+          <h1 className="text-2xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+            Don Papa Match Play
           </h1>
-          <p className="text-gray-600 mt-1">{PL.nav.admin}</p>
+          <p className="text-[var(--color-text-body)]/50 text-sm mt-1">Panel administracyjny</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {PL.admin.email}
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--color-text-body)]/60 mb-2">
+              Email
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+              className="w-full px-4 py-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-colors"
+              placeholder="admin@karolinkagolfpark.pl"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {PL.admin.password}
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--color-text-body)]/60 mb-2">
+              Hasło
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+              className="w-full px-4 py-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] transition-colors"
             />
           </div>
 
           {error && (
-            <p className="text-red-600 text-sm">{error}</p>
+            <div className="bg-[var(--color-danger)]/10 text-[var(--color-danger)] text-sm px-4 py-3 rounded-lg font-medium">
+              {error}
+            </div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[var(--color-primary)] text-white py-2 rounded hover:bg-[var(--color-primary-light)] transition-colors disabled:opacity-50"
+            className="w-full btn-primary py-3 text-center text-sm uppercase tracking-wider disabled:opacity-50"
           >
-            {loading ? PL.common.loading : PL.nav.login}
+            {loading ? 'Logowanie...' : 'Zaloguj się'}
           </button>
         </form>
       </div>
