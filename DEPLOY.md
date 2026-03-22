@@ -2,16 +2,16 @@
 
 ## Serwer
 
-- **IP:** 151.115.61.252
+- **IP:** 209.38.211.80
 - **User:** root
 - **SSH key:** `.ssh/karolinkagolfpark` (ten sam co do GitHub)
-- **Aplikacja:** http://151.115.61.252:3000
+- **Aplikacja:** http://209.38.211.80:3000
 
 ## Szybki deploy (po zmianach w kodzie)
 
 ```bash
 # Z lokalnej maszyny:
-ssh -i .ssh/karolinkagolfpark root@151.115.61.252 \
+ssh -i .ssh/karolinkagolfpark root@209.38.211.80 \
   'cd /root/Golf_app && git pull && docker compose up -d --build'
 ```
 
@@ -23,7 +23,7 @@ Cały proces (pull + build + restart) trwa ~1-2 minuty.
 
 Docker musi być zainstalowany:
 ```bash
-ssh -i .ssh/karolinkagolfpark root@151.115.61.252
+ssh -i .ssh/karolinkagolfpark root@209.38.211.80
 curl -fsSL https://get.docker.com | sh
 ```
 
@@ -31,9 +31,9 @@ curl -fsSL https://get.docker.com | sh
 
 Skopiuj klucz deploy na serwer:
 ```bash
-scp -i .ssh/karolinkagolfpark .ssh/karolinkagolfpark root@151.115.61.252:/root/.ssh/deploy_key
+scp -i .ssh/karolinkagolfpark .ssh/karolinkagolfpark root@209.38.211.80:/root/.ssh/deploy_key
 
-ssh -i .ssh/karolinkagolfpark root@151.115.61.252 'chmod 600 /root/.ssh/deploy_key && cat > /root/.ssh/config << EOF
+ssh -i .ssh/karolinkagolfpark root@209.38.211.80 'chmod 600 /root/.ssh/deploy_key && cat > /root/.ssh/config << EOF
 Host github.com
   IdentityFile /root/.ssh/deploy_key
   StrictHostKeyChecking no
@@ -44,7 +44,7 @@ chmod 600 /root/.ssh/config'
 ### 3. Klonowanie repo
 
 ```bash
-ssh -i .ssh/karolinkagolfpark root@151.115.61.252
+ssh -i .ssh/karolinkagolfpark root@209.38.211.80
 cd /root
 git clone git@github.com:tkalla79/Golf_app.git
 ```
@@ -58,7 +58,7 @@ DATABASE_URL=mysql://donpapa:DpMp2026!SecurePass@db:3306/donpapa
 DB_ROOT_PASSWORD=RootPass2026!Secure
 DB_PASSWORD=DpMp2026!SecurePass
 NEXTAUTH_SECRET=WYGENERUJ_NOWY_SEKRET
-NEXTAUTH_URL=http://151.115.61.252:3000
+NEXTAUTH_URL=http://209.38.211.80:3000
 EOF
 ```
 
@@ -83,7 +83,7 @@ docker compose run --rm migrate
 ### 6. Weryfikacja
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}" http://151.115.61.252:3000/grupy
+curl -s -o /dev/null -w "%{http_code}" http://209.38.211.80:3000/grupy
 # Powinno zwrócić: 200
 ```
 
@@ -99,17 +99,16 @@ curl -s -o /dev/null -w "%{http_code}" http://151.115.61.252:3000/grupy
 
 ## Operacje na bazie
 
-### Reset bazy i ponowne zaseedowanie
+### Migracja schematu (BEZ resetu danych - bezpieczne na produkcji)
 ```bash
-ssh -i .ssh/karolinkagolfpark root@151.115.61.252
-cd /root/Golf_app
-docker compose run --rm migrate sh -c "npx prisma db push --force-reset && npx tsx prisma/seed.ts"
+docker compose run --rm migrate
 ```
 
-### Tylko migracja (bez resetu danych)
+### UWAGA: Reset bazy i ponowne zaseedowanie (KASUJE WSZYSTKIE DANE!)
 ```bash
-docker compose run --rm migrate sh -c "npx prisma db push"
+docker compose run --rm seed
 ```
+**Nigdy nie uruchamiaj `seed` na produkcji jeśli masz dane wprowadzone przez użytkowników!**
 
 ## Logi
 

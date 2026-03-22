@@ -46,7 +46,19 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: sh -c "npx prisma db push && npx tsx prisma/seed.ts"
+    command: sh -c "npx prisma db push"
+    profiles:
+      - tools
+
+  seed:
+    build:
+      context: .
+      target: builder
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "npx prisma db push --force-reset && npx tsx prisma/seed.ts"
     profiles:
       - tools
 

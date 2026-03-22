@@ -87,6 +87,12 @@ export default function AdminSeasonDetailPage({
     loadData()
   }, [loadData])
 
+  const handleDeleteRound = async (roundId: number, roundName: string) => {
+    if (!confirm(`Usunąć rundę "${roundName}"? Ta operacja usunie wszystkie grupy, mecze i wyniki w tej rundzie. Tej operacji nie da się cofnąć.`)) return
+    await fetch(`/api/rounds/${roundId}`, { method: 'DELETE' })
+    loadData()
+  }
+
   const handleCreateRound = async (e: React.FormEvent) => {
     e.preventDefault()
     await fetch(`/api/seasons/${id}/rounds`, {
@@ -272,7 +278,7 @@ export default function AdminSeasonDetailPage({
                   {round.status === 'ACTIVE' ? 'Aktywna' : round.status === 'COMPLETED' ? 'Zakończona' : 'Szkic'}
                 </span>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 {round.status === 'DRAFT' && (
                   <button onClick={() => handleActivateRound(round.id)} className="text-xs text-white/70 hover:text-white font-semibold">
                     Aktywuj
@@ -283,6 +289,12 @@ export default function AdminSeasonDetailPage({
                     Zakończ
                   </button>
                 )}
+                <button
+                  onClick={() => handleDeleteRound(round.id, round.name)}
+                  className="text-xs text-red-300/70 hover:text-red-200 font-semibold"
+                >
+                  Usuń
+                </button>
               </div>
             </div>
 

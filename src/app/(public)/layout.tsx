@@ -36,13 +36,13 @@ export default function PublicLayout({
               <div className="text-xs text-white/30">
                 &copy; {new Date().getFullYear()} Karolinka Golf Park. Wszelkie prawa zastrzeżone.
               </div>
-              <div className="text-xs text-white/20 mt-1">
+              <div className="text-xs text-white/40 mt-1">
                 Realizacja:{' '}
-                <a href="https://codelabs.rocks/" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-white/50 transition-colors">
+                <a href="https://codelabs.rocks/" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white/90 transition-colors font-medium">
                   codelabs.rocks
                 </a>
                 {' '}&amp;{' '}
-                <a href="https://k2biznes.pl/" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-white/50 transition-colors">
+                <a href="https://k2biznes.pl/" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white/90 transition-colors font-medium">
                   k2biznes
                 </a>
               </div>
