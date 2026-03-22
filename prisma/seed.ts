@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import * as fs from 'fs'
 import * as path from 'path'
+import { createSlug } from '../src/lib/slug'
 
 const prisma = new PrismaClient()
 
@@ -55,11 +56,7 @@ async function main() {
   console.log(`Loaded ${playerRows.length} players from CSV`)
 
   for (const p of playerRows) {
-    const slug = `${p.firstName}-${p.lastName}`
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/\s+/g, '-')
+    const slug = createSlug(p.firstName, p.lastName)
 
     await prisma.player.upsert({
       where: { slug },

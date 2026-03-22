@@ -39,11 +39,8 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const slug = `${firstName}-${lastName}`
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\s+/g, '-')
+  const { createSlug } = await import('@/lib/slug')
+  const slug = createSlug(firstName, lastName)
 
   // Check for duplicate slug
   let finalSlug = slug

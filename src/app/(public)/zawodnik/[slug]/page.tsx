@@ -13,19 +13,15 @@ export default async function ZawodnikPage({
   const { slug: rawSlug } = await params
   const slug = decodeURIComponent(rawSlug)
 
-  // Try exact slug first, then try normalizing Polish characters
-  let player = await prisma.player.findUnique({
-    where: { slug },
-  })
+  // Try exact slug first, then normalize Polish chars
+  let player = await prisma.player.findUnique({ where: { slug } })
 
   if (!player) {
-    const normalizedSlug = slug
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-    player = await prisma.player.findUnique({
-      where: { slug: normalizedSlug },
-    })
+    const POLISH: Record<string, string> = {
+      'ą':'a','ć':'c','ę':'e','ł':'l','ń':'n','ó':'o','ś':'s','ź':'z','ż':'z',
+    }
+    const normalized = slug.toLowerCase().replace(/[ąćęłńóśźż]/g, (c) => POLISH[c] || c)
+    player = await prisma.player.findUnique({ where: { slug: normalized } })
   }
 
   if (!player) return notFound()
