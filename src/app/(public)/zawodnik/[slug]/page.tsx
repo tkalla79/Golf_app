@@ -2,6 +2,8 @@ import { prisma } from '@/lib/db'
 import { PL } from '@/constants/pl'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { getPlayerSession } from '@/lib/player-auth'
+import PlayerProfileEditor from '@/components/PlayerProfileEditor'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,6 +27,9 @@ export default async function ZawodnikPage({
   }
 
   if (!player) return notFound()
+
+  const playerSession = await getPlayerSession()
+  const isLoggedIn = playerSession?.playerId === player.id
 
   const activeSeason = await prisma.season.findFirst({
     where: { status: 'ACTIVE' },
@@ -58,27 +63,17 @@ export default async function ZawodnikPage({
         </Link>
       </div>
 
-      {/* Player header */}
-      <div className="card p-8 mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
-              {player.firstName} {player.lastName}
-            </h1>
-            <div className="flex items-center gap-3 mt-2">
-              <span className="inline-block w-8 h-0.5 bg-[var(--color-accent)]"></span>
-              <span className="text-[var(--color-text-body)]/60 text-sm">Profil zawodnika</span>
-            </div>
-          </div>
-          {player.hcp !== null && (
-            <div className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-lg text-center">
-              <div className="text-xs uppercase tracking-wider text-white/60 font-semibold">HCP</div>
-              <div className="text-2xl font-bold">{Number(player.hcp).toFixed(1)}</div>
-            </div>
-          )}
-        </div>
-
-      </div>
+      {/* Player header with login/edit */}
+      <PlayerProfileEditor
+        playerId={player.id}
+        slug={player.slug}
+        firstName={player.firstName}
+        lastName={player.lastName}
+        hcp={player.hcp ? Number(player.hcp) : null}
+        avatarUrl={player.avatarUrl}
+        hasEmail={!!player.email}
+        isLoggedIn={isLoggedIn}
+      />
 
       {/* Upcoming matches */}
       <div className="card p-6 sm:p-8 mb-8">
