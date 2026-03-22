@@ -1,0 +1,7 @@
+donpapagolf.pl {
+	reverse_proxy app:3000
+}
+
+www.donpapagolf.pl {
+	redir https://donpapagolf.pl{uri} permanent
+}

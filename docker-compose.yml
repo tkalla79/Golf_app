@@ -1,8 +1,21 @@
 services:
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    restart: unless-stopped
+
   app:
     build: .
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     env_file: .env
     depends_on:
       db:
@@ -18,8 +31,6 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
-    ports:
-      - "3306:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -41,4 +52,8 @@ services:
 
 volumes:
   mysql_data:
+    driver: local
+  caddy_data:
+    driver: local
+  caddy_config:
     driver: local
