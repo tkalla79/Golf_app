@@ -37,16 +37,22 @@ async function main() {
   const adminPassword = await bcrypt.hash('admin123', 10)
 
   const admins = [
-    { email: 'admin1@karolinkagolfpark.pl', firstName: 'Admin', lastName: 'Pierwszy' },
-    { email: 'admin2@karolinkagolfpark.pl', firstName: 'Admin', lastName: 'Drugi' },
-    { email: 'admin3@karolinkagolfpark.pl', firstName: 'Admin', lastName: 'Trzeci' },
+    { email: 'slawomir.olszynski@codelabs.pl', firstName: 'Sławomir', lastName: 'Olszyński', password: '0lPDh8D0wVEdCFXy' },
+    { email: 'm.kucia@hardbeans.com', firstName: 'Marcin', lastName: 'Kucia', password: 'GS4CYegrIQYQqUAc' },
+    { email: 't.kalla@k2biznes.pl', firstName: 'Tomasz', lastName: 'Kalla', password: 'CVZBnsBFZeA14POk' },
   ]
 
   for (const admin of admins) {
+    const hash = await bcrypt.hash(admin.password, 10)
     await prisma.admin.upsert({
       where: { email: admin.email },
       update: {},
-      create: { ...admin, passwordHash: adminPassword },
+      create: {
+        email: admin.email,
+        firstName: admin.firstName,
+        lastName: admin.lastName,
+        passwordHash: hash,
+      },
     })
   }
   console.log('3 admins seeded')
