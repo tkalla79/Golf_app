@@ -34,8 +34,6 @@ export default async function ZawodnicyPage() {
               <tr>
                 <th className="text-left">{PL.standings.player}</th>
                 <th className="text-center hidden md:table-cell">{PL.standings.hcp}</th>
-                <th className="text-center hidden md:table-cell">{PL.player.email}</th>
-                <th className="text-center hidden md:table-cell">{PL.player.phone}</th>
               </tr>
             </thead>
             <tbody>
@@ -51,12 +49,6 @@ export default async function ZawodnicyPage() {
                   </td>
                   <td className="text-center hidden md:table-cell text-[var(--color-text-body)]/70">
                     {player.hcp !== null ? Number(player.hcp).toFixed(1) : '–'}
-                  </td>
-                  <td className="text-center hidden md:table-cell text-[var(--color-text-body)]/50 text-xs">
-                    {player.email || '–'}
-                  </td>
-                  <td className="text-center hidden md:table-cell text-[var(--color-text-body)]/50 text-xs">
-                    {player.phone || '–'}
                   </td>
                 </tr>
               ))}

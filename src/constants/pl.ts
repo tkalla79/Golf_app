@@ -3,7 +3,7 @@ export const PL = {
   nav: {
     groups: 'Grupy',
     players: 'Zawodnicy',
-    admin: 'Panel admina',
+    admin: 'Admin',
     login: 'Zaloguj się',
     logout: 'Wyloguj',
     dashboard: 'Dashboard',
