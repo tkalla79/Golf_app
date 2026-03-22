@@ -2,7 +2,11 @@ node_modules/
 .next/
 .git/
 .ssh/
-DOCS/
+DOCS/*.docx
+DOCS/*.xlsx
+DOCS/*.numbers
+DOCS/*.jpeg
+DOCS/*.png
 *.md
 .env
 .env.local

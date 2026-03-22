@@ -1,23 +1,35 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import * as fs from 'fs'
+import * as path from 'path'
 
 const prisma = new PrismaClient()
 
-const PLAYER_NAMES = [
-  ['Jan', 'Kowalski'], ['Piotr', 'Nowak'], ['Marek', 'Wiśniewski'], ['Tomasz', 'Wójcik'],
-  ['Krzysztof', 'Kamiński'], ['Adam', 'Lewandowski'], ['Michał', 'Zieliński'], ['Andrzej', 'Szymański'],
-  ['Robert', 'Woźniak'], ['Paweł', 'Dąbrowski'], ['Stanisław', 'Kozłowski'], ['Grzegorz', 'Jankowski'],
-  ['Jacek', 'Mazur'], ['Zbigniew', 'Kwiatkowski'], ['Jerzy', 'Krawczyk'], ['Henryk', 'Piotrowski'],
-  ['Ryszard', 'Grabowski'], ['Kazimierz', 'Nowakowski'], ['Tadeusz', 'Pawłowski'], ['Marian', 'Michalski'],
-  ['Rafał', 'Adamczyk'], ['Dariusz', 'Dudek'], ['Marcin', 'Wieczorek'], ['Artur', 'Jabłoński'],
-  ['Leszek', 'Król'], ['Bogdan', 'Majewski'], ['Wiesław', 'Olszewski'], ['Sławomir', 'Jaworski'],
-  ['Roman', 'Stępień'], ['Mirosław', 'Urbański'], ['Wojciech', 'Walczak'], ['Władysław', 'Górski'],
-  ['Czesław', 'Rutkowski'], ['Janusz', 'Michalak'], ['Zdzisław', 'Sikora'], ['Edward', 'Baran'],
-  ['Eugeniusz', 'Chmielewski'], ['Ireneusz', 'Lis'], ['Mariusz', 'Mazurek'], ['Witold', 'Kalinowski'],
-  ['Stefan', 'Wysocki'], ['Bogusław', 'Adamski'], ['Norbert', 'Pietrzak'], ['Konrad', 'Wróblewski'],
-  ['Bartosz', 'Markowski'], ['Kamil', 'Kubiak'], ['Łukasz', 'Borkowski'], ['Damian', 'Czerwiński'],
-  ['Filip', 'Sobczak'], ['Dawid', 'Zawadzki'],
-]
+interface PlayerRow {
+  firstName: string
+  lastName: string
+  email: string
+  group: number | null
+}
+
+function loadPlayersFromCSV(): PlayerRow[] {
+  const csvPath = path.join(__dirname, '..', 'DOCS', 'gracze_grupy_2026.csv')
+  const content = fs.readFileSync(csvPath, 'utf-8')
+  const lines = content.trim().split('\n').slice(1) // skip header
+
+  return lines
+    .filter((line) => line.trim())
+    .map((line) => {
+      const [firstName, lastName, email, group] = line.split(',')
+      return {
+        firstName: firstName?.trim() || '',
+        lastName: lastName?.trim() || '',
+        email: email?.trim() || '',
+        group: group?.trim() ? parseInt(group.trim()) : null,
+      }
+    })
+    .filter((p) => p.firstName)
+}
 
 async function main() {
   // Create 3 admins
@@ -38,30 +50,31 @@ async function main() {
   }
   console.log('3 admins seeded')
 
-  // Create 50 players
-  for (const [firstName, lastName] of PLAYER_NAMES) {
-    const slug = `${firstName}-${lastName}`
+  // Load players from CSV
+  const playerRows = loadPlayersFromCSV()
+  console.log(`Loaded ${playerRows.length} players from CSV`)
+
+  for (const p of playerRows) {
+    const slug = `${p.firstName}-${p.lastName}`
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/\s+/g, '-')
 
-    const hcp = parseFloat((Math.random() * 36).toFixed(1))
-
     await prisma.player.upsert({
       where: { slug },
-      update: {},
+      update: {
+        email: p.email || null,
+      },
       create: {
-        firstName,
-        lastName,
+        firstName: p.firstName,
+        lastName: p.lastName,
         slug,
-        hcp,
-        email: `${firstName.toLowerCase()}.${lastName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}@example.com`,
-        phone: `+48 ${Math.floor(500000000 + Math.random() * 100000000)}`,
+        email: p.email || null,
       },
     })
   }
-  console.log('50 players seeded')
+  console.log(`${playerRows.length} players seeded`)
 
   // Create 2026 season
   const season = await prisma.season.upsert({
@@ -82,7 +95,7 @@ async function main() {
     },
   })
 
-  // Create preliminary round with 5 groups of 10 players
+  // Create preliminary round
   const round = await prisma.round.upsert({
     where: { id: 1 },
     update: {},
@@ -98,117 +111,69 @@ async function main() {
     },
   })
 
-  const allPlayers = await prisma.player.findMany({
-    where: { active: true },
-    orderBy: { hcp: 'asc' },
-    take: 50,
-  })
+  // Create 5 groups and assign players
+  const allPlayers = await prisma.player.findMany({ where: { active: true } })
+  const playerBySlug = new Map(allPlayers.map((p) => [p.slug, p]))
 
-  // Create 5 groups
-  const groupSize = Math.ceil(allPlayers.length / 5)
-  for (let g = 0; g < 5; g++) {
-    const groupPlayers = allPlayers.slice(g * groupSize, (g + 1) * groupSize)
-    if (groupPlayers.length === 0) continue
-
+  for (let g = 1; g <= 5; g++) {
     const group = await prisma.group.upsert({
-      where: { id: g + 1 },
+      where: { id: g },
       update: {},
       create: {
         roundId: round.id,
-        name: `Grupa ${g + 1}`,
-        sortOrder: g,
+        name: `Grupa ${g}`,
+        sortOrder: g - 1,
         status: 'ACTIVE',
       },
     })
 
-    // Assign players
+    const groupPlayers = playerRows.filter((p) => p.group === g)
+
     for (const p of groupPlayers) {
+      const slug = `${p.firstName}-${p.lastName}`
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, '-')
+
+      const player = playerBySlug.get(slug)
+      if (!player) {
+        console.warn(`Player not found: ${p.firstName} ${p.lastName} (slug: ${slug})`)
+        continue
+      }
+
       await prisma.groupPlayer.upsert({
-        where: { groupId_playerId: { groupId: group.id, playerId: p.id } },
+        where: { groupId_playerId: { groupId: group.id, playerId: player.id } },
         update: {},
-        create: { groupId: group.id, playerId: p.id, hcpAtStart: p.hcp },
+        create: {
+          groupId: group.id,
+          playerId: player.id,
+          hcpAtStart: player.hcp,
+        },
       })
     }
 
-    // Create round-robin matches
-    for (let i = 0; i < groupPlayers.length; i++) {
-      for (let j = i + 1; j < groupPlayers.length; j++) {
+    // Generate round-robin matches
+    const gps = await prisma.groupPlayer.findMany({ where: { groupId: group.id } })
+    const playerIds = gps.map((gp) => gp.playerId)
+
+    for (let i = 0; i < playerIds.length; i++) {
+      for (let j = i + 1; j < playerIds.length; j++) {
         const existing = await prisma.match.findFirst({
-          where: { groupId: group.id, player1Id: groupPlayers[i].id, player2Id: groupPlayers[j].id },
+          where: { groupId: group.id, player1Id: playerIds[i], player2Id: playerIds[j] },
         })
         if (!existing) {
           await prisma.match.create({
-            data: { groupId: group.id, player1Id: groupPlayers[i].id, player2Id: groupPlayers[j].id },
+            data: { groupId: group.id, player1Id: playerIds[i], player2Id: playerIds[j] },
           })
         }
       }
     }
+
+    console.log(`Group ${g}: ${groupPlayers.length} players, ${playerIds.length * (playerIds.length - 1) / 2} matches`)
   }
 
-  console.log('Season with 5 groups of 10 players seeded (50 players total)')
-
-  // Add some sample results to group 1 for demo
-  const group1Matches = await prisma.match.findMany({
-    where: { groupId: 1 },
-    take: 5,
-  })
-
-  const results = [
-    { resultCode: '3&2', winnerId: null, isWalkover: false },
-    { resultCode: '1Up', winnerId: null, isWalkover: false },
-    { resultCode: 'Tied', winnerId: null, isWalkover: false },
-    { resultCode: '5&4', winnerId: null, isWalkover: false },
-    { resultCode: 'Walkover', winnerId: null, isWalkover: true },
-  ]
-
-  const config = {
-    scoring: { win: 3, draw: 2, loss: 1, unplayed: 0, walkover_winner: 3, walkover_loser: 0 },
-    small_points_map: {
-      'Tied': [0, 0], '1Up': [1, -1], '2Up': [2, -2], '2&1': [3, -3],
-      '3&1': [4, -4], '3&2': [5, -5], '4&2': [6, -6], '4&3': [7, -7],
-      '5&3': [8, -8], '5&4': [9, -9],
-    },
-  }
-
-  for (let i = 0; i < Math.min(group1Matches.length, results.length); i++) {
-    const match = group1Matches[i]
-    const result = results[i]
-    const isTied = result.resultCode === 'Tied'
-    const winnerId = isTied ? null : match.player1Id // player1 wins for demo
-    const isWalkover = result.isWalkover
-
-    let p1Big = 0, p2Big = 0, p1Small = 0, p2Small = 0
-
-    if (isWalkover) {
-      p1Big = config.scoring.walkover_winner
-      p2Big = config.scoring.walkover_loser
-    } else if (isTied) {
-      p1Big = config.scoring.draw
-      p2Big = config.scoring.draw
-    } else {
-      p1Big = config.scoring.win
-      p2Big = config.scoring.loss
-      const sp = (config.small_points_map as Record<string, number[]>)[result.resultCode] || [0, 0]
-      p1Small = sp[0]
-      p2Small = sp[1]
-    }
-
-    await prisma.match.update({
-      where: { id: match.id },
-      data: {
-        played: true,
-        resultCode: isWalkover ? 'Walkover' : result.resultCode,
-        winnerId,
-        isWalkover,
-        player1BigPoints: p1Big,
-        player2BigPoints: p2Big,
-        player1SmallPoints: p1Small,
-        player2SmallPoints: p2Small,
-      },
-    })
-  }
-
-  console.log('Sample results added to Group 1')
+  console.log('Season 2026 with real players seeded!')
 }
 
 main()
