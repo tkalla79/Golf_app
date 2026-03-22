@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
   // Build login URL
   const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-  const loginUrl = `${baseUrl}/auth/player?token=${token}`
+  const loginUrl = `${baseUrl}/api/auth/player/verify?token=${token}`
 
   try {
     await sendLoginEmail(player.email, loginUrl, `${player.firstName} ${player.lastName}`)

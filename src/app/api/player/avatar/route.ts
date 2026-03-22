@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   const bytes = await file.arrayBuffer()
   await writeFile(filePath, Buffer.from(bytes))
 
-  const avatarUrl = `/avatars/${filename}?t=${Date.now()}`
+  const avatarUrl = `/avatars/${filename}`
 
   await prisma.player.update({
     where: { id: session.playerId },

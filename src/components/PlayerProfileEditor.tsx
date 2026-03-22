@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import Image from 'next/image'
 
 interface Props {
   playerId: number
@@ -9,9 +8,11 @@ interface Props {
   firstName: string
   lastName: string
   hcp: number | null
+  email: string | null
+  phone: string | null
   avatarUrl: string | null
-  hasEmail: boolean
   isLoggedIn: boolean
+  isAnyPlayerLoggedIn: boolean
 }
 
 export default function PlayerProfileEditor({
@@ -20,13 +21,19 @@ export default function PlayerProfileEditor({
   firstName,
   lastName,
   hcp: initialHcp,
+  email: initialEmail,
+  phone: initialPhone,
   avatarUrl: initialAvatar,
-  hasEmail,
   isLoggedIn,
+  isAnyPlayerLoggedIn,
 }: Props) {
   const [hcp, setHcp] = useState(initialHcp !== null ? String(initialHcp) : '')
+  const [email, setEmail] = useState(initialEmail || '')
+  const [phone, setPhone] = useState(initialPhone || '')
   const [avatarUrl, setAvatarUrl] = useState(initialAvatar)
+  const [avatarKey, setAvatarKey] = useState(0)
   const [editingHcp, setEditingHcp] = useState(false)
+  const [editingContact, setEditingContact] = useState(false)
   const [saving, setSaving] = useState(false)
   const [linkSent, setLinkSent] = useState(false)
   const [linkLoading, setLinkLoading] = useState(false)
@@ -61,6 +68,26 @@ export default function PlayerProfileEditor({
     setEditingHcp(false)
   }
 
+  const handleSaveContact = async () => {
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('Nieprawidłowy adres e-mail')
+      return
+    }
+    if (phone && !/^\+?[\d\s\-()]{7,20}$/.test(phone)) {
+      setError('Nieprawidłowy numer telefonu')
+      return
+    }
+    setError('')
+    setSaving(true)
+    await fetch('/api/player/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, phone }),
+    })
+    setSaving(false)
+    setEditingContact(false)
+  }
+
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -75,6 +102,7 @@ export default function PlayerProfileEditor({
     if (res.ok) {
       const data = await res.json()
       setAvatarUrl(data.avatarUrl)
+      setAvatarKey((k) => k + 1)
     } else {
       const data = await res.json()
       setError(data.error || 'Nie udało się zapisać zdjęcia')
@@ -93,11 +121,11 @@ export default function PlayerProfileEditor({
         <div className="flex-shrink-0">
           <div className="relative w-24 h-24 rounded-full overflow-hidden bg-[var(--color-bg-section)] border-2 border-[var(--color-border)]">
             {avatarUrl ? (
-              <Image
-                src={avatarUrl}
+              <img
+                key={avatarKey}
+                src={`${avatarUrl}?v=${avatarKey}`}
                 alt={`${firstName} ${lastName}`}
-                fill
-                className="object-cover"
+                className="w-full h-full object-cover"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-[var(--color-primary)]/30">
@@ -162,33 +190,105 @@ export default function PlayerProfileEditor({
                   </button>
                 </div>
               ) : (
-                <div
-                  className={`bg-[var(--color-primary)] text-white px-6 py-3 rounded-lg text-center ${isLoggedIn ? 'cursor-pointer hover:bg-[var(--color-primary-light)] transition-colors' : ''}`}
-                  onClick={isLoggedIn ? () => setEditingHcp(true) : undefined}
-                  title={isLoggedIn ? 'Kliknij aby zmienić HCP' : undefined}
-                >
-                  <div className="text-xs uppercase tracking-wider text-white/60 font-semibold">HCP</div>
-                  <div className="text-2xl font-bold">
-                    {hcp ? parseFloat(hcp).toFixed(1) : '–'}
+                <div className="text-center">
+                  <div className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-lg">
+                    <div className="text-xs uppercase tracking-wider text-white/60 font-semibold">HCP</div>
+                    <div className="text-2xl font-bold">
+                      {hcp ? parseFloat(hcp).toFixed(1) : '–'}
+                    </div>
                   </div>
+                  {isLoggedIn && (
+                    <div className="flex justify-center gap-3 mt-2">
+                      <button
+                        onClick={() => setEditingHcp(true)}
+                        className="text-xs text-[var(--color-primary)] hover:text-[var(--color-accent)] font-semibold transition-colors"
+                      >
+                        Zmień HCP
+                      </button>
+                      <span className="text-[var(--color-border)]">|</span>
+                      <button
+                        onClick={handleLogout}
+                        className="text-xs text-[var(--color-text-body)]/40 hover:text-[var(--color-text-body)] transition-colors"
+                      >
+                        Wyloguj
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
 
-          {/* Login / Logout button */}
+          {/* Contact info */}
+          {(isLoggedIn || isAnyPlayerLoggedIn) && (
+            <div className="mt-4">
+              <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-body)]">
+                {/* Email */}
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-[var(--color-primary)]/40 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  {isLoggedIn && editingContact ? (
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="twoj@email.pl"
+                      className="px-2 py-1 border border-[var(--color-border)] rounded text-sm w-52"
+                    />
+                  ) : (
+                    <span>{email || '–'}</span>
+                  )}
+                </span>
+
+                {/* Phone */}
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-[var(--color-primary)]/40 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  {isLoggedIn && editingContact ? (
+                    <input
+                      type="text"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+48 123 456 789"
+                      className="px-2 py-1 border border-[var(--color-border)] rounded text-sm w-40"
+                    />
+                  ) : (
+                    <span>{phone || '–'}</span>
+                  )}
+                </span>
+
+                {/* Edit/Save button */}
+                {isLoggedIn && (
+                  editingContact ? (
+                    <span className="flex gap-2">
+                      <button onClick={handleSaveContact} disabled={saving} className="btn-primary text-xs px-3 py-1">
+                        {saving ? '...' : 'Zapisz'}
+                      </button>
+                      <button onClick={() => setEditingContact(false)} className="text-xs text-[var(--color-text-body)]/50">
+                        Anuluj
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => setEditingContact(true)}
+                      className="text-xs text-[var(--color-primary)] hover:text-[var(--color-accent)] font-semibold transition-colors"
+                    >
+                      Edytuj
+                    </button>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Login button */}
           <div className="mt-4">
-            {isLoggedIn ? (
-              <button
-                onClick={handleLogout}
-                className="text-xs text-[var(--color-text-body)]/40 hover:text-[var(--color-text-body)] transition-colors"
-              >
-                Wyloguj się
-              </button>
-            ) : hasEmail ? (
+            {isLoggedIn ? null : !!email ? (
               linkSent ? (
                 <p className="text-sm text-[var(--color-success)] font-medium">
-                  Link logowania został wysłany na Twój adres e-mail. Sprawdź skrzynkę i kliknij w link.
+                  Odnośnik do logowania został wysłany na Twój adres e-mail. Sprawdź skrzynkę i kliknij w link.
                 </p>
               ) : (
                 <button

@@ -9,13 +9,23 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { hcp } = body
+  const data: Record<string, unknown> = {}
+
+  if ('hcp' in body) {
+    data.hcp = body.hcp !== undefined && body.hcp !== null && body.hcp !== '' ? parseFloat(body.hcp) : null
+  }
+
+  if ('email' in body) {
+    data.email = body.email?.trim() || null
+  }
+
+  if ('phone' in body) {
+    data.phone = body.phone?.trim() || null
+  }
 
   const player = await prisma.player.update({
     where: { id: session.playerId },
-    data: {
-      hcp: hcp !== undefined && hcp !== null && hcp !== '' ? parseFloat(hcp) : null,
-    },
+    data,
   })
 
   return NextResponse.json(player)

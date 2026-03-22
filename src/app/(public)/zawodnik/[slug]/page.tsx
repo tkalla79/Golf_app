@@ -70,9 +70,11 @@ export default async function ZawodnikPage({
         firstName={player.firstName}
         lastName={player.lastName}
         hcp={player.hcp ? Number(player.hcp) : null}
+        email={player.email}
+        phone={player.phone}
         avatarUrl={player.avatarUrl}
-        hasEmail={!!player.email}
         isLoggedIn={isLoggedIn}
+        isAnyPlayerLoggedIn={!!playerSession}
       />
 
       {/* Upcoming matches */}

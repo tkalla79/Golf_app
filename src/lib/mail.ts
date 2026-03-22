@@ -11,9 +11,11 @@ const transporter = nodemailer.createTransport({
 })
 
 export async function sendLoginEmail(to: string, loginUrl: string, playerName: string) {
+  const recipient = process.env.NODE_ENV === 'production' ? to : (process.env.SMTP_DEV_OVERRIDE || to)
+
   await transporter.sendMail({
     from: process.env.SMTP_FROM || 'Don Papa Match Play <noreply@donpapagolf.pl>',
-    to,
+    to: recipient,
     subject: 'Zaloguj się - Don Papa Match Play',
     html: `
       <div style="font-family: 'Lato', Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 30px;">

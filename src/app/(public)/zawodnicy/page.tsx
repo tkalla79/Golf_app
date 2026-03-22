@@ -42,8 +42,17 @@ export default async function ZawodnicyPage() {
                   <td>
                     <Link
                       href={`/zawodnik/${player.slug}`}
-                      className="font-semibold text-[var(--color-text-dark)] hover:text-[var(--color-primary)] transition-colors"
+                      className="flex items-center gap-3 font-semibold text-[var(--color-text-dark)] hover:text-[var(--color-primary)] transition-colors"
                     >
+                      <div className="w-8 h-8 rounded-full overflow-hidden bg-[var(--color-bg-section)] border border-[var(--color-border)] flex-shrink-0">
+                        {player.avatarUrl ? (
+                          <img src={player.avatarUrl} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-xs font-bold text-[var(--color-primary)]/30">
+                            {player.firstName[0]}{player.lastName[0]}
+                          </div>
+                        )}
+                      </div>
                       {player.firstName} {player.lastName}
                     </Link>
                   </td>
