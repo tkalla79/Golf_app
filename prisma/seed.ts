@@ -127,12 +127,7 @@ async function main() {
     const groupPlayers = playerRows.filter((p) => p.group === g)
 
     for (const p of groupPlayers) {
-      const slug = `${p.firstName}-${p.lastName}`
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/\s+/g, '-')
-
+      const slug = createSlug(p.firstName, p.lastName)
       const player = playerBySlug.get(slug)
       if (!player) {
         console.warn(`Player not found: ${p.firstName} ${p.lastName} (slug: ${slug})`)
