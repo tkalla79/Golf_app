@@ -6,12 +6,13 @@ import { usePathname } from 'next/navigation'
 import { PL } from '@/constants/pl'
 import { useState } from 'react'
 
-export default function Navbar() {
+export default function Navbar({ hasPlayoff = false }: { hasPlayoff?: boolean }) {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
 
   const links = [
     { href: '/grupy', label: PL.nav.groups },
+    ...(hasPlayoff ? [{ href: '/playoff', label: PL.nav.playoff }] : []),
     { href: '/zawodnicy', label: PL.nav.players },
   ]
 

@@ -1,14 +1,24 @@
 import Navbar from '@/components/Navbar'
 import Image from 'next/image'
+import { prisma } from '@/lib/db'
 
-export default function PublicLayout({
+export default async function PublicLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const playoffRound = await prisma.round.findFirst({
+    where: {
+      type: 'PLAYOFF',
+      season: { status: 'ACTIVE' },
+    },
+    select: { id: true },
+  })
+  const hasPlayoff = !!playoffRound
+
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <Navbar hasPlayoff={hasPlayoff} />
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10">
         {children}
       </main>
