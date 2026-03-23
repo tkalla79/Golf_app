@@ -57,17 +57,18 @@ ssh -i .ssh/karolinkagolfpark root@209.38.211.80 \
 ## .env na serwerze (/root/Golf_app/.env)
 
 ```
-DATABASE_URL=mysql://donpapa:DpMp2026_Pr0d!Secure@db:3306/donpapa
-DB_ROOT_PASSWORD=R00tPr0d2026!Secure
-DB_PASSWORD=DpMp2026_Pr0d!Secure
-NEXTAUTH_SECRET=<wygenerowany>
+DATABASE_URL=mysql://donpapa:<HASLO_DB>@db:3306/donpapa
+DB_ROOT_PASSWORD=<HASLO_ROOT>
+DB_PASSWORD=<HASLO_DB>
+NEXTAUTH_SECRET=<wygenerowany: openssl rand -base64 32>
 NEXTAUTH_URL=https://donpapagolf.pl
 SMTP_HOST=smtp-relay.brevo.com
 SMTP_PORT=587
-SMTP_USER=a5b759001@smtp-brevo.com
+SMTP_USER=<login Brevo>
 SMTP_PASS=<klucz SMTP Brevo>
 SMTP_FROM=Don Papa Match Play <noreply@donpapagolf.pl>
 ```
+Prawdziwe wartości na serwerze w `/root/Golf_app/.env` - nie wrzucaj do repo!
 
 ## Operacje na bazie
 
