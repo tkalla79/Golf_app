@@ -1,5 +1,8 @@
 donpapagolf.pl {
-	reverse_proxy app:3000
+	reverse_proxy app:3000 {
+		header_up X-Forwarded-Host donpapagolf.pl
+		header_up X-Forwarded-Proto https
+	}
 }
 
 www.donpapagolf.pl {
