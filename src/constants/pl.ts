@@ -4,6 +4,7 @@ export const PL = {
     groups: 'Grupy',
     players: 'Zawodnicy',
     playoff: 'Play-off',
+    news: 'Aktualności',
     admin: 'Admin',
     login: 'Zaloguj się',
     logout: 'Wyloguj',
