@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import Link from 'next/link'
+import SendRemindersButton from '@/components/SendRemindersButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -64,6 +65,17 @@ export default async function AdminDashboard() {
           <div className="text-4xl font-bold text-[var(--color-primary)] mt-2">{adminCount}</div>
           <div className="text-xs text-[var(--color-accent)] font-semibold mt-3">Zarządzaj &rarr;</div>
         </Link>
+      </div>
+
+      {/* Reminders */}
+      <div className="card p-6 mb-10">
+        <h2 className="text-lg font-bold text-[var(--color-primary)] mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          Przypomnienia o meczach
+        </h2>
+        <p className="text-sm text-[var(--color-text-body)]/60 mb-4">
+          Wyślij emaile z przypomnieniem do zawodników, których mecze mają termin za 7 lub 2 dni.
+        </p>
+        <SendRemindersButton />
       </div>
 
       {/* Rounds overview */}

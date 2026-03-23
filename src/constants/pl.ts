@@ -96,6 +96,14 @@ export const PL = {
     playoffExists: 'Play-off już istnieje.',
     bye: 'BYE',
   },
+  reminders: {
+    send: 'Wyślij przypomnienia',
+    sending: 'Wysyłanie...',
+    sent: 'Wysłano',
+    emailsSent: 'emaili wysłanych',
+    noReminders: 'Brak przypomnień do wysłania (terminy nie wypadają za 7 lub 2 dni)',
+    errors: 'błędów',
+  },
   common: {
     save: 'Zapisz',
     cancel: 'Anuluj',
