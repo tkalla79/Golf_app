@@ -1,432 +1,161 @@
-# Don Papa Match Play - Liga Golfowa MVP
+# Don Papa Match Play - Liga Golfowa
 
 ## Context
 
-Karolinka Golf Park (Kamień Śląski) prowadzi ligę golfową "Don Papa Match Play". Dotychczas wyniki zarządzane były ręcznie (WordPress + WhatsApp). Budujemy nową aplikację webową do zarządzania rozgrywkami ligowymi - MVP na sezon 2026, deadline: **poniedziałek 23 marca** (5 dni).
+Aplikacja webowa do zarządzania rozgrywkami ligowymi "Don Papa Match Play" w Karolinka Golf Park (Kamień Śląski). Zastępuje ręczne zarządzanie przez WordPress + WhatsApp.
 
-Regulamin 2026 znajduje się w `DOCS/Regulamin Rozgrywek Ligi Don Papa Match Play 2026.docx`.
-
-Aktualna (stara) strona z wynikami: http://dpmp.opti-net.pl/
-Strona klubu: https://karolinkagolfpark.pl
+- **Produkcja:** https://donpapagolf.pl
+- **Repo:** git@github.com:tkalla79/Golf_app.git
+- **Deploy:** patrz `DEPLOY.md`
+- **Regulamin 2026:** `DOCS/Regulamin Rozgrywek Ligi Don Papa Match Play 2026.docx`
+- **Dane graczy:** `DOCS/gracze_grupy_2026.csv`
 
 ---
 
 ## Tech Stack
 
-| Warstwa | Wybór | Uzasadnienie |
-|---------|-------|--------------|
-| **Frontend** | Next.js 14 (App Router) + Tailwind CSS | SSR dla stron publicznych, React dla admina, jeden projekt = szybsze MVP |
-| **Backend** | Next.js API Routes + Prisma ORM | Brak osobnego serwera, type-safe MySQL, migracje |
-| **Auth** | NextAuth.js (Credentials provider) | Proste email+hasło dla adminów, rozszerzalne o login graczy |
-| **Baza** | MySQL 8 | Wymaganie klienta |
-| **Deploy** | Docker Compose na Scaleway VPS | Persistent volume dla MySQL, single `docker compose up` |
+| Warstwa | Wybór |
+|---------|-------|
+| **Frontend** | Next.js 16 (App Router) + Tailwind CSS |
+| **Backend** | Next.js API Routes + Prisma 6 ORM |
+| **Auth admin** | NextAuth.js v5 (Credentials provider) |
+| **Auth gracz** | Magic link via email (Brevo SMTP) + JWT cookie |
+| **Baza** | MySQL 8 |
+| **Deploy** | Docker (build lokalnie) + Caddy (SSL) na Scaleway VPS |
+| **Branding** | Kolory Karolinki (#134a56, #d5b665), fonty Raleway + Lato |
 
 ---
 
 ## Zasady ligi 2026 (skrót)
 
 ### Format
-- Match Play brutto (R&A Rules)
-- Pole: Karolinka Golf Park, 9 lub 18 dołków zależnie od fazy
+- Match Play brutto (R&A Rules), pole KGP, 9 lub 18 dołków
 
 ### Struktura sezonu
-1. **Runda wstępna** (22.03 - 24.05): 5 grup, round-robin, 9 dołków
-2. **Runda 2** (25.05 - 21.06): Regruping (A=zwycięzcy, B=drudzy, itd.)
-3. **Runda 3** (22.06 - 19.07): Kolejny regruping
-4. **Runda 4** (20.07 - 16.08): Kolejny regruping
-5. **Play-off** (17.08 - 31.10): 3 drabinki (1-16: 18 dołków, 17-32: 9/18, 33-48: 9)
+1. **Runda wstępna** (22.03 - 24.05): 5 grup po 10, round-robin
+2. **Runda 2-4**: regruping (zwycięzcy → Grupa A, drudzy → B, itd.)
+3. **Play-off** (17.08 - 31.10): 3 drabinki (1-16, 17-32, 33-48)
 
-### Punktacja ("duże punkty")
-- Wygrana: 3 pkt
-- Remis: 2 pkt
-- Porażka: 1 pkt
-- Nierozegrany: 0 pkt
+### Punktacja
+- Wygrana: 3 pkt, Remis: 2 pkt, Porażka: 1 pkt, Nierozegrany: 0
 - Walkower: zwycięzca 3, przegrany 0
-
-### "Małe punkty" (tiebreaker z marginesu wygranej)
-- Tied: 0/0
-- 1Up: +1/-1
-- 2Up: +2/-2
-- 2&1: +3/-3
-- 3&1: +4/-4
-- 3&2: +5/-5
-- 4&2: +6/-6
-- 4&3: +7/-7
-- 5&3: +8/-8
-- 5&4: +9/-9
-- Walkower: brak małych punktów
-
-### Tiebreakery (kolejność)
-1. Bezpośredni mecz (2 graczy)
-2. "Mała tabelka" (3+ graczy - mecze tylko między sobą)
-3. Suma małych punktów
-4. HCP na start rundy (wyższy HCP = wyższa pozycja)
-5. Losowanie przez Zarząd Ligi
+- "Małe punkty" od marginesu wygranej (1Up=±1, 2Up=±2, ..., 5&4=±9)
+- Tiebreakery: h2h → mała tabelka → małe punkty → HCP → losowanie
 
 ### Limit: 50 zawodników, wpisowe 400 PLN
 
 ---
 
-## MVP Features
-
-### Panel admina
-- 3 początkowych adminów, admin może dodawać kolejnych
-- CRUD graczy (imię, nazwisko, email, telefon)
-- Tworzenie sezonu z konfiguracją (zasady punktacji w JSON)
-- Tworzenie rund, grup, przypisywanie graczy do grup
-- Auto-generowanie par meczowych (round-robin) przy tworzeniu grupy
-- Wprowadzanie wyników meczów (np. "3&2", "1Up", "Tied", "Walkover")
-- System auto-oblicza duże i małe punkty z wyniku
-- Po zakończeniu rundy: auto-generowanie grup kolejnej rundy (admin zatwierdza)
+## Co jest zrobione (v0.0.3)
 
 ### Strony publiczne
-- Lista graczy (`/zawodnicy`)
-- Przegląd grup aktywnej rundy (`/grupy`) - mini tabele
-- Szczegóły grupy (`/grupa/[id]`) - pełna tabela + wyniki meczów
-- Profil gracza (`/zawodnik/[slug]`, np. `/zawodnik/jan-kowalski`):
-  - Nadchodzące mecze (nierozegrane w bieżącej fazie) - u góry
-  - Historia wyników w bieżącym sezonie - poniżej
+- `/grupy` - przegląd grup aktywnej rundy z mini tabelami
+- `/grupa/[id]` - pełna tabela + mecze (przełącznik Lista/Tabelka macierzowa)
+- `/zawodnicy` - lista graczy z avatarami
+- `/zawodnik/[slug]` - profil: avatar, HCP, nadchodzące mecze, historia
 
-### Poza MVP (na później)
-- Drabinki play-off (play-off zaczyna się w sierpniu)
-- Login gracza (schemat DB gotowy, password_hash nullable)
-- Powiadomienia (email/SMS/WhatsApp)
-- Liga damska
-- Archiwum poprzednich sezonów
+### Panel admina (`/admin`)
+- Login email+hasło (3 adminy: codelabs, hardbeans, k2biznes)
+- Dashboard z przeglądem sezonu
+- CRUD graczy (imię, nazwisko, email, telefon, HCP)
+- Zarządzanie sezonem: tworzenie rund, grup, przypisywanie graczy
+- Generowanie par meczowych (round-robin)
+- Wprowadzanie wyników z auto-obliczaniem punktów
+- Generowanie grup kolejnej rundy z podglądem
+- Usuwanie rund (z potwierdzeniem)
+- Zarządzanie adminami
 
----
+### Logowanie gracza
+- Magic link: gracz klika "Zaloguj się" → email z linkiem → klik → zalogowany
+- Po zalogowaniu: edycja HCP, upload avatara, edycja email/telefonu
+- Dane kontaktowe widoczne dla zalogowanych graczy (cudze profile: readonly)
+- Brevo SMTP do wysyłki maili
 
-## Struktura projektu
-
-```
-karolinkagolfpark/
-├── docker-compose.yml
-├── Dockerfile
-├── .env.example
-├── .gitignore
-├── .dockerignore
-├── DOCS/                           # regulaminy - NIE w buildzie Docker
-├── prisma/
-│   ├── schema.prisma
-│   ├── seed.ts
-│   └── migrations/
-├── src/
-│   ├── app/
-│   │   ├── layout.tsx              # root layout, branding
-│   │   ├── page.tsx                # redirect to /grupy
-│   │   ├── globals.css
-│   │   ├── (public)/
-│   │   │   ├── zawodnicy/page.tsx  # lista graczy
-│   │   │   ├── zawodnik/[slug]/page.tsx  # profil gracza
-│   │   │   ├── grupy/page.tsx      # przegląd grup aktywnej rundy
-│   │   │   ├── grupa/[id]/page.tsx # grupa: tabela + wyniki
-│   │   │   └── layout.tsx
-│   │   ├── admin/
-│   │   │   ├── layout.tsx          # auth guard + admin nav
-│   │   │   ├── page.tsx            # dashboard
-│   │   │   ├── zawodnicy/page.tsx  # CRUD graczy
-│   │   │   ├── sezon/[id]/page.tsx # zarządzanie sezonem
-│   │   │   ├── grupa/[id]/page.tsx # wprowadzanie wyników
-│   │   │   ├── generuj-rundy/page.tsx  # generowanie grup kolejnej rundy
-│   │   │   └── uzytkownicy/page.tsx    # zarządzanie adminami
-│   │   └── api/
-│   │       ├── auth/[...nextauth]/route.ts
-│   │       ├── players/route.ts          # GET list, POST create
-│   │       ├── players/[id]/route.ts     # GET, PUT, DELETE
-│   │       ├── players/[id]/matches/route.ts
-│   │       ├── seasons/route.ts
-│   │       ├── seasons/current/route.ts
-│   │       ├── rounds/[id]/groups/route.ts
-│   │       ├── rounds/[id]/generate-groups/route.ts
-│   │       ├── rounds/[id]/approve-groups/route.ts
-│   │       ├── groups/[id]/route.ts
-│   │       ├── groups/[id]/standings/route.ts
-│   │       ├── groups/[id]/matches/route.ts
-│   │       ├── matches/[id]/result/route.ts
-│   │       └── admins/route.ts
-│   ├── lib/
-│   │   ├── db.ts                   # Prisma client singleton
-│   │   ├── auth.ts                 # NextAuth config
-│   │   ├── scoring.ts              # duże/małe punkty z wyniku meczu
-│   │   ├── standings.ts            # obliczanie tabeli + tiebreakery
-│   │   ├── group-generator.ts      # generowanie grup kolejnej rundy
-│   │   └── match-results.ts        # parsowanie wyników
-│   ├── components/
-│   │   ├── ui/                     # Button, Input, Table, Modal, Badge
-│   │   ├── StandingsTable.tsx
-│   │   ├── MatchResultForm.tsx
-│   │   ├── MatchResultBadge.tsx
-│   │   ├── GroupCard.tsx
-│   │   ├── PlayerCard.tsx
-│   │   └── Navbar.tsx
-│   └── constants/
-│       └── pl.ts                   # polskie stringi UI
-├── tailwind.config.ts
-├── next.config.js
-├── tsconfig.json
-└── package.json
-```
+### Infrastruktura
+- Docker: Caddy (SSL) + Next.js + MySQL z persistent volume
+- Build lokalnie (serwer za mały na build), upload gotowych images
+- Seed z prawdziwymi graczami z CSV
 
 ---
 
 ## Schemat bazy danych
 
-### admins (osobna tabela — admin i gracz mogą być tą samą osobą z tym samym emailem)
-- `id` INT PK AUTO_INCREMENT
-- `email` VARCHAR(255) UNIQUE NOT NULL
-- `password_hash` VARCHAR(255) NOT NULL
-- `first_name` VARCHAR(100) NOT NULL
-- `last_name` VARCHAR(100) NOT NULL
-- `created_at`, `updated_at` TIMESTAMP
+### admins
+- id, email (unique), password_hash, first_name, last_name, created_at, updated_at
 
 ### players
-- `id` INT PK AUTO_INCREMENT
-- `first_name` VARCHAR(100) NOT NULL
-- `last_name` VARCHAR(100) NOT NULL
-- `email` VARCHAR(255) NULL — opcjonalny, nie każdy gracz ma email
-- `phone` VARCHAR(20) NULL
-- `password_hash` VARCHAR(255) NULL — gotowe na przyszły login gracza
-- `slug` VARCHAR(255) UNIQUE NOT NULL — "jan-kowalski" do URL
-- `hcp` DECIMAL(4,1) NULL
-- `active` BOOLEAN DEFAULT TRUE
-- `created_at`, `updated_at` TIMESTAMP
+- id, first_name, last_name, email (nullable), phone (nullable), password_hash (nullable)
+- slug (unique), hcp (decimal nullable), avatar_url (nullable)
+- login_token (unique nullable), login_token_expiry (nullable)
+- active (bool), created_at, updated_at
 
 ### seasons
-- `id` INT PK AUTO_INCREMENT
-- `name` VARCHAR(100) NOT NULL — "Don Papa Match Play 2026"
-- `year` INT NOT NULL
-- `status` ENUM('draft', 'active', 'completed') DEFAULT 'draft'
-- `config` JSON NULL — zasady punktacji per sezon (patrz niżej)
-- `created_at`, `updated_at` TIMESTAMP
-
-**Przykład config JSON (2026):**
-```json
-{
-  "scoring": {
-    "win": 3, "draw": 2, "loss": 1, "unplayed": 0,
-    "walkover_winner": 3, "walkover_loser": 0
-  },
-  "small_points_map": {
-    "Tied": [0, 0], "1Up": [1, -1], "2Up": [2, -2],
-    "2&1": [3, -3], "3&1": [4, -4], "3&2": [5, -5],
-    "4&2": [6, -6], "4&3": [7, -7], "5&3": [8, -8], "5&4": [9, -9]
-  }
-}
-```
+- id, name, year, status (DRAFT/ACTIVE/COMPLETED), config (JSON - zasady punktacji), timestamps
 
 ### rounds
-- `id` INT PK AUTO_INCREMENT
-- `season_id` INT FK -> seasons.id
-- `name` VARCHAR(100) NOT NULL — "Runda eliminacyjna", "Runda 2"
-- `round_number` INT NOT NULL
-- `type` ENUM('round_robin', 'playoff') DEFAULT 'round_robin'
-- `holes` INT DEFAULT 9
-- `date_start`, `date_end` DATE NULL
-- `status` ENUM('draft', 'active', 'completed') DEFAULT 'draft'
-- `config` JSON NULL
-- `created_at` TIMESTAMP
+- id, season_id, name, round_number, type (ROUND_ROBIN/PLAYOFF), holes, date_start, date_end, status, config
 
 ### groups
-- `id` INT PK AUTO_INCREMENT
-- `round_id` INT FK -> rounds.id
-- `name` VARCHAR(50) NOT NULL — "Grupa A", "Grupa B"
-- `sort_order` INT DEFAULT 0
-- `status` ENUM('draft', 'approved', 'active', 'completed') DEFAULT 'draft'
-- `created_at` TIMESTAMP
+- id, round_id, name, sort_order, status (DRAFT/APPROVED/ACTIVE/COMPLETED)
 
 ### group_players
-- `id` INT PK AUTO_INCREMENT
-- `group_id` INT FK -> groups.id
-- `player_id` INT FK -> players.id
-- `hcp_at_start` DECIMAL(4,1) NULL — snapshot HCP do tiebreakera
-- `final_position` INT NULL — ustawiane po zakończeniu grupy
-- UNIQUE(group_id, player_id)
-- `created_at` TIMESTAMP
+- id, group_id, player_id (unique pair), hcp_at_start, final_position
 
 ### matches
-- `id` INT PK AUTO_INCREMENT
-- `group_id` INT FK -> groups.id
-- `player1_id` INT FK -> players.id
-- `player2_id` INT FK -> players.id
-- `result_code` VARCHAR(20) NULL — "3&2", "1Up", "Tied", "Walkover"
-- `winner_id` INT NULL FK -> players.id
-- `player1_big_points` INT DEFAULT 0
-- `player2_big_points` INT DEFAULT 0
-- `player1_small_points` INT DEFAULT 0
-- `player2_small_points` INT DEFAULT 0
-- `played` BOOLEAN DEFAULT FALSE
-- `is_walkover` BOOLEAN DEFAULT FALSE
-- `notes` TEXT NULL
-- `created_at`, `updated_at` TIMESTAMP
-
-### playoff_brackets (schemat na przyszłość)
-- `id` INT PK, `round_id` FK, `name`, `position_range_start`, `position_range_end`, `holes`
-
-### playoff_matches (schemat na przyszłość)
-- `id` INT PK, `bracket_id` FK, `stage` ENUM('R16','QF','SF','F'), `match_order`
-- `player1_id`, `player2_id`, `winner_id`, `result_code`
-- `is_sudden_death` BOOLEAN, `next_match_id` FK (self-ref)
+- id, group_id, player1_id, player2_id, result_code, winner_id
+- player1/2_big_points, player1/2_small_points
+- played, is_walkover, notes
 
 ---
 
 ## Kluczowa logika biznesowa
 
-### Scoring (`lib/scoring.ts`)
-1. Admin wpisuje wynik np. "3&2" + wskazuje zwycięzcę
-2. System odczytuje `season.config.small_points_map["3&2"]` -> `[5, -5]`
-3. Przypisuje big points: zwycięzca 3, przegrany 1 (z `season.config.scoring`)
-4. Walkower: zwycięzca 3, przegrany 0, małe punkty = 0
-5. Remis: obaj 2, małe punkty = 0
-6. Punkty zapisywane bezpośrednio na rekordzie meczu (pre-computed)
+### `src/lib/scoring.ts`
+- Oblicza duże i małe punkty z wyniku meczu
+- Config punktacji per sezon (z `season.config` JSON)
 
-### Standings (`lib/standings.ts`)
-1. SUM big_points i small_points z meczów gracza w grupie
-2. Sortowanie: big_points DESC
-3. Tiebreakery (w kolejności):
-   - Bezpośredni mecz (2 graczy)
-   - "Mała tabelka" (3+ graczy - mecze tylko między sobą)
-   - Suma małych punktów
-   - HCP na start rundy (wyższy HCP = wyższa pozycja)
-   - Flaga "wymaga ręcznego rozstrzygnięcia" -> admin ustawia final_position
+### `src/lib/standings.ts`
+- Tabela grupy z tiebreakers: h2h, mała tabelka, małe punkty, HCP
 
-### Group Generator (`lib/group-generator.ts`)
-1. Po zakończeniu rundy N zbierz wyniki wszystkich grup
-2. Pozycja 1 z każdej grupy -> Grupa A rundy N+1
-3. Pozycja 2 -> Grupa B, itd.
-4. Generuj pary meczowe round-robin w każdej grupie
-5. Grupy tworzone ze statusem `draft` -> admin przegląda i zatwierdza
+### `src/lib/group-generator.ts`
+- Auto-generowanie grup kolejnej rundy (pozycja 1 → Grupa A, itd.)
 
-### MatchResultForm (UI, modal)
-1. Pokaż: Gracz A vs Gracz B
-2. Toggle "Walkower?" -> jeśli tak, wybierz zwycięzcę, zapisz
-3. Radio: Zwycięzca A / Zwycięzca B / Remis
-4. Jeśli zwycięzca: dropdown z wynikami (1Up, 2Up, 2&1, 3&1, 3&2, 4&2, 4&3, 5&3, 5&4)
-5. Podgląd obliczonych punktów przed zapisem
-6. "Zapisz" -> API -> przeliczenie tabeli na stronie
+### `src/lib/slug.ts`
+- Tworzenie slugów z polskich znaków (Ł→L, ś→s, etc.)
+
+### `src/lib/player-auth.ts`
+- JWT session cookie dla zalogowanych graczy (30 dni)
+
+### `src/lib/mail.ts`
+- Wysyłka maili logowania przez Brevo SMTP
 
 ---
 
-## Docker
+## Do zrobienia (backlog)
 
-### docker-compose.yml
-```yaml
-services:
-  app:
-    build: .
-    ports: ["3000:3000"]
-    env_file: .env
-    depends_on:
-      db: { condition: service_healthy }
-    restart: unless-stopped
+### Priorytet wysoki
+- [ ] Drabinki play-off (3 bracketów: 1-16, 17-32, 33-48)
+- [ ] Docker volume dla avatarów (teraz kasują się przy recreate kontenera)
+- [ ] Archiwum poprzednich sezonów
 
-  db:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: donpapa
-      MYSQL_USER: donpapa
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - mysql_data:/var/lib/mysql    # PERSISTENT VOLUME - przetrwa rebuild/restart
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
+### Priorytet średni
+- [ ] Powiadomienia email o zbliżającym się terminie meczu
+- [ ] Hasło gracza (oprócz magic link)
+- [ ] Admin: edycja konfiguracji sezonu (scoring) przez UI
 
-volumes:
-  mysql_data:
-    driver: local
-```
-
-### Dockerfile (multi-stage)
-```dockerfile
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npx prisma generate
-RUN npm run build
-
-FROM node:20-alpine AS runner
-WORKDIR /app
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/prisma ./prisma
-EXPOSE 3000
-CMD ["node", "server.js"]
-```
-
----
-
-## Branding
-
-- Główny kolor: `#0a632f` (zielony Karolinki)
-- Akcent: `#dd9933` (złoty)
-- Tło: jasne, białe
-- Responsywny: desktop + mobile
-- Język: polski
-
----
-
-## Harmonogram (5 dni)
-
-### Dzień 1 (śr 18.03) - Fundament
-- [x] Init Next.js + TypeScript + Tailwind
-- [ ] Prisma schema + migracje MySQL
-- [ ] Docker Compose (app + MySQL z persistent volume)
-- [ ] NextAuth (credentials, admin login)
-- [ ] Seed: 3 adminy, testowi gracze
-- [ ] Layout: Navbar, kolory Karolinki, polskie stringi
-- [ ] Strona logowania admina
-
-### Dzień 2 (czw 19.03) - Admin CRUD + logika
-- [ ] Admin: CRUD graczy (tabela + formularz)
-- [ ] Admin: Tworzenie sezonu z config JSON
-- [ ] Admin: Tworzenie rund, grup, przypisywanie graczy
-- [ ] Auto-generowanie par meczowych (round-robin)
-- [ ] `scoring.ts` - obliczanie punktów z wyniku meczu
-- [ ] Admin: MatchResultForm (modal do wprowadzania wyników)
-- [ ] API endpoints
-
-### Dzień 3 (pt 20.03) - Tabele + strony publiczne
-- [ ] `standings.ts` - obliczanie tabeli z tiebreakers
-- [ ] Admin: strona grupy z tabelą live + wprowadzanie wyników
-- [ ] Publiczne: /grupy
-- [ ] Publiczne: /grupa/[id]
-- [ ] Publiczne: /zawodnicy
-- [ ] Responsive styling
-
-### Dzień 4 (sob 21.03) - Profile graczy + generowanie grup
-- [ ] Publiczne: /zawodnik/[slug] (nadchodzące mecze + historia)
-- [ ] Admin: Generowanie grup kolejnej rundy (podgląd + zatwierdzenie)
-- [ ] Admin: Zarządzanie adminami
-- [ ] Edge cases: walkover, nierozegrane mecze
-- [ ] Mobile responsive polish
-
-### Dzień 5 (nd 22.03) - Testy + deploy
-- [ ] Testy z realistycznymi danymi (48 graczy, 5 grup)
-- [ ] Bugfixy
-- [ ] Deploy na Scaleway VPS (Docker)
-- [ ] SSL (Caddy reverse proxy + Let's Encrypt)
-- [ ] Seed adminów na produkcji
-- [ ] Końcowy polish UI
-
-**Bufor:** Poniedziałek 23.03 = deadline.
+### Priorytet niski
+- [ ] Liga damska
+- [ ] Integracja z WhatsApp
+- [ ] PWA / mobile app
 
 ---
 
 ## Kluczowe decyzje
 
 1. **Season config jako JSON** - zasady punktacji per sezon, zmiana reguł = nowy wpis z innym config
-2. **Pre-computed points** na rekordzie meczu - nie liczymy za każdym razem
-3. **Next.js API Routes jako backend** - wystarczy dla 48 graczy
-4. **Osobna tabela admins** - adminy oddzielone od graczy, ten sam email może być w obu tabelach. Przyszły login gracza = password_hash w players (nullable)
-5. **Brak daty meczu** - tylko status played/unplayed
-6. **DOCS/ nie trafia do buildu Docker** (.dockerignore)
-7. **.ssh/ nie trafia do repo** (.gitignore)
-8. **Instrukcje deploy** - pełna dokumentacja w `DEPLOY.md` (serwer, Docker, migracje, logi, restart)
+2. **Pre-computed points** na rekordzie meczu - obliczane raz przy zapisie wyniku
+3. **Osobna tabela admins** - admin i gracz mogą mieć ten sam email bez konfliktu
+4. **Build lokalnie, deploy gotowych images** - serwer ma za mało RAM na build
+5. **Magic link zamiast hasła** - prostsze dla graczy, token 1h, sesja 30 dni
+6. **Avatary przez API route** - standalone Next.js nie serwuje plików dodanych po buildzie
+7. **NIGDY nie resetuj bazy na produkcji** - `migrate` tylko pushuje schemat, `seed` jest osobny i destrukcyjny

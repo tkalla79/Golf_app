@@ -1,141 +1,138 @@
 # Deploy - Don Papa Match Play
 
-## Serwer
+## Serwer produkcyjny
 
+- **Domena:** https://donpapagolf.pl
 - **IP:** 209.38.211.80
 - **User:** root
-- **SSH key:** `.ssh/karolinkagolfpark` (ten sam co do GitHub)
-- **Aplikacja:** http://209.38.211.80:3000
+- **SSH key:** `.ssh/karolinkagolfpark` (w katalogu projektu, ten sam co do GitHub)
+- **Repo:** git@github.com:tkalla79/Golf_app.git
 
 ## Szybki deploy (po zmianach w kodzie)
 
+**UWAGA: Serwer ma za mało RAM na budowanie obrazów. Budujemy lokalnie i wrzucamy gotowe.**
+
 ```bash
-# Z lokalnej maszyny:
+# 1. Commit i push
+git add -A && git commit -m "opis zmian" && git push
+
+# 2. Build lokalnie (linux/amd64 bo serwer to x86)
+docker build --platform linux/amd64 -t donpapa-app:latest .
+docker save donpapa-app:latest | gzip > /tmp/donpapa-app.tar.gz
+
+# 3. Upload na serwer
+scp -i .ssh/karolinkagolfpark /tmp/donpapa-app.tar.gz root@209.38.211.80:/tmp/
+
+# 4. Na serwerze: załaduj obraz i zrestartuj
 ssh -i .ssh/karolinkagolfpark root@209.38.211.80 \
-  'cd /root/Golf_app && git pull && docker compose up -d --build'
+  'gunzip -c /tmp/donpapa-app.tar.gz | docker load && rm /tmp/donpapa-app.tar.gz && \
+   cd /root/Golf_app && git pull && \
+   docker compose -f /root/Golf_app/docker-compose.yml --env-file /root/Golf_app/.env up -d'
 ```
 
-Cały proces (pull + build + restart) trwa ~1-2 minuty.
-
-## Pełny deploy od zera
-
-### 1. Wymagania na serwerze
-
-Docker musi być zainstalowany:
+Jeśli zmieniłeś schemat bazy (prisma/schema.prisma), po restarcie uruchom migrację:
 ```bash
-ssh -i .ssh/karolinkagolfpark root@209.38.211.80
-curl -fsSL https://get.docker.com | sh
+# Rebuild migrate image też
+docker build --platform linux/amd64 --target builder -t donpapa-migrate:latest .
+docker save donpapa-migrate:latest | gzip > /tmp/donpapa-migrate.tar.gz
+scp -i .ssh/karolinkagolfpark /tmp/donpapa-migrate.tar.gz root@209.38.211.80:/tmp/
+
+ssh -i .ssh/karolinkagolfpark root@209.38.211.80 \
+  'gunzip -c /tmp/donpapa-migrate.tar.gz | docker load && rm /tmp/donpapa-migrate.tar.gz && \
+   docker compose -f /root/Golf_app/docker-compose.yml --env-file /root/Golf_app/.env run --rm migrate'
 ```
 
-### 2. Klucz SSH do GitHub
+## Struktura Docker na serwerze
 
-Skopiuj klucz deploy na serwer:
-```bash
-scp -i .ssh/karolinkagolfpark .ssh/karolinkagolfpark root@209.38.211.80:/root/.ssh/deploy_key
+| Serwis | Image | Opis |
+|--------|-------|------|
+| `caddy` | caddy:2-alpine | Reverse proxy + auto SSL (Let's Encrypt) |
+| `app` | donpapa-app:latest | Next.js (port 3000, wewnętrzny) |
+| `db` | mysql:8.0 | Baza danych (volume `mysql_data`) |
+| `migrate` | donpapa-migrate:latest | Migracja schematu (profil `tools`) |
+| `seed` | donpapa-migrate:latest | Reset bazy + seed (profil `tools`) |
 
-ssh -i .ssh/karolinkagolfpark root@209.38.211.80 'chmod 600 /root/.ssh/deploy_key && cat > /root/.ssh/config << EOF
-Host github.com
-  IdentityFile /root/.ssh/deploy_key
-  StrictHostKeyChecking no
-EOF
-chmod 600 /root/.ssh/config'
+**WAŻNE:** Na serwerze `docker-compose.yml` jest zmodyfikowany - używa `image:` zamiast `build:` bo budujemy lokalnie. Nie edytuj go na serwerze - tylko pull z repo + nadpisz image.
+
+## .env na serwerze (/root/Golf_app/.env)
+
 ```
-
-### 3. Klonowanie repo
-
-```bash
-ssh -i .ssh/karolinkagolfpark root@209.38.211.80
-cd /root
-git clone git@github.com:tkalla79/Golf_app.git
+DATABASE_URL=mysql://donpapa:DpMp2026_Pr0d!Secure@db:3306/donpapa
+DB_ROOT_PASSWORD=R00tPr0d2026!Secure
+DB_PASSWORD=DpMp2026_Pr0d!Secure
+NEXTAUTH_SECRET=<wygenerowany>
+NEXTAUTH_URL=https://donpapagolf.pl
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_USER=a5b759001@smtp-brevo.com
+SMTP_PASS=<klucz SMTP Brevo>
+SMTP_FROM=Don Papa Match Play <noreply@donpapagolf.pl>
 ```
-
-### 4. Konfiguracja .env
-
-```bash
-cd /root/Golf_app
-cat > .env << 'EOF'
-DATABASE_URL=mysql://donpapa:DpMp2026!SecurePass@db:3306/donpapa
-DB_ROOT_PASSWORD=RootPass2026!Secure
-DB_PASSWORD=DpMp2026!SecurePass
-NEXTAUTH_SECRET=WYGENERUJ_NOWY_SEKRET
-NEXTAUTH_URL=http://209.38.211.80:3000
-EOF
-```
-
-Wygeneruj NEXTAUTH_SECRET:
-```bash
-openssl rand -base64 32
-```
-
-### 5. Uruchomienie
-
-```bash
-# Budowanie i start kontenerów (app + MySQL)
-docker compose up -d --build
-
-# Poczekaj aż MySQL będzie zdrowy (~15 sek)
-docker compose ps
-
-# Migracja bazy + seed danych testowych
-docker compose run --rm migrate
-```
-
-### 6. Weryfikacja
-
-```bash
-curl -s -o /dev/null -w "%{http_code}" http://209.38.211.80:3000/grupy
-# Powinno zwrócić: 200
-```
-
-## Struktura Docker
-
-| Serwis | Opis |
-|--------|------|
-| `app` | Next.js (port 3000) |
-| `db` | MySQL 8.0 (port 3306, dane w volume `mysql_data`) |
-| `migrate` | Jednorazowy kontener do migracji i seedowania (profil `tools`) |
-
-**Volume `mysql_data`** jest persistent - dane przetrwają rebuild i restart kontenerów.
 
 ## Operacje na bazie
 
-### Migracja schematu (BEZ resetu danych - bezpieczne na produkcji)
+### Migracja schematu (bezpieczne - NIE kasuje danych)
 ```bash
-docker compose run --rm migrate
+ssh -i .ssh/karolinkagolfpark root@209.38.211.80 \
+  'docker compose -f /root/Golf_app/docker-compose.yml --env-file /root/Golf_app/.env run --rm migrate'
 ```
 
-### UWAGA: Reset bazy i ponowne zaseedowanie (KASUJE WSZYSTKIE DANE!)
+### UWAGA: Reset bazy + seed (KASUJE WSZYSTKIE DANE!)
 ```bash
-docker compose run --rm seed
+ssh -i .ssh/karolinkagolfpark root@209.38.211.80 \
+  'docker compose -f /root/Golf_app/docker-compose.yml --env-file /root/Golf_app/.env run --rm seed'
 ```
-**Nigdy nie uruchamiaj `seed` na produkcji jeśli masz dane wprowadzone przez użytkowników!**
+**Nigdy nie uruchamiaj `seed` na produkcji jeśli użytkownicy już wprowadzili dane!**
 
 ## Logi
 
 ```bash
-# Logi aplikacji
-docker compose logs app -f
+SSH="ssh -i .ssh/karolinkagolfpark root@209.38.211.80"
 
-# Logi MySQL
-docker compose logs db -f
+# Logi aplikacji
+$SSH 'docker compose -f /root/Golf_app/docker-compose.yml logs app -f'
+
+# Logi Caddy (SSL, requesty)
+$SSH 'docker compose -f /root/Golf_app/docker-compose.yml logs caddy -f'
 
 # Wszystko
-docker compose logs -f
-```
-
-## Restart
-
-```bash
-# Restart aplikacji (bez rebuildu)
-docker compose restart app
-
-# Pełny restart
-docker compose down && docker compose up -d
+$SSH 'docker compose -f /root/Golf_app/docker-compose.yml logs -f'
 ```
 
 ## Login admina
 
-- **Email:** admin1@karolinkagolfpark.pl
-- **Hasło:** admin123
+| Email | Imię |
+|-------|------|
+| slawomir.olszynski@codelabs.pl | Sławomir Olszyński |
+| m.kucia@hardbeans.com | Marcin Kucia |
+| t.kalla@k2biznes.pl | Tomasz Kalla |
 
-(zmień hasło na produkcji przez panel admina!)
+Hasła przekazane osobno (nie w repo).
+
+## Lokalne dev
+
+```bash
+# Wymagania: Docker (dla MySQL), Node.js
+git clone git@github.com:tkalla79/Golf_app.git
+cd Golf_app
+npm install
+
+# Uruchom MySQL
+docker compose up db -d
+
+# Skopiuj .env.example do .env i uzupełnij
+cp .env.example .env
+
+# Push schematu i seed
+npx prisma db push
+npx tsx prisma/seed.ts
+
+# Dev server
+npm run dev
+# -> http://localhost:3000
+```
+
+## Znane ograniczenia
+
+- Avatary graczy: upload zapisuje do `/app/public/avatars/` w kontenerze, serwowane przez API route `/api/avatars/[filename]`. Przy recreate kontenera avatary się kasują - TODO: Docker volume dla avatarów.
+- Email override na localhost: `SMTP_DEV_OVERRIDE=twoj@email.pl` w `.env` - wszystkie maile logowania idą na ten adres (tylko gdy `NODE_ENV !== 'production'`).
