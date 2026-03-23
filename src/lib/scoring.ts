@@ -97,3 +97,17 @@ export const RESULT_CODES = [
   '5&3',
   '5&4',
 ] as const
+
+// 18-hole match play result codes (includes all 9-hole codes plus extended margins)
+export const RESULT_CODES_18 = [
+  ...RESULT_CODES,
+  '6&5',
+  '6&4',
+  '7&6',
+  '7&5',
+  '8&7',
+  '8&6',
+  '9&8',
+  '9&7',
+  '10&8',
+] as const
