@@ -75,11 +75,33 @@ export default function PlayoffBracket({ brackets }: Props) {
             const gapClass = r === 1 ? 'gap-2' : r === 2 ? 'gap-10' : r === 3 ? 'gap-24' : ''
             const paddingTop = r === 2 ? 'pt-7' : r === 3 ? 'pt-[72px]' : r === 4 ? 'pt-[168px]' : ''
 
+            // For rounds 1-3, group matches into pairs and add connector lines
+            const renderSlots = () => {
+              if (r >= 4) {
+                return slotsForRound.map((slot) => (
+                  <BracketMatchCard key={`${slot.bracketRound}-${slot.bracketPosition}`} slot={slot} />
+                ))
+              }
+              // Group into pairs
+              const pairs: BracketSlot[][] = []
+              for (let i = 0; i < slotsForRound.length; i += 2) {
+                pairs.push(slotsForRound.slice(i, i + 2))
+              }
+              return pairs.map((pair, pairIdx) => (
+                <div key={pairIdx} className="bracket-pair" style={{ gap: '8px' }}>
+                  {pair.map((slot) => (
+                    <BracketMatchCard key={`${slot.bracketRound}-${slot.bracketPosition}`} slot={slot} />
+                  ))}
+                  <div className="bracket-connector">
+                    <div className="bracket-connector-bar" />
+                  </div>
+                </div>
+              ))
+            }
+
             return (
               <div key={r} className={`flex flex-col justify-start ${gapClass} ${paddingTop}`}>
-                {slotsForRound.map((slot) => (
-                  <BracketMatchCard key={`${slot.bracketRound}-${slot.bracketPosition}`} slot={slot} />
-                ))}
+                {renderSlots()}
 
                 {/* Champion card after final */}
                 {r === 4 && slotsForRound[0]?.winnerId && (
@@ -99,6 +121,48 @@ export default function PlayoffBracket({ brackets }: Props) {
             )
           })}
         </div>
+
+        <style>{`
+          .bracket-pair {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+          }
+          .bracket-connector {
+            position: absolute;
+            right: -20px;
+            top: 25%;
+            width: 20px;
+            height: 50%;
+            pointer-events: none;
+          }
+          .bracket-connector::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 0;
+            border-top: 1.5px solid var(--color-border);
+          }
+          .bracket-connector::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50%;
+            height: 0;
+            border-top: 1.5px solid var(--color-border);
+          }
+          .bracket-connector-bar {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 0;
+            height: 100%;
+            border-left: 1.5px solid var(--color-border);
+          }
+        `}</style>
       </div>
     </div>
   )

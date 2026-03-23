@@ -1,7 +1,20 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getPost, getFeaturedImageUrl, formatDate } from '@/lib/wordpress'
 import { PL } from '@/constants/pl'
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const post = await getPost(decodeURIComponent(slug))
+  if (!post) return { title: 'Nie znaleziono | Don Papa Match Play' }
+
+  const title = post.title.rendered.replace(/(<([^>]+)>)/gi, '')
+  return {
+    title: `${title} | Don Papa Match Play`,
+    description: post.excerpt.rendered.replace(/(<([^>]+)>)/gi, '').slice(0, 160),
+  }
+}
 
 export default async function PostPage({
   params,

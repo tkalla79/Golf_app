@@ -103,6 +103,7 @@ export const RESULT_CODES_18 = [
   ...RESULT_CODES,
   '6&5',
   '6&4',
+  '6&3',
   '7&6',
   '7&5',
   '8&7',
