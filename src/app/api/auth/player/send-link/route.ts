@@ -20,8 +20,9 @@ export async function POST(request: NextRequest) {
     data: { loginToken: token, loginTokenExpiry: expiry },
   })
 
-  // Build login URL
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+  // Build login URL from request origin
+  const origin = request.headers.get('origin') || request.headers.get('referer')?.replace(/\/[^/]*$/, '') || process.env.NEXTAUTH_URL || 'http://localhost:3000'
+  const baseUrl = origin.replace(/\/$/, '')
   const loginUrl = `${baseUrl}/api/auth/player/verify?token=${token}`
 
   try {
