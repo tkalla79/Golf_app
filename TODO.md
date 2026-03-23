@@ -218,23 +218,26 @@ cd /tmp/Golf_app
 npx tsx scripts/simulate-full-season.ts
 ```
 
-### Uruchomienie (na serwerze)
-```bash
-# Na serwerze:
-docker compose --env-file .env exec app node -e "
-  // TODO: Zbudować jako API route /api/admin/simulate
-  // Na razie: uruchom ręcznie przez prisma
-"
-```
-
-### Planowane: Przycisk w panelu admina
-W przyszłości: dodać przycisk "Symuluj sezon" w `/admin` z opcjami:
-- "Symuluj bieżącą rundę" — wypełnia losowe wyniki
+### Uruchomienie przez panel admina ✅
+Admin panel → **Symulacja** (`/admin/symulacja`):
+- "Symuluj bieżącą rundę" — wypełnia losowe wyniki aktywnej rundy
 - "Symuluj do play-off" — generuje rundy + wyniki aż do play-off
 - "Symuluj cały sezon" — j.w. + play-off z finałami
-- "Reset symulacji" — przywraca stan sprzed symulacji
+- "Reset symulacji" — przywraca stan sprzed symulacji (z potwierdzeniem)
 
-**Status:** Skrypt CLI gotowy, integracja z UI w backlogu.
+### Uruchomienie przez API
+```bash
+# Symuluj bieżącą rundę:
+curl -X POST -H "Content-Type: application/json" -d '{"action":"current-round"}' http://localhost:3000/api/admin/simulate
+
+# Pełna symulacja:
+curl -X POST -H "Content-Type: application/json" -d '{"action":"full-season"}' http://localhost:3000/api/admin/simulate
+
+# Reset:
+curl -X POST -H "Content-Type: application/json" -d '{"action":"reset-simulation"}' http://localhost:3000/api/admin/simulate
+```
+
+**Status:** ✅ Zaimplementowane — CLI skrypt + API route + UI w panelu admina.
 
 ---
 
@@ -252,18 +255,22 @@ W przyszłości: dodać przycisk "Symuluj sezon" w `/admin` z opcjami:
 | PWA | ✅ Kod gotowy | Instalowalne na telefonie, offline cache |
 | WordPress aktualności | ✅ Kod gotowy | Wymaga uruchomienia WordPress (patrz instrukcja wyżej) |
 
+### Zrobione w tej iteracji
+| Feature | Status | Uwagi |
+|---------|--------|-------|
+| Connector lines w drabince | ✅ Done | CSS linie łączące mecze między rundami |
+| Symulacja w UI admina | ✅ Done | `/admin/symulacja` — 4 akcje + reset |
+| Automatyczne wysyłanie emaili | ✅ Done | Cron endpoint `GET /api/cron/reminders` (patrz `docker/cron-setup.md`) |
+| SEO metadata | ✅ Done | `generateMetadata` na /playoff, /aktualnosci, /aktualnosci/[slug] |
+| 18-hole kod 6&3 | ✅ Done | Dodany do RESULT_CODES_18 |
+| Per-match holes (17-32) | ✅ Done | Pole `holes` na Match, wyświetlane w BracketMatchCard |
+
 ### Do zrobienia w przyszłości
 | Feature | Priorytet | Opis |
 |---------|-----------|------|
-| **Connector lines w drabince** | Średni | CSS linie łączące mecze w wizualizacji play-off |
-| **Symulacja w UI admina** | Średni | Przycisk "Symuluj sezon" + "Reset" w panelu admina |
 | **Liga damska** | Niski | Osobna liga/sezon, ten sam system |
 | **Integracja WhatsApp** | Niski | Powiadomienia/wyniki na grupie WA (WhatsApp Business API) |
 | **Push notifications (PWA)** | Niski | Web push zamiast email — wymaga service worker + VAPID keys |
-| **Automatyczne wysyłanie emaili** | Niski | Cron job na serwerze zamiast ręcznego przycisku (np. `0 8 * * *` codziennie o 8:00) |
-| **SEO metadata** | Niski | `generateMetadata` na stronach /playoff, /aktualnosci |
-| **18-hole brakujący kod 6&3** | Niski | Dodać do RESULT_CODES_18 w scoring.ts |
-| **Drabinka 17-32 per-match holes** | Niski | Gracze wybierają 9 lub 18 per mecz — zapisywać na Match |
 
 ---
 
@@ -273,6 +280,7 @@ W przyszłości: dodać przycisk "Symuluj sezon" w `/admin` z opcjami:
 ```sql
 ALTER TABLE matches ADD COLUMN bracket_round INT NULL;
 ALTER TABLE matches ADD COLUMN bracket_position INT NULL;
+ALTER TABLE matches ADD COLUMN holes INT NULL;
 CREATE INDEX idx_matches_bracket ON matches(group_id, bracket_round, bracket_position);
 ```
 
@@ -290,18 +298,21 @@ Te zmiany zostaną zastosowane automatycznie przez `prisma db push` (komenda `mi
 - `/aktualnosci/[slug]` — pojedyncza aktualność
 - `/admin/playoff` — zarządzanie play-off
 - `/admin/sezon/[id]/config` — edycja punktacji
+- `/admin/symulacja` — symulacja sezonu (testowanie)
 
 ### Nowe API routes
 - `POST /api/admin/playoff/create` — tworzenie play-off
 - `GET /api/admin/playoff/ranking` — podgląd rankingu
-- `POST /api/admin/reminders` — wysyłanie przypomnień email
+- `POST /api/admin/reminders` — wysyłanie przypomnień email (ręczne)
+- `GET /api/cron/reminders` — automatyczne przypomnienia (cron, auth: Bearer token)
+- `POST /api/admin/simulate` — symulacja sezonu (4 akcje)
 - `POST /api/auth/player/login` — logowanie hasłem
 - `POST /api/player/password` — ustawianie hasła
 - `GET/PUT /api/seasons/[id]/config` — konfiguracja punktacji
 
 ### Nowe komponenty
-- `PlayoffBracket.tsx` — wizualizacja drabinki z tabami
-- `BracketMatchCard.tsx` — karta meczu w drabince
+- `PlayoffBracket.tsx` — wizualizacja drabinki z tabami + connector lines
+- `BracketMatchCard.tsx` — karta meczu w drabince (z per-match holes)
 - `SeasonSelector.tsx` — dropdown wyboru sezonu
 - `SendRemindersButton.tsx` — przycisk wysyłania przypomnień
 - `ServiceWorkerRegistration.tsx` — rejestracja SW dla PWA
@@ -315,4 +326,5 @@ Te zmiany zostaną zastosowane automatycznie przez `prisma db push` (komenda `mi
 - `public/sw.js` — service worker
 - `public/icons/icon-192.svg`, `icon-512.svg` — ikony PWA
 - `docker/init-wordpress-db.sql` — init script bazy WordPress
-- `scripts/simulate-full-season.ts` — skrypt symulacji sezonu
+- `docker/cron-setup.md` — instrukcja konfiguracji crona
+- `scripts/simulate-full-season.ts` — skrypt symulacji sezonu (CLI)
