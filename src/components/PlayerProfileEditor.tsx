@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { PL } from '@/constants/pl'
 
 interface Props {
   playerId: number
@@ -13,6 +14,7 @@ interface Props {
   avatarUrl: string | null
   isLoggedIn: boolean
   isAnyPlayerLoggedIn: boolean
+  hasPassword?: boolean
 }
 
 export default function PlayerProfileEditor({
@@ -26,6 +28,7 @@ export default function PlayerProfileEditor({
   avatarUrl: initialAvatar,
   isLoggedIn,
   isAnyPlayerLoggedIn,
+  hasPassword,
 }: Props) {
   const [hcp, setHcp] = useState(initialHcp !== null ? String(initialHcp) : '')
   const [email, setEmail] = useState(initialEmail || '')
@@ -39,6 +42,20 @@ export default function PlayerProfileEditor({
   const [linkLoading, setLinkLoading] = useState(false)
   const [error, setError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Password login state
+  const [loginTab, setLoginTab] = useState<'magic' | 'password'>('magic')
+  const [loginEmail, setLoginEmail] = useState(initialEmail || '')
+  const [loginPassword, setLoginPassword] = useState('')
+  const [loginLoading, setLoginLoading] = useState(false)
+
+  // Set password state
+  const [newPassword, setNewPassword] = useState('')
+  const [passwordSaving, setPasswordSaving] = useState(false)
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
+
+  const t = PL.playerAuth
 
   const handleSendLink = async () => {
     setLinkLoading(true)
@@ -54,6 +71,48 @@ export default function PlayerProfileEditor({
     } else {
       const data = await res.json()
       setError(data.error || 'Wystąpił błąd')
+    }
+  }
+
+  const handlePasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoginLoading(true)
+    setError('')
+    const res = await fetch('/api/auth/player/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+    })
+    const data = await res.json()
+    setLoginLoading(false)
+    if (res.ok && data.success) {
+      window.location.reload()
+    } else {
+      setError(data.error || t.invalidCredentials)
+    }
+  }
+
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPasswordError('')
+    setPasswordSuccess(false)
+    if (newPassword.length < 6) {
+      setPasswordError(t.passwordMinLength)
+      return
+    }
+    setPasswordSaving(true)
+    const res = await fetch('/api/player/password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: newPassword }),
+    })
+    setPasswordSaving(false)
+    if (res.ok) {
+      setPasswordSuccess(true)
+      setNewPassword('')
+    } else {
+      const data = await res.json()
+      setPasswordError(data.error || 'Wystąpił błąd')
     }
   }
 
@@ -283,27 +342,122 @@ export default function PlayerProfileEditor({
             </div>
           )}
 
-          {/* Login button */}
+          {/* Login section (not logged in) */}
           <div className="mt-4">
             {isLoggedIn ? null : !!email ? (
-              linkSent ? (
-                <p className="text-sm text-[var(--color-success)] font-medium">
-                  Odnośnik do logowania został wysłany na Twój adres e-mail. Sprawdź skrzynkę i kliknij w link.
-                </p>
-              ) : (
-                <button
-                  onClick={handleSendLink}
-                  disabled={linkLoading}
-                  className="btn-primary text-sm disabled:opacity-50"
-                >
-                  {linkLoading ? 'Wysyłanie...' : 'Zaloguj się jako zawodnik'}
-                </button>
-              )
+              <div>
+                {/* Login tabs */}
+                <div className="flex gap-2 mb-3">
+                  <button
+                    onClick={() => { setLoginTab('magic'); setError('') }}
+                    className={`text-sm px-3 py-1.5 rounded-lg font-semibold transition-colors ${
+                      loginTab === 'magic'
+                        ? 'bg-[var(--color-primary)] text-white'
+                        : 'bg-[var(--color-bg-section)] text-[var(--color-text-body)]/60 hover:text-[var(--color-text-body)]'
+                    }`}
+                  >
+                    {t.loginWithMagicLink}
+                  </button>
+                  <button
+                    onClick={() => { setLoginTab('password'); setError('') }}
+                    className={`text-sm px-3 py-1.5 rounded-lg font-semibold transition-colors ${
+                      loginTab === 'password'
+                        ? 'bg-[var(--color-primary)] text-white'
+                        : 'bg-[var(--color-bg-section)] text-[var(--color-text-body)]/60 hover:text-[var(--color-text-body)]'
+                    }`}
+                  >
+                    {t.loginWithPassword}
+                  </button>
+                </div>
+
+                {/* Magic link tab */}
+                {loginTab === 'magic' && (
+                  linkSent ? (
+                    <p className="text-sm text-[var(--color-success)] font-medium">
+                      Odnośnik do logowania został wysłany na Twój adres e-mail. Sprawdź skrzynkę i kliknij w link.
+                    </p>
+                  ) : (
+                    <button
+                      onClick={handleSendLink}
+                      disabled={linkLoading}
+                      className="btn-primary text-sm disabled:opacity-50"
+                    >
+                      {linkLoading ? 'Wysyłanie...' : 'Zaloguj się jako zawodnik'}
+                    </button>
+                  )
+                )}
+
+                {/* Password login tab */}
+                {loginTab === 'password' && (
+                  <form onSubmit={handlePasswordLogin} className="flex flex-col sm:flex-row items-start sm:items-end gap-2">
+                    <div>
+                      <label className="block text-xs text-[var(--color-text-body)]/60 mb-1">{t.email}</label>
+                      <input
+                        type="email"
+                        value={loginEmail}
+                        onChange={(e) => setLoginEmail(e.target.value)}
+                        required
+                        className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm w-52"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-[var(--color-text-body)]/60 mb-1">{t.password}</label>
+                      <input
+                        type="password"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        required
+                        className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm w-40"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={loginLoading}
+                      className="btn-primary text-sm disabled:opacity-50"
+                    >
+                      {loginLoading ? '...' : t.login}
+                    </button>
+                  </form>
+                )}
+              </div>
             ) : null}
             {error && (
               <p className="text-sm text-[var(--color-danger)] mt-2">{error}</p>
             )}
           </div>
+
+          {/* Set/change password (logged in) */}
+          {isLoggedIn && (
+            <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
+              <form onSubmit={handleSetPassword} className="flex flex-col sm:flex-row items-start sm:items-end gap-2">
+                <div>
+                  <label className="block text-xs text-[var(--color-text-body)]/60 mb-1 font-semibold">
+                    {hasPassword ? t.changePassword : t.setPassword}
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder={t.passwordMinLength}
+                    className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm w-52"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={passwordSaving}
+                  className="btn-primary text-sm disabled:opacity-50"
+                >
+                  {passwordSaving ? '...' : (hasPassword ? t.changePassword : t.setPassword)}
+                </button>
+              </form>
+              {passwordSuccess && (
+                <p className="text-sm text-[var(--color-success)] mt-2">{t.passwordSet}</p>
+              )}
+              {passwordError && (
+                <p className="text-sm text-[var(--color-danger)] mt-2">{passwordError}</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

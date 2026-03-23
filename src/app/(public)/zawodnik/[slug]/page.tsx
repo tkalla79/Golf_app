@@ -75,6 +75,7 @@ export default async function ZawodnikPage({
         avatarUrl={player.avatarUrl}
         isLoggedIn={isLoggedIn}
         isAnyPlayerLoggedIn={!!playerSession}
+        hasPassword={!!player.passwordHash}
       />
 
       {/* Upcoming matches */}
