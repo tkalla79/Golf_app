@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   const loginUrl = `${baseUrl}/api/auth/player/verify?token=${token}`
 
   try {
-    await sendLoginEmail(player.email, loginUrl, `${player.firstName} ${player.lastName}`)
+    await sendLoginEmail(player.email, loginUrl, player.firstName)
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Email send error:', error)

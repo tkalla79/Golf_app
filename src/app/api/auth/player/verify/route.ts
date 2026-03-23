@@ -3,10 +3,11 @@ import { prisma } from '@/lib/db'
 import { createPlayerSession } from '@/lib/player-auth'
 
 export async function GET(request: NextRequest) {
+  const baseUrl = process.env.NEXTAUTH_URL || request.url
   const token = request.nextUrl.searchParams.get('token')
 
   if (!token) {
-    return NextResponse.redirect(new URL('/auth/player?error=no-token', request.url))
+    return NextResponse.redirect(`${baseUrl}/auth/player?error=no-token`)
   }
 
   const player = await prisma.player.findUnique({
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
   })
 
   if (!player || !player.loginTokenExpiry || player.loginTokenExpiry < new Date()) {
-    return NextResponse.redirect(new URL('/auth/player?error=expired', request.url))
+    return NextResponse.redirect(`${baseUrl}/auth/player?error=expired`)
   }
 
   // Token valid - clear it
@@ -26,5 +27,5 @@ export async function GET(request: NextRequest) {
   // Create session
   await createPlayerSession(player.id, player.slug)
 
-  return NextResponse.redirect(new URL(`/zawodnik/${player.slug}`, request.url))
+  return NextResponse.redirect(`${baseUrl}/zawodnik/${player.slug}`)
 }
