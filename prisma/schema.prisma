@@ -152,5 +152,9 @@ model Match {
   player2 Player  @relation("player2", fields: [player2Id], references: [id], onDelete: Cascade)
   winner  Player? @relation("winner", fields: [winnerId], references: [id], onDelete: SetNull)
 
+  bracketRound    Int?     @map("bracket_round")
+  bracketPosition Int?     @map("bracket_position")
+
+  @@index([groupId, bracketRound, bracketPosition])
   @@map("matches")
 }
