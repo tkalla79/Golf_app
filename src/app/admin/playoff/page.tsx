@@ -30,17 +30,21 @@ export default function AdminPlayoffPage() {
     const res = await fetch('/api/admin/playoff/ranking')
     if (res.status === 409) {
       // Playoff exists — fetch the groups
-      const seasonRes = await fetch('/api/seasons/current')
-      if (seasonRes.ok) {
-        const season = await seasonRes.json()
-        const roundRes = await fetch(`/api/seasons/${season.id}`)
-        if (roundRes.ok) {
-          const data = await roundRes.json()
-          const playoffRound = data.rounds?.find((r: { type: string }) => r.type === 'PLAYOFF')
-          if (playoffRound) {
-            setExistingGroups(playoffRound.groups)
+      try {
+        const seasonRes = await fetch('/api/seasons/current')
+        if (seasonRes.ok) {
+          const season = await seasonRes.json()
+          const roundRes = await fetch(`/api/seasons/${season.id}`)
+          if (roundRes.ok) {
+            const data = await roundRes.json()
+            const playoffRound = data.rounds?.find((r: { type: string }) => r.type === 'PLAYOFF')
+            if (playoffRound) {
+              setExistingGroups(playoffRound.groups)
+            }
           }
         }
+      } catch {
+        setError('Nie udało się załadować danych play-off')
       }
       setLoading(false)
       return

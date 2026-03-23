@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Play-off Bracket — Mockup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #134a56;
+      --primary-dark: #0d3640;
+      --accent: #d5b665;
+      --accent-light: #e8d08a;
+      --bg: #f8f6f1;
+      --bg-section: #ffffff;
+      --border: #e8e2d4;
+      --text-dark: #1a1a1a;
+      --text-body: #4a4a4a;
+      --success: #2d8a4e;
+      --win-bg: rgba(45, 138, 78, 0.06);
+      --pending-bg: rgba(19, 74, 86, 0.03);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Lato', sans-serif;
+      background: var(--bg);
+      color: var(--text-dark);
+      padding: 20px;
+    }
+
+    h1 {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 800;
+      color: var(--primary);
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--text-body);
+      font-size: 0.9rem;
+      margin-bottom: 24px;
+    }
+
+    .subtitle span { color: var(--accent); font-weight: 700; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 0;
+    }
+
+    .tab {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 10px 20px;
+      border: none;
+      background: transparent;
+      color: var(--text-body);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--accent);
+    }
+
+    .tab:hover:not(.active) { color: var(--primary); }
+
+    .tab .holes {
+      font-size: 0.65rem;
+      font-weight: 400;
+      color: var(--text-body);
+      opacity: 0.6;
+      display: block;
+    }
+
+    /* Bracket Container */
+    .bracket-container {
+      background: var(--bg-section);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      overflow-x: auto;
+    }
+
+    .bracket {
+      display: grid;
+      grid-template-columns: 200px 40px 200px 40px 200px 40px 200px;
+      gap: 0;
+      min-width: 920px;
+      align-items: start;
+    }
+
+    /* Round headers */
+    .round-header {
+      font-family: 'Raleway', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-body);
+      opacity: 0.5;
+      text-align: center;
+      padding-bottom: 16px;
+    }
+
+    .connector-header { /* spacer */ }
+
+    /* Match card */
+    .match {
+      background: var(--bg-section);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 8px;
+      transition: all 0.2s;
+    }
+
+    .match:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+
+    .match-player {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .match-player:first-child { border-bottom: 1px solid var(--border); }
+
+    .match-player .seed {
+      font-family: 'Raleway', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--primary);
+      opacity: 0.4;
+      width: 22px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .match-player .name {
+      flex: 1;
+      margin-left: 6px;
+      color: var(--text-dark);
+    }
+
+    .match-player.winner { background: var(--win-bg); }
+    .match-player.winner .name { color: var(--primary); }
+    .match-player.winner .seed { color: var(--success); opacity: 1; }
+
+    .match-player.loser .name { color: var(--text-body); opacity: 0.5; text-decoration: line-through; }
+
+    .match-player .score {
+      font-family: 'Raleway', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin-left: 8px;
+    }
+
+    .match-player.pending { background: var(--pending-bg); }
+    .match-player.pending .name { color: var(--text-body); opacity: 0.4; font-style: italic; }
+
+    /* Result badge */
+    .result-badge {
+      text-align: center;
+      padding: 2px 0 6px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-body);
+      opacity: 0.4;
+    }
+
+    .result-badge.played { color: var(--success); opacity: 0.7; }
+
+    /* Connector lines */
+    .connectors {
+      position: relative;
+      height: 100%;
+    }
+
+    /* Spacers between rounds for vertical alignment */
+    .round-col { display: flex; flex-direction: column; justify-content: space-around; }
+    .round-col.r1 { gap: 4px; }
+    .round-col.r2 { gap: 48px; padding-top: 28px; }
+    .round-col.r3 { gap: 120px; padding-top: 68px; }
+    .round-col.r4 { padding-top: 140px; }
+
+    /* Lines between matches */
+    .line-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      position: relative;
+    }
+
+    .line-segment {
+      width: 100%;
+      position: relative;
+    }
+
+    .line-segment::before {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      width: 50%;
+      height: 0;
+      border-top: 1.5px solid var(--border);
+    }
+
+    .line-segment::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 50%;
+      height: 0;
+      border-top: 1.5px solid var(--border);
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .bracket-container { padding: 16px; }
+      body { padding: 12px; }
+      h1 { font-size: 1.5rem; }
+    }
+
+    /* Final winner highlight */
+    .champion-card {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      border: 2px solid var(--accent);
+      border-radius: 10px;
+      padding: 16px 20px;
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    .champion-card .label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .champion-card .champ-name {
+      font-family: 'Raleway', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: white;
+    }
+
+    /* Trophy icon */
+    .trophy { font-size: 1.4rem; margin-bottom: 4px; }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+      font-size: 0.75rem;
+      color: var(--text-body);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+
+    .legend-dot.won { background: var(--success); opacity: 0.3; }
+    .legend-dot.pending { background: var(--primary); opacity: 0.15; }
+    .legend-dot.tbd { background: var(--border); }
+  </style>
+</head>
+<body>
+
+<h1>Play-off 2026</h1>
+<p class="subtitle"><span>Sezon 2026</span> &middot; Karolinka Golf Park &middot; 17.08 - 31.10</p>
+
+<div class="tabs">
+  <button class="tab active">
+    Drabinka 1-16
+    <span class="holes">18 dolkow</span>
+  </button>
+  <button class="tab">
+    Drabinka 17-32
+    <span class="holes">9/18 dolkow</span>
+  </button>
+  <button class="tab">
+    Drabinka 33-48
+    <span class="holes">9 dolkow</span>
+  </button>
+</div>
+
+<div class="bracket-container">
+
+  <!-- Round headers -->
+  <div style="display:grid; grid-template-columns: 200px 40px 200px 40px 200px 40px 200px; margin-bottom: 8px;">
+    <div class="round-header">1/8 Finalu</div>
+    <div></div>
+    <div class="round-header">Cwiercfinal</div>
+    <div></div>
+    <div class="round-header">Polfinal</div>
+    <div></div>
+    <div class="round-header">Final</div>
+  </div>
+
+  <div class="bracket">
+
+    <!-- ROUND 1 (1/8) -->
+    <div class="round-col r1">
+      <!-- M1: 1 vs 16 -->
+      <div class="match">
+        <div class="match-player winner">
+          <span class="seed">1</span>
+          <span class="name">Marek Kowalski</span>
+          <span class="score">3&amp;2</span>
+        </div>
+        <div class="match-player loser">
+          <span class="seed">16</span>
+          <span class="name">Jakub Dabkowski</span>
+        </div>
+        <div class="result-badge played">rozegrany</div>
+      </div>
+
+      <!-- M2: 8 vs 9 -->
+      <div class="match">
+        <div class="match-player winner">
+          <span class="seed">8</span>
+          <span class="name">Tomasz Krawczyk</span>
+          <span class="score">1Up</span>
+        </div>
+        <div class="match-player loser">
+          <span class="seed">9</span>
+          <span class="name">Pawel Szymanski</span>
+        </div>
+        <div class="result-badge played">rozegrany</div>
+      </div>
+
+      <!-- M3: 4 vs 13 -->
+      <div class="match">
+        <div class="match-player winner">
+          <span class="seed">4</span>
+          <span class="name">Piotr Wisniewski</span>
+          <span class="score">5&amp;4</span>
+        </div>
+        <div class="match-player loser">
+          <span class="seed">13</span>
+          <span class="name">Robert Lewandowski</span>
+        </div>
+        <div class="result-badge played">rozegrany</div>
+      </div>
+
+      <!-- M4: 5 vs 12 -->
+      <div class="match">
+        <div class="match-player loser">
+          <span class="seed">5</span>
+          <span class="name">Adam Zielinski</span>
+        </div>
+        <div class="match-player winner">
+          <span class="seed">12</span>
+          <span class="name">Grzegorz Mazur</span>
+          <span class="score">2&amp;1</span>
+        </div>
+        <div class="result-badge played">rozegrany</div>
+      </div>
+
+      <!-- M5: 2 vs 15 -->
+      <div class="match">
+        <div class="match-player winner">
+          <span class="seed">2</span>
+          <span class="name">Jan Nowak</span>
+          <span class="score">4&amp;3</span>
+        </div>
+        <div class="match-player loser">
+          <span class="seed">15</span>
+          <span class="name">Lukasz Jankowski</span>
+        </div>
+        <div class="result-badge played">rozegrany</div>
+      </div>
+
+      <!-- M6: 7 vs 10 -->
+      <div class="match">
+        <div class="match-player pending">
+          <span class="seed">7</span>
+          <span class="name">Krzysztof Wozniak</span>
+        </div>
+        <div class="match-player pending">
+          <span class="seed">10</span>
+          <span class="name">Michal Kaminski</span>
+        </div>
+        <div class="result-badge">do 06.09</div>
+      </div>
+
+      <!-- M7: 3 vs 14 -->
+      <div class="match">
+        <div class="match-player pending">
+          <span class="seed">3</span>
+          <span class="name">Andrzej Kowal</span>
+        </div>
+        <div class="match-player pending">
+          <span class="seed">14</span>
+          <span class="name">Damian Lis</span>
+        </div>
+        <div class="result-badge">do 06.09</div>
+      </div>
+
+      <!-- M8: 6 vs 11 -->
+      <div class="match">
+        <div class="match-player pending">
+          <span class="seed">6</span>
+          <span class="name">Stefan Wojcik</span>
+        </div>
+        <div class="match-player pending">
+          <span class="seed">11</span>
+          <span class="name">Marcin Bak</span>
+        </div>
+        <div class="result-badge">do 06.09</div>
+      </div>
+    </div>
+
+    <!-- CONNECTOR 1→2 -->
+    <div class="line-col"></div>
+
+    <!-- ROUND 2 (Quarter) -->
+    <div class="round-col r2">
+      <!-- QF1: M1 winner vs M2 winner -->
+      <div class="match">
+        <div class="match-player pending">
+          <span class="seed"></span>
+          <span class="name">Marek Kowalski</span>
+        </div>
+        <div class="match-player pending">
+          <span class="seed"></span>
+          <span class="name">Tomasz Krawczyk</span>
+        </div>
+        <div class="result-badge">do 25.09</div>
+      </div>
+
+      <!-- QF2: M3 winner vs M4 winner -->
+      <div class="match">
+        <div class="match-player pending">
+          <span class="seed"></span>
+          <span class="name">Piotr Wisniewski</span>
+        </div>
+        <div class="match-player pending">
+          <span class="seed"></span>
+          <span class="name">Grzegorz Mazur</span>
+        </div>
+        <div class="result-badge">do 25.09</div>
+      </div>
+
+      <!-- QF3: M5 winner vs M6 winner -->
+      <div class="match">
+        <div class="match-player pending">
+          <span class="seed"></span>
+          <span class="name">Jan Nowak</span>
+        </div>
+        <div class="match-player pending">
+          <span class="seed"></span>
+          <span class="name" style="opacity:0.3; font-style:italic;">Zwyciezca M6</span>
+        </div>
+        <div class="result-badge">do 25.09</div>
+      </div>
+
+      <!-- QF4: M7 winner vs M8 winner -->
+      <div class="match">
+        <div class="match-player pending">
+          <span class="seed"></span>
+          <span class="name" style="opacity:0.3; font-style:italic;">Zwyciezca M7</span>
+        </div>
+        <div class="match-player pending">
+          <span class="seed"></span>
+          <span class="name" style="opacity:0.3; font-style:italic;">Zwyciezca M8</span>
+        </div>
+        <div class="result-badge">do 25.09</div>
+      </div>
+    </div>
+
+    <!-- CONNECTOR 2→3 -->
+    <div class="line-col"></div>
+
+    <!-- ROUND 3 (Semi) -->
+    <div class="round-col r3">
+      <div class="match">
+        <div class="match-player pending">
+          <span class="seed"></span>
+          <span class="name" style="opacity:0.3; font-style:italic;">Zwyciezca QF1</span>
+        </div>
+        <div class="match-player pending">
+          <span class="seed"></span>
+          <span class="name" style="opacity:0.3; font-style:italic;">Zwyciezca QF2</span>
+        </div>
+        <div class="result-badge">do 11.10</div>
+      </div>
+
+      <div class="match">
+        <div class="match-player pending">
+          <span class="seed"></span>
+          <span class="name" style="opacity:0.3; font-style:italic;">Zwyciezca QF3</span>
+        </div>
+        <div class="match-player pending">
+          <span class="seed"></span>
+          <span class="name" style="opacity:0.3; font-style:italic;">Zwyciezca QF4</span>
+        </div>
+        <div class="result-badge">do 11.10</div>
+      </div>
+    </div>
+
+    <!-- CONNECTOR 3→4 -->
+    <div class="line-col"></div>
+
+    <!-- ROUND 4 (Final) -->
+    <div class="round-col r4">
+      <div class="match">
+        <div class="match-player pending">
+          <span class="seed"></span>
+          <span class="name" style="opacity:0.3; font-style:italic;">Finalista 1</span>
+        </div>
+        <div class="match-player pending">
+          <span class="seed"></span>
+          <span class="name" style="opacity:0.3; font-style:italic;">Finalista 2</span>
+        </div>
+        <div class="result-badge">do 31.10</div>
+      </div>
+
+      <div class="champion-card" style="margin-top: 16px; opacity: 0.3;">
+        <div class="trophy">&#127942;</div>
+        <div class="label">Zwyciezca</div>
+        <div class="champ-name">???</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item">
+    <div class="legend-dot won"></div>
+    Rozegrany
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot pending"></div>
+    Do rozegrania
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot tbd"></div>
+    Oczekuje na wynik
+  </div>
+</div>
+
+<p style="margin-top: 32px; font-size: 0.75rem; color: var(--text-body); opacity: 0.5;">
+  Mockup &middot; Don Papa Match Play 2026 &middot; Drabinka play-off
+</p>
+
+</body>
+</html>

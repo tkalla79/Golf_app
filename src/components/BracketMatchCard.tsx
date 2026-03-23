@@ -28,14 +28,20 @@ export default function BracketMatchCard({ slot }: Props) {
       <div className="border-t border-[var(--color-border)]/50" />
 
       {/* Player 2 (bottom) */}
-      <PlayerSlot
-        name={slot.player2Name}
-        slug={slot.player2Slug}
-        seed={slot.player2Seed}
-        isWinner={slot.winnerId !== null && slot.winnerId === slot.player2Id}
-        isLoser={slot.winnerId !== null && slot.winnerId !== slot.player2Id}
-        resultCode={slot.winnerId === slot.player2Id ? slot.resultCode : null}
-      />
+      {slot.resultCode === 'BYE' ? (
+        <div className="px-3 py-2 flex items-center gap-2">
+          <span className="text-[var(--color-text-body)]/40 italic text-xs font-semibold">BYE</span>
+        </div>
+      ) : (
+        <PlayerSlot
+          name={slot.player2Name}
+          slug={slot.player2Slug}
+          seed={slot.player2Seed}
+          isWinner={slot.winnerId !== null && slot.winnerId === slot.player2Id}
+          isLoser={slot.winnerId !== null && slot.winnerId !== slot.player2Id}
+          resultCode={slot.winnerId === slot.player2Id ? slot.resultCode : null}
+        />
+      )}
 
       {/* Status bar */}
       <div className={`text-center py-1 text-[0.6rem] font-semibold uppercase tracking-wider ${

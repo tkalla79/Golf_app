@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { computeGlobalRanking, BRACKET_SEEDS, BRACKET_NAMES, BRACKET_HOLES } from '@/lib/playoff'
+import { computeGlobalRanking, BRACKET_SEEDS, BRACKET_NAMES, BRACKET_HOLES, autoAdvancePlayoff } from '@/lib/playoff'
 
 export async function POST(request: NextRequest) {
   const session = await auth()
@@ -122,6 +122,14 @@ export async function POST(request: NextRequest) {
           },
         })
       }
+    }
+
+    // Trigger auto-advance for BYE matches
+    const byeMatches = await prisma.match.findMany({
+      where: { groupId: group.id, resultCode: 'BYE', bracketRound: 1 },
+    })
+    for (const byeMatch of byeMatches) {
+      await autoAdvancePlayoff(byeMatch.id)
     }
 
     createdGroups.push(group)

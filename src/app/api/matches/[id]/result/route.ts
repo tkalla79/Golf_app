@@ -15,6 +15,9 @@ export async function POST(
 
   const { id } = await params
   const matchId = parseInt(id)
+  if (isNaN(matchId)) {
+    return NextResponse.json({ error: 'Invalid match ID' }, { status: 400 })
+  }
   const body = await request.json()
   const { winnerId, resultCode, isWalkover } = body
 
@@ -93,6 +96,9 @@ export async function DELETE(
 
   const { id } = await params
   const matchId = parseInt(id)
+  if (isNaN(matchId)) {
+    return NextResponse.json({ error: 'Invalid match ID' }, { status: 400 })
+  }
 
   // For playoff matches: cascade delete downstream matches first
   const match = await prisma.match.findUnique({
