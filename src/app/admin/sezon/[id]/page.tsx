@@ -187,6 +187,13 @@ export default function AdminSeasonDetailPage({
         </div>
       </div>
 
+      {/* Season actions */}
+      <div className="flex gap-3 mb-8">
+        <Link href={`/admin/sezon/${id}/config`} className="btn-secondary text-sm">
+          Edytuj punktację
+        </Link>
+      </div>
+
       {/* Add round button */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-[var(--color-text-dark)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
