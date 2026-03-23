@@ -65,6 +65,7 @@ export interface BracketSlot {
   resultCode: string | null
   played: boolean
   isWalkover: boolean
+  holes: number | null
   deadline: string
 }
 
@@ -208,6 +209,7 @@ export async function buildBracketSlots(groupId: number): Promise<BracketSlot[]>
           resultCode: match.resultCode,
           played: match.played,
           isWalkover: match.isWalkover,
+          holes: match.holes,
           deadline: ROUND_DEADLINES[round] ?? '',
         })
       } else {
@@ -242,6 +244,7 @@ export async function buildBracketSlots(groupId: number): Promise<BracketSlot[]>
           resultCode: null,
           played: false,
           isWalkover: false,
+          holes: null,
           deadline: ROUND_DEADLINES[round] ?? '',
         })
       }

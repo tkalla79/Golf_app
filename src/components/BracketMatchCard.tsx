@@ -47,7 +47,11 @@ export default function BracketMatchCard({ slot }: Props) {
       <div className={`text-center py-1 text-[0.6rem] font-semibold uppercase tracking-wider ${
         slot.played ? 'text-[var(--color-success)]/70' : 'text-[var(--color-text-body)]/30'
       }`}>
-        {slot.played ? 'rozegrany' : hasPlayers ? `do ${slot.deadline}` : ''}
+        {slot.played
+          ? slot.holes
+            ? `rozegrany · ${slot.holes} dołków`
+            : 'rozegrany'
+          : hasPlayers ? `do ${slot.deadline}` : ''}
       </div>
     </div>
   )

@@ -154,6 +154,7 @@ model Match {
 
   bracketRound    Int?     @map("bracket_round")
   bracketPosition Int?     @map("bracket_position")
+  holes           Int?     @map("holes")
 
   @@index([groupId, bracketRound, bracketPosition])
   @@map("matches")
