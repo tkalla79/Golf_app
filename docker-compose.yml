@@ -10,6 +10,7 @@ services:
       - caddy_config:/config
     depends_on:
       - app
+      - wordpress
     restart: unless-stopped
 
   app:
@@ -33,11 +34,28 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./docker/init-wordpress-db.sql:/docker-entrypoint-initdb.d/init-wordpress-db.sql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
+
+  wordpress:
+    image: wordpress:6-apache
+    expose:
+      - "80"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: donpapa
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wordpress_data:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
   migrate:
@@ -72,4 +90,6 @@ volumes:
   caddy_config:
     driver: local
   avatars_data:
+    driver: local
+  wordpress_data:
     driver: local

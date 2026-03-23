@@ -5,6 +5,10 @@ donpapagolf.pl {
 	}
 }
 
+wp.donpapagolf.pl {
+	reverse_proxy wordpress:80
+}
+
 www.donpapagolf.pl {
 	redir https://donpapagolf.pl{uri} permanent
 }
