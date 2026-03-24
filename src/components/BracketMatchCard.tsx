@@ -67,6 +67,7 @@ function PlayerRow({
   slug,
   seed,
   isWinner,
+  isLoser,
   score,
   compact,
 }: {
