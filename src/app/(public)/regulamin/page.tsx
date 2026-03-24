@@ -25,14 +25,14 @@ export default function RegulaminPage() {
 
         {/* I. Postanowienia ogólne */}
         <section>
-          <h2 className="regulamin-h2">I. Postanowienia ogólne</h2>
+          <h2 className="text-xl font-bold text-[var(--color-primary)] border-b-2 border-[var(--color-accent)] pb-2 mb-5">I. Postanowienia ogólne</h2>
 
-          <h3 className="regulamin-h3">1. Miejsce i forma rozgrywek</h3>
-          <ul className="regulamin-list">
+          <h3 className="text-lg font-bold text-[var(--color-text-dark)] mt-6 mb-3">1. Miejsce i forma rozgrywek</h3>
+          <ul className="list-disc pl-6 mb-4 space-y-1.5">
             <li>Mecze ligowe rozgrywane są na polu <strong>KGP</strong> (Karolinka Golf Park).</li>
             <li><strong>Runda grupowa:</strong> 9 dołków.</li>
             <li><strong>Faza PLAY-OFF:</strong>
-              <ul className="regulamin-sublist">
+              <ul className="list-[circle] pl-6 mt-1 space-y-1">
                 <li>Drabinka 1–16: <strong>18 dołków</strong></li>
                 <li>Drabinka 17–32: <strong>9 lub 18 dołków</strong> (do wyboru graczy po wzajemnym uzgodnieniu)</li>
                 <li>Drabinka 33–48: <strong>9 dołków</strong></li>
@@ -42,8 +42,8 @@ export default function RegulaminPage() {
             <li>Wybór 9-dołkowej sekcji pola należy do graczy. W przypadku braku porozumienia obowiązuje losowanie.</li>
           </ul>
 
-          <h3 className="regulamin-h3">2. Obowiązki finansowe</h3>
-          <ul className="regulamin-list">
+          <h3 className="text-lg font-bold text-[var(--color-text-dark)] mt-6 mb-3">2. Obowiązki finansowe</h3>
+          <ul className="list-disc pl-6 mb-4 space-y-1.5">
             <li>Gracze bez wykupionego prawa do gry na polu KGP pokrywają koszt green fee we własnym zakresie przed rozpoczęciem meczu.</li>
             <li>Wpisowe za udział w lidze: <strong>400 PLN</strong> (termin płatności: 15 kwietnia 2026).</li>
           </ul>
@@ -51,11 +51,11 @@ export default function RegulaminPage() {
 
         {/* II. Struktura turnieju */}
         <section>
-          <h2 className="regulamin-h2">II. Struktura turnieju</h2>
+          <h2 className="text-xl font-bold text-[var(--color-primary)] border-b-2 border-[var(--color-accent)] pb-2 mb-5">II. Struktura turnieju</h2>
 
-          <h3 className="regulamin-h3">1. Etapy rozgrywek</h3>
+          <h3 className="text-lg font-bold text-[var(--color-text-dark)] mt-6 mb-3">1. Etapy rozgrywek</h3>
           <div className="overflow-x-auto">
-            <table className="regulamin-table">
+            <table className="standings-table w-full text-sm">
               <thead>
                 <tr>
                   <th>Etap</th>
@@ -76,12 +76,12 @@ export default function RegulaminPage() {
             Zalecane jednoczesne rozegranie meczów o miejsca 1–4.
           </p>
 
-          <h3 className="regulamin-h3">2. Podział grup</h3>
-          <ul className="regulamin-list">
+          <h3 className="text-lg font-bold text-[var(--color-text-dark)] mt-6 mb-3">2. Podział grup</h3>
+          <ul className="list-disc pl-6 mb-4 space-y-1.5">
             <li><strong>Runda wstępna:</strong> Gracze podzieleni na 5 grup na podstawie wyników Ligi 2025. Podziału dokonuje Zarząd Ligi. Nowi uczestnicy dolosowywani na końcu, z pierwszeństwem dla niższego aktywnego HCP (stan na 15 marca 2026). Gracze bez HCP w systemie Eagle otrzymują HCP&nbsp;=&nbsp;0.</li>
             <li><strong>Limit zawodników:</strong> 50</li>
             <li><strong>Po rundzie wstępnej tworzone są grupy:</strong>
-              <ul className="regulamin-sublist">
+              <ul className="list-[circle] pl-6 mt-1 space-y-1">
                 <li>Grupa A: Zwycięzcy grup</li>
                 <li>Grupa B: Gracze z miejsc 2</li>
                 <li>Grupa C: Gracze z miejsc 3</li>
@@ -97,14 +97,14 @@ export default function RegulaminPage() {
 
         {/* III. Zasady gry */}
         <section>
-          <h2 className="regulamin-h2">III. Zasady gry i zgłaszania wyników</h2>
+          <h2 className="text-xl font-bold text-[var(--color-primary)] border-b-2 border-[var(--color-accent)] pb-2 mb-5">III. Zasady gry i zgłaszania wyników</h2>
 
-          <h3 className="regulamin-h3">1. System rozgrywek</h3>
+          <h3 className="text-lg font-bold text-[var(--color-text-dark)] mt-6 mb-3">1. System rozgrywek</h3>
           <p>W grupach obowiązuje system <strong>„każdy z każdym"</strong>.</p>
 
-          <h3 className="regulamin-h3">2. Punktacja</h3>
+          <h3 className="text-lg font-bold text-[var(--color-text-dark)] mt-6 mb-3">2. Punktacja</h3>
           <div className="overflow-x-auto">
-            <table className="regulamin-table">
+            <table className="standings-table w-full text-sm">
               <thead>
                 <tr>
                   <th>Wynik meczu</th>
@@ -122,15 +122,15 @@ export default function RegulaminPage() {
           </div>
           <p className="mt-3">W fazie grupowej dodatkowo przyznawane <strong>„małe punkty"</strong> (patrz niżej).</p>
 
-          <h3 className="regulamin-h3">3. Zgłaszanie wyników</h3>
-          <ul className="regulamin-list">
+          <h3 className="text-lg font-bold text-[var(--color-text-dark)] mt-6 mb-3">3. Zgłaszanie wyników</h3>
+          <ul className="list-disc pl-6 mb-4 space-y-1.5">
             <li>Wynik zgłasza zwycięzca na grupie WhatsApp „Don Papa MP 2026" w ciągu <strong>24 godzin</strong> od zakończenia meczu.</li>
             <li>W przypadku remisu gracze wspólnie zgłaszają wynik lub wskazują osobę odpowiedzialną za zgłoszenie.</li>
           </ul>
 
-          <h3 className="regulamin-h3">4. Rozstrzyganie remisów w grupach</h3>
+          <h3 className="text-lg font-bold text-[var(--color-text-dark)] mt-6 mb-3">4. Rozstrzyganie remisów w grupach</h3>
           <p className="mb-3">Kolejność w grupie ustalana jest według:</p>
-          <ol className="regulamin-ordered">
+          <ol className="list-[lower-alpha] pl-6 mb-4 space-y-1.5">
             <li><strong>Wynik bezpośredniego meczu</strong> (dla 2 graczy)</li>
             <li><strong>„Mała tabelka"</strong> — przy większej liczbie remisujących, uwzględniająca tylko mecze pomiędzy nimi</li>
             <li><strong>„Małe punkty"</strong> — sumujące wyniki rozegranych meczów wg poniższej tabeli</li>
@@ -138,9 +138,9 @@ export default function RegulaminPage() {
             <li><strong>Losowanie</strong> przeprowadzone przez Zarząd Ligi</li>
           </ol>
 
-          <h4 className="regulamin-h4">Tabela małych punktów</h4>
+          <h4 className="text-base font-bold text-[var(--color-primary)] mt-5 mb-2">Tabela małych punktów</h4>
           <div className="overflow-x-auto">
-            <table className="regulamin-table">
+            <table className="standings-table w-full text-sm">
               <thead>
                 <tr>
                   <th>Wynik meczu</th>
@@ -169,11 +169,11 @@ export default function RegulaminPage() {
 
         {/* IV. Faza PLAY-OFF */}
         <section>
-          <h2 className="regulamin-h2">IV. Faza PLAY-OFF</h2>
+          <h2 className="text-xl font-bold text-[var(--color-primary)] border-b-2 border-[var(--color-accent)] pb-2 mb-5">IV. Faza PLAY-OFF</h2>
 
-          <h3 className="regulamin-h3">1. Drabinki</h3>
+          <h3 className="text-lg font-bold text-[var(--color-text-dark)] mt-6 mb-3">1. Drabinki</h3>
 
-          <h4 className="regulamin-h4">Drabinka 1–16 (18 dołków)</h4>
+          <h4 className="text-base font-bold text-[var(--color-primary)] mt-5 mb-2">Drabinka 1–16 (18 dołków)</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div className="bg-[var(--color-primary)]/[0.03] rounded-lg p-4 border border-[var(--color-border)]">
               <div className="text-xs font-bold uppercase tracking-wider text-[var(--color-primary)]/50 mb-2">Górna połowa</div>
@@ -191,7 +191,7 @@ export default function RegulaminPage() {
             </div>
           </div>
 
-          <h4 className="regulamin-h4">Drabinka 17–32 (9/18 dołków)</h4>
+          <h4 className="text-base font-bold text-[var(--color-primary)] mt-5 mb-2">Drabinka 17–32 (9/18 dołków)</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div className="bg-[var(--color-primary)]/[0.03] rounded-lg p-4 border border-[var(--color-border)]">
               <div className="text-xs font-bold uppercase tracking-wider text-[var(--color-primary)]/50 mb-2">Górna połowa</div>
@@ -209,7 +209,7 @@ export default function RegulaminPage() {
             </div>
           </div>
 
-          <h4 className="regulamin-h4">Drabinka 33–48 (9 dołków)</h4>
+          <h4 className="text-base font-bold text-[var(--color-primary)] mt-5 mb-2">Drabinka 33–48 (9 dołków)</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div className="bg-[var(--color-primary)]/[0.03] rounded-lg p-4 border border-[var(--color-border)]">
               <div className="text-xs font-bold uppercase tracking-wider text-[var(--color-primary)]/50 mb-2">Górna połowa</div>
@@ -227,9 +227,9 @@ export default function RegulaminPage() {
             </div>
           </div>
 
-          <h3 className="regulamin-h3">2. Terminy meczów play-off</h3>
+          <h3 className="text-lg font-bold text-[var(--color-text-dark)] mt-6 mb-3">2. Terminy meczów play-off</h3>
           <div className="overflow-x-auto">
-            <table className="regulamin-table">
+            <table className="standings-table w-full text-sm">
               <thead>
                 <tr>
                   <th>Runda</th>
@@ -248,12 +248,12 @@ export default function RegulaminPage() {
             Dopuszcza się możliwość dokonania przez Organizatora zmiany powyższych terminów.
           </p>
 
-          <h3 className="regulamin-h3">3. Dogrywka</h3>
+          <h3 className="text-lg font-bold text-[var(--color-text-dark)] mt-6 mb-3">3. Dogrywka</h3>
           <p>Remisy w PLAY-OFF rozstrzygane są w formacie <strong>„nagłej śmierci"</strong> od dołka nr 1.</p>
 
-          <h3 className="regulamin-h3">4. Nierozegrane mecze fazy play-off</h3>
+          <h3 className="text-lg font-bold text-[var(--color-text-dark)] mt-6 mb-3">4. Nierozegrane mecze fazy play-off</h3>
           <p className="mb-2">W przypadku nierozegrania meczu w terminie, Zarząd Ligi może przyznać walkower. Decyzja uwzględnia:</p>
-          <ol className="regulamin-ordered">
+          <ol className="list-[lower-alpha] pl-6 mb-4 space-y-1.5">
             <li>Obiektywne zaangażowanie graczy w organizację meczu.</li>
             <li>Wyższe miejsce zajęte w fazie grupowej (w sytuacjach niejednoznacznych).</li>
           </ol>
@@ -261,28 +261,28 @@ export default function RegulaminPage() {
 
         {/* V. Nagrody */}
         <section>
-          <h2 className="regulamin-h2">V. Nagrody i klasyfikacja</h2>
+          <h2 className="text-xl font-bold text-[var(--color-primary)] border-b-2 border-[var(--color-accent)] pb-2 mb-5">V. Nagrody i klasyfikacja</h2>
 
-          <h3 className="regulamin-h3">1. Nagrody pieniężne</h3>
+          <h3 className="text-lg font-bold text-[var(--color-text-dark)] mt-6 mb-3">1. Nagrody pieniężne</h3>
           <p>Nagrody przyznawane są za:</p>
-          <ul className="regulamin-list">
+          <ul className="list-disc pl-6 mb-4 space-y-1.5">
             <li>Miejsca <strong>1–12</strong> z drabinki 1–16</li>
             <li>Miejsca <strong>17–20</strong> z drabinki 17–32</li>
             <li>Miejsce <strong>33</strong> z drabinki 33–48</li>
           </ul>
 
-          <h3 className="regulamin-h3">2. Wpływ na kolejne sezony</h3>
+          <h3 className="text-lg font-bold text-[var(--color-text-dark)] mt-6 mb-3">2. Wpływ na kolejne sezony</h3>
           <p>Rozstawienie w Lidze 2027 ustalane będzie na podstawie końcowej klasyfikacji 2026.</p>
         </section>
 
         {/* VI. Postanowienia końcowe */}
         <section>
-          <h2 className="regulamin-h2">VI. Postanowienia końcowe</h2>
+          <h2 className="text-xl font-bold text-[var(--color-primary)] border-b-2 border-[var(--color-accent)] pb-2 mb-5">VI. Postanowienia końcowe</h2>
 
-          <h3 className="regulamin-h3">1. Interpretacja regulaminu</h3>
+          <h3 className="text-lg font-bold text-[var(--color-text-dark)] mt-6 mb-3">1. Interpretacja regulaminu</h3>
           <p>Wszelkie spory oraz kwestie nieujęte w regulaminie rozstrzyga Zarząd Ligi.</p>
 
-          <h3 className="regulamin-h3">2. Komunikacja</h3>
+          <h3 className="text-lg font-bold text-[var(--color-text-dark)] mt-6 mb-3">2. Komunikacja</h3>
           <p>Oficjalnym kanałem komunikacji jest grupa WhatsApp „Don Papa MP 2026" oraz strona internetowa <strong>donpapagolf.pl</strong>.</p>
         </section>
 
