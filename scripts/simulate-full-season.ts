@@ -21,6 +21,7 @@ import {
 import { computeStandings } from '../src/lib/standings'
 import {
   generateNextRoundGroups,
+  generatePromotionRelegation,
   generateRoundRobinPairings,
 } from '../src/lib/group-generator'
 import {
@@ -126,9 +127,11 @@ async function phase2(seasonId: number, config: SeasonConfig) {
 
     console.log(`\n  --- Round ${rn} ---`)
 
-    // Generate new groups by regrouping
-    const newGroupDefs = await generateNextRoundGroups(prevRound.id)
-    console.log(`  Regrouped into ${newGroupDefs.length} groups`)
+    // Round 1→2: full regrouping. Round 2+→3+: promotion/relegation
+    const newGroupDefs = prevRound.roundNumber <= 1
+      ? await generateNextRoundGroups(prevRound.id)
+      : await generatePromotionRelegation(prevRound.id)
+    console.log(`  ${prevRound.roundNumber <= 1 ? 'Regrouped' : 'Promotion/relegation'} into ${newGroupDefs.length} groups`)
 
     // Create round
     const round = await prisma.round.create({

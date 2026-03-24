@@ -11,6 +11,7 @@ import {
 } from '@/lib/scoring'
 import {
   generateNextRoundGroups,
+  generatePromotionRelegation,
   generateRoundRobinPairings,
 } from '@/lib/group-generator'
 import {
@@ -132,7 +133,10 @@ async function simulateToPlayoff(seasonId: number, config: SeasonConfig) {
     })
     if (!prevRound) break
 
-    const newGroupDefs = await generateNextRoundGroups(prevRound.id)
+    // Round 1→2: full regrouping. Round 2+→3+: promotion/relegation (1-2 up, 3 stays, 4-5 down)
+    const newGroupDefs = prevRound.roundNumber <= 1
+      ? await generateNextRoundGroups(prevRound.id)
+      : await generatePromotionRelegation(prevRound.id)
 
     const round = await prisma.round.create({
       data: {
