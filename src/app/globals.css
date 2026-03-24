@@ -264,3 +264,106 @@ h1, h2, h3, h4, h5, h6 {
 .wp-content a:hover {
   color: var(--color-primary-light);
 }
+
+/* Regulamin page styles */
+.regulamin-h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  border-bottom: 2px solid var(--color-accent);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.regulamin-h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-dark);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.regulamin-h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.regulamin-list {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.regulamin-list li {
+  margin-bottom: 0.4rem;
+}
+
+.regulamin-sublist {
+  list-style-type: circle;
+  padding-left: 1.5rem;
+  margin-top: 0.3rem;
+}
+
+.regulamin-sublist li {
+  margin-bottom: 0.25rem;
+}
+
+.regulamin-ordered {
+  list-style-type: lower-alpha;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.regulamin-ordered li {
+  margin-bottom: 0.4rem;
+}
+
+.regulamin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+  margin-top: 0.75rem;
+}
+
+.regulamin-table thead tr {
+  background: var(--color-primary);
+  color: white;
+}
+
+.regulamin-table thead th {
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: left;
+}
+
+.regulamin-table thead th:first-child {
+  border-radius: 6px 0 0 0;
+}
+
+.regulamin-table thead th:last-child {
+  border-radius: 0 6px 0 0;
+}
+
+.regulamin-table tbody td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.regulamin-table tbody tr:hover {
+  background-color: rgba(19, 74, 86, 0.03);
+}
+
+.regulamin-table tbody tr:last-child td:first-child {
+  border-radius: 0 0 0 6px;
+}
+
+.regulamin-table tbody tr:last-child td:last-child {
+  border-radius: 0 0 6px 0;
+}

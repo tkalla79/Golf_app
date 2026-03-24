@@ -15,6 +15,7 @@ export default function Navbar({ hasPlayoff = false }: { hasPlayoff?: boolean })
     ...(hasPlayoff ? [{ href: '/playoff', label: PL.nav.playoff }] : []),
     { href: '/zawodnicy', label: PL.nav.players },
     { href: '/aktualnosci', label: PL.nav.news },
+    { href: '/regulamin', label: PL.nav.rules },
   ]
 
   return (

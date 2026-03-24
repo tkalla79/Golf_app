@@ -5,6 +5,7 @@ export const PL = {
     players: 'Zawodnicy',
     playoff: 'Play-off',
     news: 'Aktualności',
+    rules: 'Regulamin',
     admin: 'Admin',
     login: 'Zaloguj się',
     logout: 'Wyloguj',
