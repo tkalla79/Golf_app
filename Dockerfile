@@ -5,6 +5,8 @@ RUN npm ci
 COPY prisma ./prisma
 RUN npx prisma generate
 COPY . .
+ENV DATABASE_URL="mysql://build:build@localhost:3306/build"
+ENV NEXTAUTH_SECRET="build-only-not-used-in-runtime"
 RUN npm run build
 
 FROM node:20-alpine AS runner

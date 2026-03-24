@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   description: 'Regulamin Rozgrywek Ligi Don Papa Match Play 2026 — zasady gry, punktacja, play-off, terminy.',
 }
 
+export const dynamic = 'force-dynamic'
+
 export default function RegulaminPage() {
   return (
     <div className="max-w-4xl mx-auto">

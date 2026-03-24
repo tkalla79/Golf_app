@@ -1,17 +1,18 @@
 import { cookies } from 'next/headers'
 import { SignJWT, jwtVerify } from 'jose'
 
-if (!process.env.NEXTAUTH_SECRET) {
-  throw new Error('NEXTAUTH_SECRET environment variable is required')
+function getSecret() {
+  const secret = process.env.NEXTAUTH_SECRET
+  if (!secret) throw new Error('NEXTAUTH_SECRET environment variable is required')
+  return new TextEncoder().encode(secret)
 }
-const SECRET = new TextEncoder().encode(process.env.NEXTAUTH_SECRET)
 const COOKIE_NAME = 'player-session'
 
 export async function createPlayerSession(playerId: number, slug: string) {
   const token = await new SignJWT({ playerId, slug })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime('30d')
-    .sign(SECRET)
+    .sign(getSecret())
 
   const cookieStore = await cookies()
   cookieStore.set(COOKIE_NAME, token, {
@@ -29,7 +30,7 @@ export async function getPlayerSession(): Promise<{ playerId: number; slug: stri
   if (!token) return null
 
   try {
-    const { payload } = await jwtVerify(token, SECRET)
+    const { payload } = await jwtVerify(token, getSecret())
     return { playerId: payload.playerId as number, slug: payload.slug as string }
   } catch {
     return null

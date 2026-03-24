@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { getPosts, getFeaturedImageUrl, formatDate } from '@/lib/wordpress'
 import { PL } from '@/constants/pl'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Aktualności | Don Papa Match Play',
   description: 'Aktualności i informacje z ligi golfowej Don Papa Match Play - Karolinka Golf Park',
