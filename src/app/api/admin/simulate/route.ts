@@ -364,11 +364,11 @@ async function resetSimulation(seasonId: number) {
   const season = await prisma.season.findUnique({ where: { id: seasonId } })
   if (!season) throw new Error('Sezon nie znaleziony')
 
-  // Delete all playoff data
-  await prisma.match.deleteMany({ where: { bracketRound: { not: null } } })
-  await prisma.groupPlayer.deleteMany({ where: { group: { round: { type: 'PLAYOFF' } } } })
-  await prisma.group.deleteMany({ where: { round: { type: 'PLAYOFF' } } })
-  await prisma.round.deleteMany({ where: { type: 'PLAYOFF' } })
+  // Delete all playoff data FOR THIS SEASON ONLY
+  await prisma.match.deleteMany({ where: { bracketRound: { not: null }, group: { round: { seasonId: season.id } } } })
+  await prisma.groupPlayer.deleteMany({ where: { group: { round: { type: 'PLAYOFF', seasonId: season.id } } } })
+  await prisma.group.deleteMany({ where: { round: { type: 'PLAYOFF', seasonId: season.id } } })
+  await prisma.round.deleteMany({ where: { type: 'PLAYOFF', seasonId: season.id } })
 
   // Delete rounds 2+ (keep round 1)
   const firstRound = await prisma.round.findFirst({

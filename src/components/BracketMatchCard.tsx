@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function BracketMatchCard({ slot, compact, showLabel }: Props) {
-  const isDecided = slot.played && slot.winnerId
+  const isDecided = !!(slot.played && slot.winnerId)
 
   // Determine line colors for winner/loser paths
   const p1IsWinner = !!slot.winnerId && slot.winnerId === slot.player1Id

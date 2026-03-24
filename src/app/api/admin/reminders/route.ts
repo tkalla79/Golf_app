@@ -31,6 +31,19 @@ export async function POST() {
     },
   })
 
+  // Idempotency: check if reminders were already sent today
+  const todayStr = today.toISOString().slice(0, 10)
+  const alreadySent = await prisma.match.findFirst({
+    where: {
+      played: false,
+      notes: { contains: `reminder:${todayStr}` },
+    },
+  })
+
+  if (alreadySent) {
+    return NextResponse.json({ sent: 0, errors: 0, details: ['Przypomnienia zostały już wysłane dzisiaj.'] })
+  }
+
   let sent = 0
   const errors: string[] = []
 
@@ -85,6 +98,26 @@ export async function POST() {
           } catch (e) {
             errors.push(`Failed: ${match.player2.email} - ${e}`)
           }
+        }
+      }
+    }
+  }
+
+  // Mark matches as reminded today (for idempotency)
+  if (sent > 0) {
+    for (const round of rounds) {
+      if (!round.dateEnd) continue
+      const deadline = new Date(round.dateEnd)
+      deadline.setHours(0, 0, 0, 0)
+      const daysLeft = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+      if (daysLeft !== 7 && daysLeft !== 2) continue
+
+      for (const group of round.groups) {
+        for (const match of group.matches) {
+          await prisma.match.update({
+            where: { id: match.id },
+            data: { notes: [match.notes, `reminder:${todayStr}`].filter(Boolean).join('; ') },
+          })
         }
       }
     }

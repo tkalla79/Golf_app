@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getPost, getFeaturedImageUrl, formatDate } from '@/lib/wordpress'
+import { stripHtml, sanitizeHtml } from '@/lib/sanitize'
 import { PL } from '@/constants/pl'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -54,8 +55,9 @@ export default async function PostPage({
       <h1
         className="text-3xl md:text-4xl font-bold text-[var(--color-primary)] leading-tight"
         style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
-        dangerouslySetInnerHTML={{ __html: post.title.rendered }}
-      />
+      >
+        {stripHtml(post.title.rendered)}
+      </h1>
 
       {/* Date */}
       <p className="text-sm text-[var(--color-text-body)]/60 mt-3 mb-8">
@@ -65,7 +67,7 @@ export default async function PostPage({
       {/* Content */}
       <div
         className="wp-content"
-        dangerouslySetInnerHTML={{ __html: post.content.rendered }}
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content.rendered) }}
       />
     </article>
   )

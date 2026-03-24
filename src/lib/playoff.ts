@@ -315,8 +315,9 @@ export async function buildBracketSlots(groupId: number): Promise<BracketSlot[]>
       const match = matchMap.get(`${round}-${pos}`)
 
       if (match) {
-        // Determine loser
-        const loserId = match.played && match.winnerId
+        // Determine loser (null for BYE matches)
+        const isByeMatch = match.player1Id === match.player2Id
+        const loserId = match.played && match.winnerId && !isByeMatch
           ? (match.winnerId === match.player1Id ? match.player2Id : match.player1Id)
           : null
 
@@ -427,7 +428,8 @@ export async function autoAdvancePlayoff(matchId: number): Promise<void> {
   const currentPos = match.bracketPosition
   const nextRound = currentRound + 1
   const winnerId = match.winnerId
-  const loserId = winnerId === match.player1Id ? match.player2Id : match.player1Id
+  const isBye = match.player1Id === match.player2Id
+  const loserId = isBye ? null : (winnerId === match.player1Id ? match.player2Id : match.player1Id)
 
   // Find all R(N+1) matches that feed from this match (both W and L paths)
   const nextRoundFeeds = MATCH_FEEDS[nextRound]
@@ -483,12 +485,13 @@ async function resolvePlayerFromFeed(
   triggerRound: number,
   triggerPos: number,
   triggerWinnerId: number,
-  triggerLoserId: number,
+  triggerLoserId: number | null,
   groupId: number
 ): Promise<number | null> {
   // If this feed is from the triggering match, resolve directly
   if (feed.round === triggerRound && feed.position === triggerPos) {
-    return feed.result === 'W' ? triggerWinnerId : triggerLoserId
+    if (feed.result === 'W') return triggerWinnerId
+    return triggerLoserId // null for BYE matches (no real loser)
   }
 
   // Otherwise look up the match from DB

@@ -79,8 +79,24 @@ export function computeStandings(
     }
   }
 
-  const sorted = Array.from(standings.values())
+  const players = Array.from(standings.values())
 
+  // Pre-compute tied groups and mini-tables BEFORE sorting (to avoid unstable comparator)
+  const byBigPoints = new Map<number, number[]>()
+  for (const p of players) {
+    const group = byBigPoints.get(p.bigPoints) || []
+    group.push(p.playerId)
+    byBigPoints.set(p.bigPoints, group)
+  }
+
+  const miniTables = new Map<number, Map<number, number>>()
+  for (const [bp, playerIds] of byBigPoints) {
+    if (playerIds.length >= 3) {
+      miniTables.set(bp, computeMiniTable(new Set(playerIds), matches))
+    }
+  }
+
+  const sorted = players
   sorted.sort((a, b) => {
     // 1. Big points descending
     if (b.bigPoints !== a.bigPoints) return b.bigPoints - a.bigPoints
@@ -89,12 +105,9 @@ export function computeStandings(
     const h2h = getHeadToHead(a.playerId, b.playerId, matches)
     if (h2h !== 0) return h2h
 
-    // 2b. "Mała tabelka" - for 3+ players with same BP, compute mini-table
-    // from only matches between tied players, then compare mini-BP
-    const tiedGroup = sorted.filter(p => p.bigPoints === a.bigPoints)
-    if (tiedGroup.length >= 3) {
-      const tiedIds = new Set(tiedGroup.map(p => p.playerId))
-      const miniTable = computeMiniTable(tiedIds, matches)
+    // 2b. "Mała tabelka" - pre-computed mini-table for 3+ tied players
+    const miniTable = miniTables.get(a.bigPoints)
+    if (miniTable) {
       const aMini = miniTable.get(a.playerId) ?? 0
       const bMini = miniTable.get(b.playerId) ?? 0
       if (bMini !== aMini) return bMini - aMini

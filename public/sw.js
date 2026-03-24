@@ -1,10 +1,7 @@
-const CACHE_NAME = 'dpmp-v1'
+const CACHE_NAME = 'dpmp-v2'
 const STATIC_ASSETS = [
-  '/',
-  '/grupy',
-  '/zawodnicy',
-  '/playoff',
   '/manifest.json',
+  '/logo.png',
 ]
 
 self.addEventListener('install', (event) => {
@@ -32,20 +29,16 @@ self.addEventListener('fetch', (event) => {
   // Skip API calls and admin pages
   if (request.url.includes('/api/') || request.url.includes('/admin')) return
 
+  // Network-first: try network, fall back to cache (offline support)
   event.respondWith(
-    caches.match(request).then((cached) => {
-      const fetchPromise = fetch(request)
-        .then((response) => {
-          // Cache successful responses
-          if (response.ok) {
-            const clone = response.clone()
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
-          }
-          return response
-        })
-        .catch(() => cached) // Return cached on network failure
-
-      return cached || fetchPromise
-    })
+    fetch(request)
+      .then((response) => {
+        if (response.ok) {
+          const clone = response.clone()
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+        }
+        return response
+      })
+      .catch(() => caches.match(request))
   )
 })

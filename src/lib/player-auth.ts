@@ -1,7 +1,10 @@
 import { cookies } from 'next/headers'
 import { SignJWT, jwtVerify } from 'jose'
 
-const SECRET = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || 'fallback-secret')
+if (!process.env.NEXTAUTH_SECRET) {
+  throw new Error('NEXTAUTH_SECRET environment variable is required')
+}
+const SECRET = new TextEncoder().encode(process.env.NEXTAUTH_SECRET)
 const COOKIE_NAME = 'player-session'
 
 export async function createPlayerSession(playerId: number, slug: string) {

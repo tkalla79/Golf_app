@@ -122,10 +122,14 @@ export async function generatePromotionRelegation(roundId: number) {
     }
   }
 
-  // Build result array
+  // Build result array with balance warnings
+  const targetSize = Math.round(groupStandings.reduce((sum, g) => sum + g.standings.length, 0) / numGroups)
   const newGroups = newGroupPlayers.map((players, i) => ({
     name: `Grupa ${groupLetters[i] || i + 1}`,
     players,
+    warning: players.length !== targetSize
+      ? `Nierówna liczba graczy (${players.length} zamiast ${targetSize}) - sprawdź i skoryguj ręcznie`
+      : undefined,
   }))
 
   return newGroups
