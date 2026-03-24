@@ -104,7 +104,7 @@ async function main() {
     update: {},
     create: {
       seasonId: season.id,
-      name: 'Runda eliminacyjna',
+      name: 'Runda wstępna',
       roundNumber: 1,
       type: 'ROUND_ROBIN',
       holes: 9,

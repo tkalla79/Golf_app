@@ -218,7 +218,7 @@ export default function AdminSeasonDetailPage({
                 value={roundForm.name}
                 onChange={(e) => setRoundForm({ ...roundForm, name: e.target.value })}
                 required
-                placeholder="np. Runda eliminacyjna"
+                placeholder="np. Runda wstępna"
                 className="w-full px-4 py-2.5 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)]"
               />
             </div>

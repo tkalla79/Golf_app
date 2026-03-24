@@ -147,7 +147,7 @@ add_action('template_redirect', function() {
 ## 🧹 Reset symulacji (po testach, przed sezonem)
 
 ### Kontekst
-Podczas developmentu uruchomiono symulację pełnego sezonu (695 meczów, 4 rundy + play-off). Przed startem prawdziwego sezonu trzeba wyczyścić symulowane dane i wrócić do stanu: 1 runda eliminacyjna z 50 graczami, 0 rozegranych meczów.
+Podczas developmentu uruchomiono symulację pełnego sezonu (695 meczów, 4 rundy + play-off). Przed startem prawdziwego sezonu trzeba wyczyścić symulowane dane i wrócić do stanu: 1 runda wstępna z 50 graczami, 0 rozegranych meczów.
 
 ### Opcja A: Pełny reset (seed z CSV)
 **UWAGA: Kasuje WSZYSTKIE dane — graczy, mecze, sezony, avatary!**
