@@ -5,7 +5,7 @@ import { useState } from 'react'
 import BracketMatchCard from './BracketMatchCard'
 import { PL } from '@/constants/pl'
 import type { BracketSlot } from '@/lib/playoff'
-import { ROUND_NAMES, PLACEMENT_LABELS } from '@/lib/playoff'
+import { PLACEMENT_LABELS } from '@/lib/playoff'
 import Link from 'next/link'
 
 interface BracketData {
@@ -31,30 +31,25 @@ export default function PlayoffBracket({ brackets }: Props) {
   if (!active) return null
 
   const slots = active.slots
-  const getSlots = (round: number, positions?: number[]) =>
-    slots
-      .filter(s => s.bracketRound === round && (!positions || positions.includes(s.bracketPosition)))
-      .sort((a, b) => a.bracketPosition - b.bracketPosition)
+  const getSlot = (round: number, pos: number) =>
+    slots.find(s => s.bracketRound === round && s.bracketPosition === pos) ?? null
+  const getSlots = (round: number, positions: number[]) =>
+    positions.map(p => getSlot(round, p)).filter(Boolean) as BracketSlot[]
 
-  // R4 slots for final classification
-  const r4Slots = getSlots(4)
-
-  // Determine bracket offset for placement labels (0 for 1-16, 16 for 17-32, 32 for 33-48)
   const bracketOffset = active.bracketKey === '1-16' ? 0 : active.bracketKey === '17-32' ? 16 : 32
 
-  // Build final classification from R4 results
+  // Build classification from R4
+  const r4Slots = getSlots(4, [1, 2, 3, 4, 5, 6, 7, 8])
   const classification: { place: number; name: string; slug: string | null }[] = []
   for (const slot of r4Slots) {
     if (!slot.played || !slot.winnerId) continue
-    const winnerName = slot.winnerId === slot.player1Id ? slot.player1Name : slot.player2Name
-    const winnerSlug = slot.winnerId === slot.player1Id ? slot.player1Slug : slot.player2Slug
-    const loserName = slot.winnerId === slot.player1Id ? slot.player2Name : slot.player1Name
-    const loserSlug = slot.winnerId === slot.player1Id ? slot.player2Slug : slot.player1Slug
-
-    // pos 1 → places 1-2 (winner=1, loser=2), pos 2 → 3-4, etc.
-    const basePlace = (slot.bracketPosition - 1) * 2 + 1 + bracketOffset
-    if (winnerName) classification.push({ place: basePlace, name: winnerName, slug: winnerSlug })
-    if (loserName) classification.push({ place: basePlace + 1, name: loserName, slug: loserSlug })
+    const wName = slot.winnerId === slot.player1Id ? slot.player1Name : slot.player2Name
+    const wSlug = slot.winnerId === slot.player1Id ? slot.player1Slug : slot.player2Slug
+    const lName = slot.winnerId === slot.player1Id ? slot.player2Name : slot.player1Name
+    const lSlug = slot.winnerId === slot.player1Id ? slot.player2Slug : slot.player1Slug
+    const base = (slot.bracketPosition - 1) * 2 + 1 + bracketOffset
+    if (wName) classification.push({ place: base, name: wName, slug: wSlug })
+    if (lName) classification.push({ place: base + 1, name: lName, slug: lSlug })
   }
   classification.sort((a, b) => a.place - b.place)
 
@@ -81,69 +76,126 @@ export default function PlayoffBracket({ brackets }: Props) {
         ))}
       </div>
 
-      {/* ═══ RUNDA 1 — 1/8 Finału ═══ */}
-      <RoundSection title="Runda 1 — 1/8 Finału" deadline="do 06.09.2026">
-        <MatchGrid slots={getSlots(1)} columns={4} />
-      </RoundSection>
+      {/* Pyramid bracket */}
+      <div className="bracket-pyramid-container">
 
-      {/* ═══ RUNDA 2 ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Górna tabela — zwycięzcy R1 (o miejsca 1-8) */}
-        <RoundSection
-          title="Runda 2 — O miejsca 1-8"
-          subtitle="Zwycięzcy 1/8 finału"
-          accent="success"
-          deadline="do 25.09.2026"
-        >
-          <MatchGrid slots={getSlots(2, [1, 2, 3, 4])} columns={2} />
-        </RoundSection>
+        {/* ═══ TOP: Finały o miejsca (R4) — zwycięzca na górze ═══ */}
+        <div className="bracket-section">
+          <div className="bracket-section-title accent">Finały o miejsca</div>
 
-        {/* Dolna tabela — przegrani R1 (o miejsca 9-16) */}
-        <RoundSection
-          title="Runda 2 — O miejsca 9-16"
-          subtitle="Przegrani 1/8 finału"
-          accent="muted"
-          deadline="do 25.09.2026"
-        >
-          <MatchGrid slots={getSlots(2, [5, 6, 7, 8])} columns={2} />
-        </RoundSection>
-      </div>
+          {/* Miejsca 1-2 (FINAŁ) */}
+          <div className="bracket-finals-top">
+            {getSlot(4, 1) && (
+              <BracketMatchCard slot={getSlot(4, 1)!} showLabel={`Miejsca ${1 + bracketOffset}-${2 + bracketOffset}`} />
+            )}
+          </div>
 
-      {/* ═══ RUNDA 3 ═══ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <RoundSection title="Półfinał 1-4" compact deadline="do 11.10.2026">
-          <MatchGrid slots={getSlots(3, [1, 2])} columns={1} />
-        </RoundSection>
-        <RoundSection title="O miejsca 5-8" compact accent="muted" deadline="do 11.10.2026">
-          <MatchGrid slots={getSlots(3, [3, 4])} columns={1} />
-        </RoundSection>
-        <RoundSection title="O miejsca 9-12" compact accent="muted" deadline="do 11.10.2026">
-          <MatchGrid slots={getSlots(3, [5, 6])} columns={1} />
-        </RoundSection>
-        <RoundSection title="O miejsca 13-16" compact accent="muted" deadline="do 11.10.2026">
-          <MatchGrid slots={getSlots(3, [7, 8])} columns={1} />
-        </RoundSection>
-      </div>
+          {/* Miejsca 3-4 */}
+          <div className="bracket-finals-row">
+            {getSlot(4, 2) && (
+              <BracketMatchCard slot={getSlot(4, 2)!} showLabel={`Miejsca ${3 + bracketOffset}-${4 + bracketOffset}`} />
+            )}
+          </div>
 
-      {/* ═══ RUNDA 4 — Finały o miejsca ═══ */}
-      <RoundSection title="Runda 4 — Finały o miejsca" deadline="do 31.10.2026">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {r4Slots.map(slot => (
-            <div key={`${slot.bracketRound}-${slot.bracketPosition}`}>
-              <div className={`text-center text-[0.65rem] font-bold uppercase tracking-wider mb-2 ${
-                slot.bracketPosition <= 2 ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-body)]/40'
-              }`}>
-                {slot.placementLabel ?? `Miejsca ${(slot.bracketPosition - 1) * 2 + 1 + bracketOffset}-${slot.bracketPosition * 2 + bracketOffset}`}
-              </div>
-              <BracketMatchCard slot={slot} />
-            </div>
-          ))}
+          {/* Miejsca 5-8 */}
+          <div className="bracket-finals-pair">
+            {[3, 4].map(p => getSlot(4, p) && (
+              <BracketMatchCard key={p} slot={getSlot(4, p)!} compact showLabel={`Miejsca ${(p - 1) * 2 + 1 + bracketOffset}-${p * 2 + bracketOffset}`} />
+            ))}
+          </div>
         </div>
-      </RoundSection>
+
+        {/* ═══ GÓRNA TABELA: O miejsca 1-8 (R1 winners path) ═══ */}
+        <div className="bracket-section">
+          <div className="bracket-section-title">O miejsca {1 + bracketOffset}-{8 + bracketOffset}</div>
+
+          {/* R3: Półfinały (pos 1-2) + O miejsca 5-8 (pos 3-4) */}
+          <div className="bracket-round-row">
+            <div className="bracket-subsection">
+              <div className="bracket-sub-label">Półfinały</div>
+              <div className="bracket-pair-row">
+                {[1, 2].map(p => getSlot(3, p) && (
+                  <BracketMatchCard key={p} slot={getSlot(3, p)!} compact />
+                ))}
+              </div>
+            </div>
+            <div className="bracket-subsection muted">
+              <div className="bracket-sub-label">O miejsca {5 + bracketOffset}-{8 + bracketOffset}</div>
+              <div className="bracket-pair-row">
+                {[3, 4].map(p => getSlot(3, p) && (
+                  <BracketMatchCard key={p} slot={getSlot(3, p)!} compact />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* R2: Ćwierćfinały (pos 1-4) */}
+          <div className="bracket-round-row">
+            <div className="bracket-sub-label">Ćwierćfinały</div>
+            <div className="bracket-quad-row">
+              {[1, 2, 3, 4].map(p => getSlot(2, p) && (
+                <BracketMatchCard key={p} slot={getSlot(2, p)!} compact />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ═══ RUNDA 1: 1/8 Finału ═══ */}
+        <div className="bracket-section">
+          <div className="bracket-section-title">1/8 Finału</div>
+          <div className="bracket-r1-row">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(p => getSlot(1, p) && (
+              <BracketMatchCard key={p} slot={getSlot(1, p)!} compact />
+            ))}
+          </div>
+        </div>
+
+        {/* ═══ DOLNA TABELA: O miejsca 9-16 (R1 losers path) ═══ */}
+        <div className="bracket-section">
+          <div className="bracket-section-title muted">O miejsca {9 + bracketOffset}-{16 + bracketOffset}</div>
+
+          {/* R2: O miejsca 9-16 (pos 5-8) */}
+          <div className="bracket-round-row">
+            <div className="bracket-sub-label">Runda 2</div>
+            <div className="bracket-quad-row">
+              {[5, 6, 7, 8].map(p => getSlot(2, p) && (
+                <BracketMatchCard key={p} slot={getSlot(2, p)!} compact />
+              ))}
+            </div>
+          </div>
+
+          {/* R3: O miejsca 9-12 (pos 5-6) + O miejsca 13-16 (pos 7-8) */}
+          <div className="bracket-round-row">
+            <div className="bracket-subsection">
+              <div className="bracket-sub-label">O miejsca {9 + bracketOffset}-{12 + bracketOffset}</div>
+              <div className="bracket-pair-row">
+                {[5, 6].map(p => getSlot(3, p) && (
+                  <BracketMatchCard key={p} slot={getSlot(3, p)!} compact />
+                ))}
+              </div>
+            </div>
+            <div className="bracket-subsection muted">
+              <div className="bracket-sub-label">O miejsca {13 + bracketOffset}-{16 + bracketOffset}</div>
+              <div className="bracket-pair-row">
+                {[7, 8].map(p => getSlot(3, p) && (
+                  <BracketMatchCard key={p} slot={getSlot(3, p)!} compact />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* R4: Finały o 9-16 */}
+          <div className="bracket-finals-pair">
+            {[5, 6, 7, 8].map(p => getSlot(4, p) && (
+              <BracketMatchCard key={p} slot={getSlot(4, p)!} compact showLabel={`Miejsca ${(p - 1) * 2 + 1 + bracketOffset}-${p * 2 + bracketOffset}`} />
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* ═══ CHAMPION ═══ */}
       {r4Slots[0]?.played && r4Slots[0]?.winnerId && (
-        <div className="bg-[var(--color-primary)] border-2 border-[var(--color-accent)] rounded-xl p-6 text-center mb-8">
+        <div className="bg-[var(--color-primary)] border-2 border-[var(--color-accent)] rounded-xl p-6 text-center my-8">
           <div className="text-3xl mb-2">🏆</div>
           <div className="text-[0.65rem] font-bold tracking-[0.25em] uppercase text-[var(--color-accent)]">
             {PL.playoff.champion} {active.name.replace('Drabinka ', '')}
@@ -154,7 +206,7 @@ export default function PlayoffBracket({ brackets }: Props) {
         </div>
       )}
 
-      {/* ═══ ZBIORCZA KLASYFIKACJA ═══ */}
+      {/* ═══ KLASYFIKACJA KOŃCOWA ═══ */}
       {classification.length > 0 && (
         <div className="card p-0 overflow-hidden">
           <div className="bg-[var(--color-primary)] px-6 py-4">
@@ -165,25 +217,22 @@ export default function PlayoffBracket({ brackets }: Props) {
           <table className="standings-table w-full text-sm">
             <thead>
               <tr>
-                <th className="text-left !rounded-none">Miejsce</th>
+                <th className="text-left !rounded-none w-20">Miejsce</th>
                 <th className="text-left !rounded-none">Zawodnik</th>
               </tr>
             </thead>
             <tbody>
               {classification.map(({ place, name, slug }) => (
                 <tr key={place} className={place <= (bracketOffset + 3) ? 'bg-[var(--color-accent)]/[0.06]' : ''}>
-                  <td className="font-bold text-[var(--color-primary)] w-16">
-                    {place === bracketOffset + 1 && <span className="mr-1">🥇</span>}
-                    {place === bracketOffset + 2 && <span className="mr-1">🥈</span>}
-                    {place === bracketOffset + 3 && <span className="mr-1">🥉</span>}
+                  <td className="font-bold text-[var(--color-primary)]">
+                    {place === bracketOffset + 1 && '🥇 '}
+                    {place === bracketOffset + 2 && '🥈 '}
+                    {place === bracketOffset + 3 && '🥉 '}
                     {place}
                   </td>
                   <td>
                     {slug ? (
-                      <Link
-                        href={`/zawodnik/${slug}`}
-                        className="font-semibold text-[var(--color-text-dark)] hover:text-[var(--color-primary)] transition-colors"
-                      >
+                      <Link href={`/zawodnik/${slug}`} className="font-semibold text-[var(--color-text-dark)] hover:text-[var(--color-primary)] transition-colors">
                         {name}
                       </Link>
                     ) : (
@@ -196,61 +245,6 @@ export default function PlayoffBracket({ brackets }: Props) {
           </table>
         </div>
       )}
-    </div>
-  )
-}
-
-// ═══ Helper Components ═══
-
-function RoundSection({
-  title,
-  subtitle,
-  accent,
-  compact,
-  deadline,
-  children,
-}: {
-  title: string
-  subtitle?: string
-  accent?: 'success' | 'muted'
-  compact?: boolean
-  deadline?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className={compact ? '' : 'mb-8'}>
-      <div className={`flex items-center justify-between mb-3 ${compact ? '' : 'border-b border-[var(--color-border)] pb-2'}`}>
-        <div>
-          <h3 className={`font-bold ${compact ? 'text-sm' : 'text-base'} ${
-            accent === 'muted' ? 'text-[var(--color-text-body)]/60' : 'text-[var(--color-primary)]'
-          }`} style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
-            {title}
-          </h3>
-          {subtitle && (
-            <div className="text-[0.65rem] text-[var(--color-text-body)]/40 mt-0.5">{subtitle}</div>
-          )}
-        </div>
-        {deadline && (
-          <span className="text-[0.6rem] font-semibold text-[var(--color-text-body)]/30 uppercase tracking-wider">
-            {deadline}
-          </span>
-        )}
-      </div>
-      {children}
-    </div>
-  )
-}
-
-function MatchGrid({ slots, columns }: { slots: BracketSlot[]; columns: number }) {
-  return (
-    <div className={`grid gap-3 ${
-      columns === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' :
-      columns === 2 ? 'grid-cols-1 sm:grid-cols-2' :
-      'grid-cols-1'
-    }`}>
-      {slots.map(slot => (
-        <BracketMatchCard key={`${slot.bracketRound}-${slot.bracketPosition}`} slot={slot} />
-      ))}
     </div>
   )
 }

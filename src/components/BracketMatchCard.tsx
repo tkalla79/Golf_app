@@ -4,122 +4,95 @@ import type { BracketSlot } from '@/lib/playoff'
 
 interface Props {
   slot: BracketSlot
+  compact?: boolean
+  showLabel?: string
 }
 
-export default function BracketMatchCard({ slot }: Props) {
-  const hasPlayers = slot.player1Name || slot.player2Name
+export default function BracketMatchCard({ slot, compact, showLabel }: Props) {
+  const isDecided = slot.played && slot.winnerId
 
   return (
-    <div className={`border rounded-lg overflow-hidden text-sm transition-colors ${
-      slot.played
-        ? 'border-[var(--color-border)] bg-white'
-        : 'border-[var(--color-border)]/50 bg-[var(--color-primary)]/[0.02]'
-    }`}>
-      {/* Player 1 (top) */}
-      <PlayerSlot
-        name={slot.player1Name}
-        slug={slot.player1Slug}
-        seed={slot.player1Seed}
-        isWinner={slot.winnerId !== null && slot.winnerId === slot.player1Id}
-        isLoser={slot.winnerId !== null && slot.winnerId !== slot.player1Id}
-        resultCode={slot.winnerId === slot.player1Id ? slot.resultCode : null}
-      />
-
-      <div className="border-t border-[var(--color-border)]/50" />
-
-      {/* Player 2 (bottom) */}
-      {slot.resultCode === 'BYE' ? (
-        <div className="px-3 py-2 flex items-center gap-2">
-          <span className="text-[var(--color-text-body)]/40 italic text-xs font-semibold">BYE</span>
-        </div>
-      ) : (
-        <PlayerSlot
-          name={slot.player2Name}
-          slug={slot.player2Slug}
-          seed={slot.player2Seed}
-          isWinner={slot.winnerId !== null && slot.winnerId === slot.player2Id}
-          isLoser={slot.winnerId !== null && slot.winnerId !== slot.player2Id}
-          resultCode={slot.winnerId === slot.player2Id ? slot.resultCode : null}
-        />
+    <div className="bracket-match-card">
+      {showLabel && (
+        <div className="bracket-match-label">{showLabel}</div>
       )}
-
-      {/* Status bar */}
-      <div className={`text-center py-1 text-[0.6rem] font-semibold uppercase tracking-wider ${
-        slot.played ? 'text-[var(--color-success)]/70' : 'text-[var(--color-text-body)]/30'
-      }`}>
-        {slot.played
-          ? slot.holes
-            ? `rozegrany · ${slot.holes} dołków`
-            : 'rozegrany'
-          : hasPlayers ? `do ${slot.deadline}` : ''}
+      <div className={`bracket-match ${isDecided ? 'decided' : 'pending'}`}>
+        <PlayerRow
+          name={slot.player1Name}
+          slug={slot.player1Slug}
+          seed={slot.player1Seed}
+          isWinner={!!slot.winnerId && slot.winnerId === slot.player1Id}
+          score={slot.winnerId === slot.player1Id ? 1 : slot.played ? 0 : null}
+          compact={compact}
+        />
+        {slot.resultCode === 'BYE' ? (
+          <div className="bracket-player bye">
+            <span className="bracket-player-name">BYE</span>
+          </div>
+        ) : (
+          <PlayerRow
+            name={slot.player2Name}
+            slug={slot.player2Slug}
+            seed={slot.player2Seed}
+            isWinner={!!slot.winnerId && slot.winnerId === slot.player2Id}
+            score={slot.winnerId === slot.player2Id ? 1 : slot.played ? 0 : null}
+            compact={compact}
+          />
+        )}
       </div>
+      {slot.played && slot.resultCode && slot.resultCode !== 'BYE' && (
+        <div className="bracket-result-code">{slot.resultCode}</div>
+      )}
     </div>
   )
 }
 
-function PlayerSlot({
+function PlayerRow({
   name,
   slug,
   seed,
   isWinner,
-  isLoser,
-  resultCode,
+  score,
+  compact,
 }: {
   name: string | null
   slug: string | null
   seed: number | null
   isWinner: boolean
-  isLoser: boolean
-  resultCode: string | null
+  score: number | null
+  compact?: boolean
 }) {
   if (!name) {
     return (
-      <div className="px-3 py-2 flex items-center gap-2">
-        <span className="text-[var(--color-text-body)]/20 italic text-xs">Oczekuje na wynik</span>
+      <div className="bracket-player pending">
+        <span className="bracket-player-name empty">&nbsp;</span>
       </div>
     )
   }
 
   const nameEl = slug ? (
-    <Link
-      href={`/zawodnik/${slug}`}
-      className={`font-semibold transition-colors ${
-        isWinner ? 'text-[var(--color-primary)] hover:text-[var(--color-accent)]' :
-        isLoser ? 'text-[var(--color-text-body)]/40 line-through' :
-        'text-[var(--color-text-dark)] hover:text-[var(--color-primary)]'
-      }`}
-    >
-      {name}
+    <Link href={`/zawodnik/${slug}`} className={`bracket-player-name ${isWinner ? 'winner' : ''}`}>
+      {compact ? shortName(name) : name}
     </Link>
   ) : (
-    <span className={`font-semibold ${
-      isWinner ? 'text-[var(--color-primary)]' :
-      isLoser ? 'text-[var(--color-text-body)]/40 line-through' :
-      'text-[var(--color-text-body)]/40 italic'
-    }`}>
-      {name}
+    <span className={`bracket-player-name ${isWinner ? 'winner' : ''}`}>
+      {compact ? shortName(name) : name}
     </span>
   )
 
   return (
-    <div className={`px-3 py-2 flex items-center justify-between gap-2 ${
-      isWinner ? 'bg-[var(--color-success)]/[0.04]' : ''
-    }`}>
-      <div className="flex items-center gap-2 min-w-0">
-        {seed !== null && (
-          <span className={`text-xs font-bold w-5 text-center flex-shrink-0 ${
-            isWinner ? 'text-[var(--color-success)]' : 'text-[var(--color-primary)]/30'
-          }`}>
-            {seed}
-          </span>
-        )}
-        {nameEl}
-      </div>
-      {resultCode && (
-        <span className="text-xs font-bold text-[var(--color-accent)] flex-shrink-0 ml-2">
-          {resultCode}
-        </span>
+    <div className={`bracket-player ${isWinner ? 'winner-row' : ''}`}>
+      {seed !== null && <span className="bracket-seed">{seed}</span>}
+      {nameEl}
+      {score !== null && (
+        <span className={`bracket-score ${isWinner ? 'win' : 'lose'}`}>{score}</span>
       )}
     </div>
   )
+}
+
+function shortName(full: string): string {
+  const parts = full.split(' ')
+  if (parts.length < 2) return full
+  return `${parts[0][0]}. ${parts.slice(1).join(' ')}`
 }

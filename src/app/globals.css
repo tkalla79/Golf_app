@@ -266,6 +266,235 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-primary-light);
 }
 
+/* ═══ Bracket (playoff) styles ═══ */
+
+.bracket-pyramid-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.bracket-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(19, 74, 86, 0.06);
+  border: 1px solid rgba(19, 74, 86, 0.06);
+  padding: 1rem 1.25rem;
+}
+
+.bracket-section-title {
+  font-family: var(--font-raleway), 'Raleway', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.bracket-section-title.accent {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.bracket-section-title.muted {
+  color: var(--color-text-body);
+  opacity: 0.5;
+}
+
+.bracket-sub-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-body);
+  opacity: 0.4;
+  margin-bottom: 0.5rem;
+}
+
+.bracket-subsection { flex: 1; }
+.bracket-subsection.muted { opacity: 0.75; }
+
+.bracket-round-row {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.bracket-finals-top {
+  max-width: 240px;
+  margin: 0 auto 0.75rem;
+}
+
+.bracket-finals-row {
+  max-width: 240px;
+  margin: 0 auto 0.75rem;
+}
+
+.bracket-finals-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.bracket-pair-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.bracket-quad-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.bracket-r1-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .bracket-quad-row,
+  .bracket-r1-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .bracket-round-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .bracket-finals-pair {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .bracket-quad-row,
+  .bracket-r1-row,
+  .bracket-pair-row,
+  .bracket-finals-pair {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Compact match card */
+.bracket-match-card {
+  position: relative;
+}
+
+.bracket-match-label {
+  font-size: 0.55rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-accent);
+  text-align: center;
+  margin-bottom: 2px;
+}
+
+.bracket-match {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 0.78rem;
+  background: white;
+  transition: border-color 0.15s;
+}
+
+.bracket-match:hover {
+  border-color: var(--color-primary);
+}
+
+.bracket-match.pending {
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+.bracket-player {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  min-height: 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.bracket-player:last-child {
+  border-bottom: none;
+}
+
+.bracket-player.winner-row {
+  background: rgba(45, 122, 58, 0.06);
+}
+
+.bracket-player.bye {
+  opacity: 0.3;
+  font-style: italic;
+}
+
+.bracket-player-name {
+  flex: 1;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.72rem;
+}
+
+.bracket-player-name.winner {
+  color: var(--color-primary);
+}
+
+.bracket-player-name.empty {
+  color: transparent;
+}
+
+.bracket-player-name:hover {
+  color: var(--color-accent);
+}
+
+.bracket-seed {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  opacity: 0.35;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.bracket-score {
+  font-weight: 800;
+  font-size: 0.7rem;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.bracket-score.win {
+  color: var(--color-success);
+}
+
+.bracket-score.lose {
+  color: var(--color-text-body);
+  opacity: 0.3;
+}
+
+.bracket-result-code {
+  text-align: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  padding: 1px 0;
+  background: rgba(213, 182, 101, 0.06);
+}
+
 /* Regulamin page styles */
 .regulamin-h2 {
   font-size: 1.4rem;
