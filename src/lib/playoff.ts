@@ -3,13 +3,13 @@ import { computeStandings } from './standings'
 
 // ═══ CONSTANTS ═══
 
-/** Seeding pairs per bracket: [seed1, seed2] in bracketPosition order */
+/** Round 1 seeding pairs per bracket: [seed1, seed2] in bracketPosition order (positions 1-8) */
 export const BRACKET_SEEDS: Record<string, [number, number][]> = {
   '1-16': [
-    [1, 16], [8, 9],    // → QF1
-    [4, 13], [5, 12],   // → QF2
-    [2, 15], [7, 10],   // → QF3
-    [3, 14], [6, 11],   // → QF4
+    [1, 16], [8, 9],    // → R2 pos 1 (W) and pos 5 (L)
+    [4, 13], [5, 12],   // → R2 pos 2 (W) and pos 6 (L)
+    [2, 15], [7, 10],   // → R2 pos 3 (W) and pos 7 (L)
+    [3, 14], [6, 11],   // → R2 pos 4 (W) and pos 8 (L)
   ],
   '17-32': [
     [17, 32], [24, 25],
@@ -35,9 +35,9 @@ export const BRACKET_HOLES: Record<string, number> = {
 
 export const ROUND_NAMES: Record<number, string> = {
   1: '1/8 Finału',
-  2: 'Ćwierćfinał',
-  3: 'Półfinał',
-  4: 'Finał',
+  2: 'Ćwierćfinały / O miejsca 9-16',
+  3: 'Półfinały / O miejsca',
+  4: 'Finały o miejsca',
 }
 
 export const ROUND_DEADLINES: Record<number, string> = {
@@ -45,6 +45,120 @@ export const ROUND_DEADLINES: Record<number, string> = {
   2: '25.09.2026',
   3: '11.10.2026',
   4: '31.10.2026',
+}
+
+/**
+ * Full placement bracket: 32 matches per bracket, 4 rounds × 8 matches.
+ * Every player plays exactly 4 matches and finishes with a definitive place.
+ *
+ * Match position mapping (each round has positions 1-8):
+ *
+ * ROUND 1 (1/8 finału): positions 1-8 = seeded matches
+ *
+ * ROUND 2 (8 matches):
+ *   pos 1-4: WINNERS from R1 (upper bracket / ćwierćfinały o 1-8)
+ *     pos 1: W(R1-1) vs W(R1-2)
+ *     pos 2: W(R1-3) vs W(R1-4)
+ *     pos 3: W(R1-5) vs W(R1-6)
+ *     pos 4: W(R1-7) vs W(R1-8)
+ *   pos 5-8: LOSERS from R1 (lower bracket / o miejsca 9-16)
+ *     pos 5: L(R1-1) vs L(R1-2)
+ *     pos 6: L(R1-3) vs L(R1-4)
+ *     pos 7: L(R1-5) vs L(R1-6)
+ *     pos 8: L(R1-7) vs L(R1-8)
+ *
+ * ROUND 3 (8 matches):
+ *   pos 1-2: WINNERS of R2 upper (półfinały o 1-4)
+ *     pos 1: W(R2-1) vs W(R2-2)
+ *     pos 2: W(R2-3) vs W(R2-4)
+ *   pos 3-4: LOSERS of R2 upper (o miejsca 5-8)
+ *     pos 3: L(R2-1) vs L(R2-2)
+ *     pos 4: L(R2-3) vs L(R2-4)
+ *   pos 5-6: WINNERS of R2 lower (o miejsca 9-12)
+ *     pos 5: W(R2-5) vs W(R2-6)
+ *     pos 6: W(R2-7) vs W(R2-8)
+ *   pos 7-8: LOSERS of R2 lower (o miejsca 13-16)
+ *     pos 7: L(R2-5) vs L(R2-6)
+ *     pos 8: L(R2-7) vs L(R2-8)
+ *
+ * ROUND 4 (8 matches — all placement finals):
+ *   pos 1: W(R3-1) vs W(R3-2)  → MIEJSCA 1-2
+ *   pos 2: L(R3-1) vs L(R3-2)  → MIEJSCA 3-4
+ *   pos 3: W(R3-3) vs W(R3-4)  → MIEJSCA 5-6
+ *   pos 4: L(R3-3) vs L(R3-4)  → MIEJSCA 7-8
+ *   pos 5: W(R3-5) vs W(R3-6)  → MIEJSCA 9-10
+ *   pos 6: L(R3-5) vs L(R3-6)  → MIEJSCA 11-12
+ *   pos 7: W(R3-7) vs W(R3-8)  → MIEJSCA 13-14
+ *   pos 8: L(R3-7) vs L(R3-8)  → MIEJSCA 15-16
+ */
+
+/** Placement label for each R4 position */
+export const PLACEMENT_LABELS: Record<number, string> = {
+  1: 'Miejsca 1-2',
+  2: 'Miejsca 3-4',
+  3: 'Miejsca 5-6',
+  4: 'Miejsca 7-8',
+  5: 'Miejsca 9-10',
+  6: 'Miejsca 11-12',
+  7: 'Miejsca 13-14',
+  8: 'Miejsca 15-16',
+}
+
+/**
+ * Feed map: for rounds 2-4, defines how each match position is fed from previous round.
+ * Format: [prevRound, prevPos, 'W'|'L'] for player1 and player2
+ */
+interface FeedSource {
+  round: number
+  position: number
+  result: 'W' | 'L'
+}
+
+export interface MatchFeed {
+  player1: FeedSource
+  player2: FeedSource
+}
+
+export const MATCH_FEEDS: Record<number, Record<number, MatchFeed>> = {
+  // Round 2
+  2: {
+    // Upper bracket (winners of R1)
+    1: { player1: { round: 1, position: 1, result: 'W' }, player2: { round: 1, position: 2, result: 'W' } },
+    2: { player1: { round: 1, position: 3, result: 'W' }, player2: { round: 1, position: 4, result: 'W' } },
+    3: { player1: { round: 1, position: 5, result: 'W' }, player2: { round: 1, position: 6, result: 'W' } },
+    4: { player1: { round: 1, position: 7, result: 'W' }, player2: { round: 1, position: 8, result: 'W' } },
+    // Lower bracket (losers of R1)
+    5: { player1: { round: 1, position: 1, result: 'L' }, player2: { round: 1, position: 2, result: 'L' } },
+    6: { player1: { round: 1, position: 3, result: 'L' }, player2: { round: 1, position: 4, result: 'L' } },
+    7: { player1: { round: 1, position: 5, result: 'L' }, player2: { round: 1, position: 6, result: 'L' } },
+    8: { player1: { round: 1, position: 7, result: 'L' }, player2: { round: 1, position: 8, result: 'L' } },
+  },
+  // Round 3
+  3: {
+    // Upper winners → semifinals for 1-4
+    1: { player1: { round: 2, position: 1, result: 'W' }, player2: { round: 2, position: 2, result: 'W' } },
+    2: { player1: { round: 2, position: 3, result: 'W' }, player2: { round: 2, position: 4, result: 'W' } },
+    // Upper losers → for 5-8
+    3: { player1: { round: 2, position: 1, result: 'L' }, player2: { round: 2, position: 2, result: 'L' } },
+    4: { player1: { round: 2, position: 3, result: 'L' }, player2: { round: 2, position: 4, result: 'L' } },
+    // Lower winners → for 9-12
+    5: { player1: { round: 2, position: 5, result: 'W' }, player2: { round: 2, position: 6, result: 'W' } },
+    6: { player1: { round: 2, position: 7, result: 'W' }, player2: { round: 2, position: 8, result: 'W' } },
+    // Lower losers → for 13-16
+    7: { player1: { round: 2, position: 5, result: 'L' }, player2: { round: 2, position: 6, result: 'L' } },
+    8: { player1: { round: 2, position: 7, result: 'L' }, player2: { round: 2, position: 8, result: 'L' } },
+  },
+  // Round 4 (placement finals)
+  4: {
+    1: { player1: { round: 3, position: 1, result: 'W' }, player2: { round: 3, position: 2, result: 'W' } }, // 1-2
+    2: { player1: { round: 3, position: 1, result: 'L' }, player2: { round: 3, position: 2, result: 'L' } }, // 3-4
+    3: { player1: { round: 3, position: 3, result: 'W' }, player2: { round: 3, position: 4, result: 'W' } }, // 5-6
+    4: { player1: { round: 3, position: 3, result: 'L' }, player2: { round: 3, position: 4, result: 'L' } }, // 7-8
+    5: { player1: { round: 3, position: 5, result: 'W' }, player2: { round: 3, position: 6, result: 'W' } }, // 9-10
+    6: { player1: { round: 3, position: 5, result: 'L' }, player2: { round: 3, position: 6, result: 'L' } }, // 11-12
+    7: { player1: { round: 3, position: 7, result: 'W' }, player2: { round: 3, position: 8, result: 'W' } }, // 13-14
+    8: { player1: { round: 3, position: 7, result: 'L' }, player2: { round: 3, position: 8, result: 'L' } }, // 15-16
+  },
 }
 
 // ═══ BRACKET SLOT INTERFACE ═══
@@ -62,11 +176,13 @@ export interface BracketSlot {
   player1Seed: number | null
   player2Seed: number | null
   winnerId: number | null
+  loserId: number | null
   resultCode: string | null
   played: boolean
   isWalkover: boolean
   holes: number | null
   deadline: string
+  placementLabel: string | null // e.g. "Miejsca 1-2" for R4 matches
 }
 
 // ═══ GLOBAL RANKING ═══
@@ -87,10 +203,8 @@ export interface RankedPlayer {
 /**
  * Compute global ranking from the last completed ROUND_ROBIN round.
  * Sort: position in group → BP desc → SP desc → HCP desc (higher HCP = higher rank).
- * No head-to-head across groups.
  */
 export async function computeGlobalRanking(seasonId: number): Promise<RankedPlayer[]> {
-  // Find the latest completed or active ROUND_ROBIN round
   const lastRound = await prisma.round.findFirst({
     where: {
       seasonId,
@@ -111,14 +225,13 @@ export async function computeGlobalRanking(seasonId: number): Promise<RankedPlay
 
   if (!lastRound) return []
 
-  // Compute standings per group
   const allPlayers: RankedPlayer[] = []
 
   for (const group of lastRound.groups) {
     const standings = computeStandings(group.players, group.matches)
     for (const s of standings) {
       allPlayers.push({
-        rank: 0, // will be assigned below
+        rank: 0,
         playerId: s.playerId,
         firstName: s.firstName,
         lastName: s.lastName,
@@ -132,7 +245,6 @@ export async function computeGlobalRanking(seasonId: number): Promise<RankedPlay
     }
   }
 
-  // Sort: position in group ASC → BP DESC → SP DESC → HCP DESC
   allPlayers.sort((a, b) => {
     if (a.positionInGroup !== b.positionInGroup) return a.positionInGroup - b.positionInGroup
     if (b.bigPoints !== a.bigPoints) return b.bigPoints - a.bigPoints
@@ -142,7 +254,6 @@ export async function computeGlobalRanking(seasonId: number): Promise<RankedPlay
     return bHcp - aHcp
   })
 
-  // Assign ranks
   allPlayers.forEach((p, i) => { p.rank = i + 1 })
 
   return allPlayers
@@ -151,11 +262,10 @@ export async function computeGlobalRanking(seasonId: number): Promise<RankedPlay
 // ═══ BUILD BRACKET VIEW ═══
 
 /**
- * Build the full 15-slot bracket array for a playoff group.
- * Merges real Match records with computed placeholder slots.
+ * Build the full 32-slot bracket array for a playoff group.
+ * 4 rounds × 8 positions = 32 matches total.
  */
 export async function buildBracketSlots(groupId: number): Promise<BracketSlot[]> {
-  // Fetch all playoff matches for this group
   const matches = await prisma.match.findMany({
     where: {
       groupId,
@@ -165,17 +275,10 @@ export async function buildBracketSlots(groupId: number): Promise<BracketSlot[]>
     orderBy: [{ bracketRound: 'asc' }, { bracketPosition: 'asc' }],
   })
 
-  // Fetch group players for seed mapping
   const groupPlayers = await prisma.groupPlayer.findMany({
     where: { groupId },
     include: { player: true },
   })
-
-  // Build seed map: finalPosition → player
-  const seedMap = new Map<number, typeof groupPlayers[0]>()
-  for (const gp of groupPlayers) {
-    if (gp.finalPosition) seedMap.set(gp.finalPosition, gp)
-  }
 
   // Build match lookup: "round-position" → match
   const matchMap = new Map<string, typeof matches[0]>()
@@ -185,14 +288,36 @@ export async function buildBracketSlots(groupId: number): Promise<BracketSlot[]>
     }
   }
 
+  // Helper: resolve player from a feeder match
+  function resolveFeeder(feed: FeedSource): { playerId: number | null; name: string | null; slug: string | null } {
+    const feederMatch = matchMap.get(`${feed.round}-${feed.position}`)
+    if (!feederMatch || !feederMatch.played || !feederMatch.winnerId) {
+      return { playerId: null, name: null, slug: null }
+    }
+    const isWinner = feed.result === 'W'
+    const resolvedId = isWinner ? feederMatch.winnerId : getLoser(feederMatch)
+    if (!resolvedId) return { playerId: null, name: null, slug: null }
+
+    const player = resolvedId === feederMatch.player1Id ? feederMatch.player1 : feederMatch.player2
+    return {
+      playerId: resolvedId,
+      name: `${player.firstName} ${player.lastName}`,
+      slug: player.slug,
+    }
+  }
+
   const slots: BracketSlot[] = []
-  const roundSizes = [8, 4, 2, 1] // matches per round
 
   for (let round = 1; round <= 4; round++) {
-    for (let pos = 1; pos <= roundSizes[round - 1]; pos++) {
+    for (let pos = 1; pos <= 8; pos++) {
       const match = matchMap.get(`${round}-${pos}`)
 
       if (match) {
+        // Determine loser
+        const loserId = match.played && match.winnerId
+          ? (match.winnerId === match.player1Id ? match.player2Id : match.player1Id)
+          : null
+
         slots.push({
           bracketRound: round,
           bracketPosition: pos,
@@ -203,49 +328,48 @@ export async function buildBracketSlots(groupId: number): Promise<BracketSlot[]>
           player2Name: `${match.player2.firstName} ${match.player2.lastName}`,
           player1Slug: match.player1.slug,
           player2Slug: match.player2.slug,
-          player1Seed: null, // resolved below for round 1
+          player1Seed: null,
           player2Seed: null,
           winnerId: match.winnerId,
+          loserId,
           resultCode: match.resultCode,
           played: match.played,
           isWalkover: match.isWalkover,
           holes: match.holes,
           deadline: ROUND_DEADLINES[round] ?? '',
+          placementLabel: round === 4 ? (PLACEMENT_LABELS[pos] ?? null) : null,
         })
       } else {
-        // Placeholder — match not yet created
-        // Try to resolve player names from feeder matches
-        const feeder1Pos = pos * 2 - 1
-        const feeder2Pos = pos * 2
-        const feeder1 = matchMap.get(`${round - 1}-${feeder1Pos}`)
-        const feeder2 = matchMap.get(`${round - 1}-${feeder2Pos}`)
+        // Placeholder — try to resolve from feeder matches
+        const feeds = MATCH_FEEDS[round]?.[pos]
+        let p1 = { playerId: null as number | null, name: null as string | null, slug: null as string | null }
+        let p2 = { playerId: null as number | null, name: null as string | null, slug: null as string | null }
+
+        if (feeds) {
+          p1 = resolveFeeder(feeds.player1)
+          p2 = resolveFeeder(feeds.player2)
+        }
 
         slots.push({
           bracketRound: round,
           bracketPosition: pos,
           matchId: null,
-          player1Id: feeder1?.winnerId ?? null,
-          player2Id: feeder2?.winnerId ?? null,
-          player1Name: feeder1?.winnerId
-            ? feeder1.winnerId === feeder1.player1Id
-              ? `${feeder1.player1.firstName} ${feeder1.player1.lastName}`
-              : `${feeder1.player2.firstName} ${feeder1.player2.lastName}`
-            : null,
-          player2Name: feeder2?.winnerId
-            ? feeder2.winnerId === feeder2.player1Id
-              ? `${feeder2.player1.firstName} ${feeder2.player1.lastName}`
-              : `${feeder2.player2.firstName} ${feeder2.player2.lastName}`
-            : null,
-          player1Slug: null,
-          player2Slug: null,
+          player1Id: p1.playerId,
+          player2Id: p2.playerId,
+          player1Name: p1.name,
+          player2Name: p2.name,
+          player1Slug: p1.slug,
+          player2Slug: p2.slug,
           player1Seed: null,
           player2Seed: null,
           winnerId: null,
+          loserId: null,
           resultCode: null,
           played: false,
           isWalkover: false,
           holes: null,
           deadline: ROUND_DEADLINES[round] ?? '',
+          placementLabel: round === 4 ? (PLACEMENT_LABELS[pos] ?? null) : null,
         })
       }
     }
@@ -264,11 +388,22 @@ export async function buildBracketSlots(groupId: number): Promise<BracketSlot[]>
   return slots
 }
 
+// ═══ HELPERS ═══
+
+function getLoser(match: { player1Id: number; player2Id: number; winnerId: number | null }): number | null {
+  if (!match.winnerId) return null
+  return match.winnerId === match.player1Id ? match.player2Id : match.player1Id
+}
+
 // ═══ AUTO-ADVANCE ═══
 
 /**
- * After a playoff match result is saved, check if the next-round match should be created.
- * Called by the result API route.
+ * After a playoff match result is saved, check if any next-round matches
+ * should be created based on the MATCH_FEEDS map.
+ *
+ * A match in round N feeds into potentially TWO matches in round N+1:
+ * - One for the winner (W)
+ * - One for the loser (L)
  */
 export async function autoAdvancePlayoff(matchId: number): Promise<void> {
   const match = await prisma.match.findUnique({
@@ -280,56 +415,97 @@ export async function autoAdvancePlayoff(matchId: number): Promise<void> {
 
   if (!match || !match.bracketRound || !match.bracketPosition || !match.winnerId) return
   if (match.group.round.type !== 'PLAYOFF') return
-  if (match.bracketRound >= 4) return // Final — no next round
+  if (match.bracketRound >= 4) return // R4 = final placement matches, no further advancement
 
-  const nextRound = match.bracketRound + 1
-  const nextPosition = Math.ceil(match.bracketPosition / 2)
-  const isTopSlot = match.bracketPosition % 2 === 1 // odd = top (player1), even = bottom (player2)
+  const currentRound = match.bracketRound
+  const currentPos = match.bracketPosition
+  const nextRound = currentRound + 1
+  const winnerId = match.winnerId
+  const loserId = winnerId === match.player1Id ? match.player2Id : match.player1Id
 
-  // Find the sibling match
-  const siblingPosition = isTopSlot ? match.bracketPosition + 1 : match.bracketPosition - 1
-  const siblingMatch = await prisma.match.findFirst({
+  // Find all R(N+1) matches that feed from this match (both W and L paths)
+  const nextRoundFeeds = MATCH_FEEDS[nextRound]
+  if (!nextRoundFeeds) return
+
+  for (const [posStr, feed] of Object.entries(nextRoundFeeds)) {
+    const nextPos = parseInt(posStr)
+
+    // Check if this feed references our match
+    const p1FromUs = feed.player1.round === currentRound && feed.player1.position === currentPos
+    const p2FromUs = feed.player2.round === currentRound && feed.player2.position === currentPos
+
+    if (!p1FromUs && !p2FromUs) continue
+
+    // Resolve both players for this next-round match
+    const p1Feed = feed.player1
+    const p2Feed = feed.player2
+
+    const p1Id = resolvePlayerFromFeed(p1Feed, currentRound, currentPos, winnerId, loserId, match.groupId)
+    const p2Id = resolvePlayerFromFeed(p2Feed, currentRound, currentPos, winnerId, loserId, match.groupId)
+
+    // Both players must be resolved to create the match
+    const resolvedP1 = await p1Id
+    const resolvedP2 = await p2Id
+
+    if (!resolvedP1 || !resolvedP2) continue
+
+    // Check if match already exists
+    const existing = await prisma.match.findFirst({
+      where: {
+        groupId: match.groupId,
+        bracketRound: nextRound,
+        bracketPosition: nextPos,
+      },
+    })
+
+    if (existing) continue
+
+    await prisma.match.create({
+      data: {
+        groupId: match.groupId,
+        player1Id: resolvedP1,
+        player2Id: resolvedP2,
+        bracketRound: nextRound,
+        bracketPosition: nextPos,
+      },
+    })
+  }
+}
+
+async function resolvePlayerFromFeed(
+  feed: FeedSource,
+  triggerRound: number,
+  triggerPos: number,
+  triggerWinnerId: number,
+  triggerLoserId: number,
+  groupId: number
+): Promise<number | null> {
+  // If this feed is from the triggering match, resolve directly
+  if (feed.round === triggerRound && feed.position === triggerPos) {
+    return feed.result === 'W' ? triggerWinnerId : triggerLoserId
+  }
+
+  // Otherwise look up the match from DB
+  const feederMatch = await prisma.match.findFirst({
     where: {
-      groupId: match.groupId,
-      bracketRound: match.bracketRound,
-      bracketPosition: siblingPosition,
+      groupId,
+      bracketRound: feed.round,
+      bracketPosition: feed.position,
       played: true,
     },
   })
 
-  if (!siblingMatch || !siblingMatch.winnerId) return // Sibling not played yet
+  if (!feederMatch || !feederMatch.winnerId) return null
 
-  // Both feeders decided — create next-round match
-  const topWinnerId = isTopSlot ? match.winnerId : siblingMatch.winnerId
-  const bottomWinnerId = isTopSlot ? siblingMatch.winnerId : match.winnerId
-
-  // Check if next match already exists
-  const existing = await prisma.match.findFirst({
-    where: {
-      groupId: match.groupId,
-      bracketRound: nextRound,
-      bracketPosition: nextPosition,
-    },
-  })
-
-  if (existing) return // Already created (idempotent)
-
-  await prisma.match.create({
-    data: {
-      groupId: match.groupId,
-      player1Id: topWinnerId,
-      player2Id: bottomWinnerId,
-      bracketRound: nextRound,
-      bracketPosition: nextPosition,
-    },
-  })
+  if (feed.result === 'W') return feederMatch.winnerId
+  return feederMatch.winnerId === feederMatch.player1Id ? feederMatch.player2Id : feederMatch.player1Id
 }
 
 // ═══ CASCADE DELETE ═══
 
 /**
  * When a playoff match result is cleared, delete any downstream matches
- * that were created from this match's winner.
+ * that were created from this match's winner OR loser.
  */
 export async function cascadeDeleteDownstream(matchId: number): Promise<void> {
   const match = await prisma.match.findUnique({
@@ -339,21 +515,33 @@ export async function cascadeDeleteDownstream(matchId: number): Promise<void> {
   if (!match || !match.bracketRound || !match.bracketPosition) return
   if (match.bracketRound >= 4) return
 
-  const nextRound = match.bracketRound + 1
-  const nextPosition = Math.ceil(match.bracketPosition / 2)
+  const currentRound = match.bracketRound
+  const currentPos = match.bracketPosition
+  const nextRound = currentRound + 1
 
-  const downstream = await prisma.match.findFirst({
-    where: {
-      groupId: match.groupId,
-      bracketRound: nextRound,
-      bracketPosition: nextPosition,
-    },
-  })
+  const nextRoundFeeds = MATCH_FEEDS[nextRound]
+  if (!nextRoundFeeds) return
 
-  if (downstream) {
-    // Recursively delete further downstream first
-    await cascadeDeleteDownstream(downstream.id)
-    // Then delete this downstream match
-    await prisma.match.delete({ where: { id: downstream.id } })
+  // Find all downstream matches that reference this match
+  for (const [posStr, feed] of Object.entries(nextRoundFeeds)) {
+    const nextPos = parseInt(posStr)
+    const p1FromUs = feed.player1.round === currentRound && feed.player1.position === currentPos
+    const p2FromUs = feed.player2.round === currentRound && feed.player2.position === currentPos
+
+    if (!p1FromUs && !p2FromUs) continue
+
+    const downstream = await prisma.match.findFirst({
+      where: {
+        groupId: match.groupId,
+        bracketRound: nextRound,
+        bracketPosition: nextPos,
+      },
+    })
+
+    if (downstream) {
+      // Recursively delete further downstream first
+      await cascadeDeleteDownstream(downstream.id)
+      await prisma.match.delete({ where: { id: downstream.id } })
+    }
   }
 }

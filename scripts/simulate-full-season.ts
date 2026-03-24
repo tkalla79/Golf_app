@@ -376,9 +376,9 @@ async function phase4(playoffRoundId: number, seasonId: number) {
       }
     }
 
-    // Determine bracket winner (final match)
+    // Determine bracket winner (R4 position 1 = places 1-2 final)
     const finalMatch = await prisma.match.findFirst({
-      where: { groupId: group.id, bracketRound: 4, played: true },
+      where: { groupId: group.id, bracketRound: 4, bracketPosition: 1, played: true },
       include: { winner: true },
     })
     if (finalMatch?.winner) {
@@ -387,6 +387,10 @@ async function phase4(playoffRoundId: number, seasonId: number) {
         winner: `${finalMatch.winner.firstName} ${finalMatch.winner.lastName}`,
       })
     }
+
+    // Count total matches for this bracket
+    const bracketTotal = await prisma.match.count({ where: { groupId: group.id } })
+    console.log(`    Total matches in bracket: ${bracketTotal}`)
   }
 
   return bracketWinners
