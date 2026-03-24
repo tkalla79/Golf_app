@@ -251,24 +251,25 @@ export default function PlayerProfileEditor({
                   </button>
                 </div>
               ) : (
-                <div className="flex gap-3 items-start">
-                  <div className="text-center">
-                    <div className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-lg">
-                      <div className="text-xs uppercase tracking-wider text-white/60 font-semibold">HCP</div>
-                      <div className="text-2xl font-bold">
-                        {hcp ? parseFloat(hcp).toFixed(1) : '–'}
-                      </div>
-                    </div>
-                  </div>
-                  {(totalBirdies !== undefined && totalBirdies > 0) && (
+                <div>
+                  <div className="flex gap-3 items-start">
                     <div className="text-center">
-                      <div className="bg-[var(--color-accent)] text-[var(--color-primary-dark)] px-5 py-3 rounded-lg">
-                        <div className="text-xs uppercase tracking-wider font-semibold opacity-70">🐦 Birdie</div>
-                        <div className="text-2xl font-bold">{totalBirdies}</div>
+                      <div className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-lg">
+                        <div className="text-xs uppercase tracking-wider text-white/60 font-semibold">HCP</div>
+                        <div className="text-2xl font-bold">
+                          {hcp ? parseFloat(hcp).toFixed(1) : '–'}
+                        </div>
                       </div>
                     </div>
-                  )}
-                </div>
+                    {(totalBirdies !== undefined && totalBirdies > 0) && (
+                      <div className="text-center">
+                        <div className="bg-[var(--color-accent)] text-[var(--color-primary-dark)] px-5 py-3 rounded-lg">
+                          <div className="text-xs uppercase tracking-wider font-semibold opacity-70">🐦 Birdie</div>
+                          <div className="text-2xl font-bold">{totalBirdies}</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   {isLoggedIn && (
                     <div className="flex justify-center gap-3 mt-2">
                       <button
