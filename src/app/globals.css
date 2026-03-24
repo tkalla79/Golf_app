@@ -403,6 +403,8 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.78rem;
   background: white;
   transition: border-color 0.15s;
+  display: flex;
+  position: relative;
 }
 
 .bracket-match:hover {
@@ -412,6 +414,31 @@ h1, h2, h3, h4, h5, h6 {
 .bracket-match.pending {
   opacity: 0.5;
   border-style: dashed;
+}
+
+.bracket-match-inner {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Winner/loser indicator lines on left side of match card */
+.bracket-indicator {
+  display: flex;
+  flex-direction: column;
+  width: 4px;
+  flex-shrink: 0;
+}
+
+.bracket-indicator-line {
+  flex: 1;
+}
+
+.bracket-indicator-line.winner-line {
+  background: var(--color-success);
+}
+
+.bracket-indicator-line.loser-line {
+  background: var(--color-danger);
 }
 
 .bracket-player {
@@ -428,7 +455,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .bracket-player.winner-row {
-  background: rgba(45, 122, 58, 0.06);
+  background: rgba(45, 122, 58, 0.08);
+}
+
+.bracket-player.loser-row {
+  background: rgba(166, 61, 47, 0.04);
 }
 
 .bracket-player.bye {
@@ -449,6 +480,13 @@ h1, h2, h3, h4, h5, h6 {
 
 .bracket-player-name.winner {
   color: var(--color-primary);
+  font-weight: 700;
+}
+
+.bracket-player-name.loser {
+  color: var(--color-text-body);
+  opacity: 0.4;
+  text-decoration: line-through;
 }
 
 .bracket-player-name.empty {
