@@ -310,7 +310,7 @@ async function phase4(playoffRoundId: number, seasonId: number) {
 
   // Load season config (for scoring) - playoff uses 18-hole codes for bracket 1-16
   const season = await prisma.season.findUnique({ where: { id: seasonId } })
-  const config = (season?.config as SeasonConfig) ?? DEFAULT_SEASON_CONFIG
+  const config = (season?.config as unknown as unknown as SeasonConfig) ?? DEFAULT_SEASON_CONFIG
 
   const groups = await prisma.group.findMany({
     where: { roundId: playoffRoundId },
@@ -408,7 +408,7 @@ async function main() {
   const season = await prisma.season.findFirst({ where: { status: 'ACTIVE' } })
   if (!season) throw new Error('No active season found')
 
-  const config = (season.config as SeasonConfig) ?? DEFAULT_SEASON_CONFIG
+  const config = (season.config as unknown as SeasonConfig) ?? DEFAULT_SEASON_CONFIG
   console.log(`\nSeason: ${season.name} (id=${season.id})`)
 
   // Phase 1

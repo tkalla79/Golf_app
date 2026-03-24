@@ -150,6 +150,12 @@ Aplikacja webowa do zarządzania rozgrywkami ligowymi "Don Papa Match Play" w Ka
 
 ---
 
+## UWAGA - znane pułapki
+
+- **NIE instaluj `@tailwindcss/typography`** - plugin nie jest kompatybilny z Tailwind v4 (`@plugin` directive nie działa). Strona regulaminu i WordPress content używają custom klas CSS (`regulamin-*`, `wp-content`) zdefiniowanych w `globals.css`. Dwukrotnie mieliśmy z tym problem.
+
+---
+
 ## Kluczowe decyzje
 
 1. **Season config jako JSON** - zasady punktacji per sezon, zmiana reguł = nowy wpis z innym config

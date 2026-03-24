@@ -1,6 +1,5 @@
 /* Fonts loaded via next/font/google in layout.tsx with latin-ext subset */
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
 
 :root {
   --color-primary: #134a56;
