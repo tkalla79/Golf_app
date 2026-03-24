@@ -49,6 +49,12 @@ docker compose --env-file .env run --rm migrate
 ```bash
 # Dopisz do /root/Golf_app/.env:
 WORDPRESS_API_URL=https://wp.donpapagolf.pl/wp-json/wp/v2
+
+# WAŻNE: Dodaj ?charset=utf8mb4 do DATABASE_URL (polskie znaki!)
+# Zmień:
+#   DATABASE_URL="mysql://donpapa:haslo@db:3306/donpapa"
+# Na:
+#   DATABASE_URL="mysql://donpapa:haslo@db:3306/donpapa?charset=utf8mb4"
 ```
 
 ### 5. Weryfikacja po deploy
