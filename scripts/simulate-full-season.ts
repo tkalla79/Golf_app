@@ -79,6 +79,8 @@ async function simulateMatches(
         player2BigPoints: res.player2BigPoints,
         player1SmallPoints: res.player1SmallPoints,
         player2SmallPoints: res.player2SmallPoints,
+        player1Birdies: Math.floor(Math.random() * 4), // 0-3 random birdies
+        player2Birdies: Math.floor(Math.random() * 4),
       },
     })
     totalMatchesSimulated++
@@ -367,6 +369,8 @@ async function phase4(playoffRoundId: number, seasonId: number) {
             player2BigPoints: res.player2BigPoints,
             player1SmallPoints: res.player1SmallPoints,
             player2SmallPoints: res.player2SmallPoints,
+            player1Birdies: Math.floor(Math.random() * 4),
+            player2Birdies: Math.floor(Math.random() * 4),
           },
         })
         totalMatchesSimulated++

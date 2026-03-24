@@ -64,6 +64,8 @@ async function simulateMatches(
         player2BigPoints: res.player2BigPoints,
         player1SmallPoints: res.player1SmallPoints,
         player2SmallPoints: res.player2SmallPoints,
+        player1Birdies: Math.floor(Math.random() * 4),
+        player2Birdies: Math.floor(Math.random() * 4),
       },
     })
     count++
@@ -336,6 +338,8 @@ async function simulateFullSeason(seasonId: number, config: SeasonConfig) {
               player2BigPoints: res.player2BigPoints,
               player1SmallPoints: res.player1SmallPoints,
               player2SmallPoints: res.player2SmallPoints,
+              player1Birdies: Math.floor(Math.random() * 4),
+              player2Birdies: Math.floor(Math.random() * 4),
             },
           })
           playoffMatches++
@@ -399,6 +403,8 @@ async function resetSimulation(seasonId: number) {
         player2BigPoints: 0,
         player1SmallPoints: 0,
         player2SmallPoints: 0,
+        player1Birdies: 0,
+        player2Birdies: 0,
         bracketRound: null,
         bracketPosition: null,
       },
