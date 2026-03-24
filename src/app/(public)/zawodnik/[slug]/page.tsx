@@ -54,6 +54,11 @@ export default async function ZawodnikPage({
   const upcomingMatches = matches.filter((m) => !m.played)
   const playedMatches = matches.filter((m) => m.played)
 
+  // Total birdies in season
+  const totalBirdies = playedMatches.reduce((sum, m) => {
+    return sum + (m.player1Id === player.id ? m.player1Birdies : m.player2Birdies)
+  }, 0)
+
   return (
     <div>
       {/* Breadcrumb */}
@@ -76,6 +81,7 @@ export default async function ZawodnikPage({
         isLoggedIn={isLoggedIn}
         isAnyPlayerLoggedIn={!!playerSession}
         hasPassword={!!player.passwordHash}
+        totalBirdies={totalBirdies}
       />
 
       {/* Upcoming matches */}

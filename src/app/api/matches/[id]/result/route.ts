@@ -19,7 +19,7 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid match ID' }, { status: 400 })
   }
   const body = await request.json()
-  const { winnerId, resultCode, isWalkover, holes } = body
+  const { winnerId, resultCode, isWalkover, holes, player1Birdies, player2Birdies } = body
 
   const match = await prisma.match.findUnique({
     where: { id: matchId },
@@ -73,6 +73,8 @@ export async function POST(
       isWalkover: !!isWalkover,
       played: true,
       holes: holes ? parseInt(holes) : undefined,
+      player1Birdies: player1Birdies ? parseInt(player1Birdies) : 0,
+      player2Birdies: player2Birdies ? parseInt(player2Birdies) : 0,
       ...points,
     },
     include: { player1: true, player2: true, winner: true },
@@ -122,6 +124,8 @@ export async function DELETE(
       player2BigPoints: 0,
       player1SmallPoints: 0,
       player2SmallPoints: 0,
+      player1Birdies: 0,
+      player2Birdies: 0,
     },
   })
 

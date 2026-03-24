@@ -141,6 +141,8 @@ model Match {
   player2BigPoints   Int      @default(0) @map("player2_big_points")
   player1SmallPoints Int      @default(0) @map("player1_small_points")
   player2SmallPoints Int      @default(0) @map("player2_small_points")
+  player1Birdies     Int      @default(0) @map("player1_birdies")
+  player2Birdies     Int      @default(0) @map("player2_birdies")
   played             Boolean  @default(false)
   isWalkover         Boolean  @default(false) @map("is_walkover")
   notes              String?  @db.Text

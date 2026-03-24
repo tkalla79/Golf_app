@@ -72,6 +72,7 @@ export default async function GrupaPage({
                 <th className="text-center !rounded-none">{PL.standings.lost}</th>
                 <th className="text-center !rounded-none">{PL.standings.bigPoints}</th>
                 <th className="text-center !rounded-none">{PL.standings.smallPoints}</th>
+                <th className="text-center !rounded-none">🐦</th>
               </tr>
             </thead>
             <tbody>
@@ -95,6 +96,9 @@ export default async function GrupaPage({
                   <td className={`text-center font-bold text-lg text-[var(--color-primary)] ${i === 0 ? 'bg-[var(--color-accent)]/10' : ''}`}>{s.bigPoints}</td>
                   <td className={`text-center text-[var(--color-text-body)]/60 ${i === 0 ? 'bg-[var(--color-accent)]/10' : ''}`}>
                     {s.smallPoints > 0 ? `+${s.smallPoints}` : s.smallPoints}
+                  </td>
+                  <td className={`text-center text-[var(--color-text-body)]/60 ${i === 0 ? 'bg-[var(--color-accent)]/10' : ''}`}>
+                    {s.birdies || 0}
                   </td>
                 </tr>
               ))}

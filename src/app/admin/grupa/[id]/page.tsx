@@ -25,6 +25,8 @@ interface Match {
   player2BigPoints: number
   player1SmallPoints: number
   player2SmallPoints: number
+  player1Birdies: number
+  player2Birdies: number
   played: boolean
   isWalkover: boolean
 }
@@ -62,6 +64,8 @@ export default function AdminGroupPage({
     winnerId: '',
     resultCode: '1Up',
     isWalkover: false,
+    player1Birdies: '0',
+    player2Birdies: '0',
   })
 
   const loadData = useCallback(async () => {
@@ -86,9 +90,11 @@ export default function AdminGroupPage({
         winnerId: match.winnerId ? String(match.winnerId) : '',
         resultCode: match.resultCode || '1Up',
         isWalkover: match.isWalkover,
+        player1Birdies: String(match.player1Birdies ?? 0),
+        player2Birdies: String(match.player2Birdies ?? 0),
       })
     } else {
-      setResultForm({ winnerId: '', resultCode: '1Up', isWalkover: false })
+      setResultForm({ winnerId: '', resultCode: '1Up', isWalkover: false, player1Birdies: '0', player2Birdies: '0' })
     }
   }
 
@@ -365,6 +371,41 @@ export default function AdminGroupPage({
                   </div>
                 </div>
               )}
+
+              {/* Birdie count */}
+              <div className="mt-4">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--color-text-body)]/60 mb-3">
+                  🐦 Birdie
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-[var(--color-text-body)]/50 mb-1 block">
+                      {editingMatch.player1.firstName} {editingMatch.player1.lastName}
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="18"
+                      value={resultForm.player1Birdies}
+                      onChange={(e) => setResultForm({ ...resultForm, player1Birdies: e.target.value })}
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-center font-bold text-lg focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-[var(--color-text-body)]/50 mb-1 block">
+                      {editingMatch.player2.firstName} {editingMatch.player2.lastName}
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="18"
+                      value={resultForm.player2Birdies}
+                      onChange={(e) => setResultForm({ ...resultForm, player2Birdies: e.target.value })}
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-center font-bold text-lg focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)]"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="flex gap-3 mt-8">

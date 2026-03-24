@@ -166,6 +166,7 @@ export default async function GrupyPage({
                       <th className="text-left py-1.5 font-semibold">{PL.standings.player}</th>
                       <th className="text-center py-1.5 font-semibold">{PL.standings.bigPoints}</th>
                       <th className="text-center py-1.5 font-semibold">{PL.standings.smallPoints}</th>
+                      <th className="text-center py-1.5 font-semibold">🐦</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -187,6 +188,9 @@ export default async function GrupyPage({
                         </td>
                         <td className="py-2 text-center text-sm text-[var(--color-text-body)]/60">
                           {s.smallPoints > 0 ? `+${s.smallPoints}` : s.smallPoints}
+                        </td>
+                        <td className="py-2 text-center text-sm text-[var(--color-text-body)]/60">
+                          {s.birdies || 0}
                         </td>
                       </tr>
                     ))}

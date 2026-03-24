@@ -11,6 +11,7 @@ export interface PlayerStanding {
   lost: number
   bigPoints: number
   smallPoints: number
+  birdies: number
   hcpAtStart: number | null
   position: number
   finalPosition: number | null
@@ -43,6 +44,7 @@ export function computeStandings(
       lost: 0,
       bigPoints: 0,
       smallPoints: 0,
+      birdies: 0,
       hcpAtStart: gp.hcpAtStart ? Number(gp.hcpAtStart) : null,
       position: 0,
       finalPosition: gp.finalPosition,
@@ -62,6 +64,8 @@ export function computeStandings(
     p2.bigPoints += match.player2BigPoints
     p1.smallPoints += match.player1SmallPoints
     p2.smallPoints += match.player2SmallPoints
+    p1.birdies += match.player1Birdies
+    p2.birdies += match.player2Birdies
 
     if (match.winnerId === match.player1Id) {
       p1.won++
