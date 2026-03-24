@@ -523,6 +523,14 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0.3;
 }
 
+.bracket-birdies {
+  font-size: 0.55rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  flex-shrink: 0;
+  margin-right: 2px;
+}
+
 .bracket-result-code {
   text-align: center;
   font-size: 0.6rem;

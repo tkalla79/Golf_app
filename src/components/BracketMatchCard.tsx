@@ -36,6 +36,7 @@ export default function BracketMatchCard({ slot, compact, showLabel }: Props) {
             isWinner={p1IsWinner}
             isLoser={isDecided && !p1IsWinner}
             score={p1IsWinner ? 1 : slot.played ? 0 : null}
+            birdies={slot.played ? slot.player1Birdies : null}
             compact={compact}
           />
           {slot.resultCode === 'BYE' ? (
@@ -50,6 +51,7 @@ export default function BracketMatchCard({ slot, compact, showLabel }: Props) {
               isWinner={p2IsWinner}
               isLoser={isDecided && !p2IsWinner}
               score={p2IsWinner ? 1 : slot.played ? 0 : null}
+              birdies={slot.played ? slot.player2Birdies : null}
               compact={compact}
             />
           )}
@@ -69,6 +71,7 @@ function PlayerRow({
   isWinner,
   isLoser,
   score,
+  birdies,
   compact,
 }: {
   name: string | null
@@ -77,6 +80,7 @@ function PlayerRow({
   isWinner: boolean
   isLoser?: boolean
   score: number | null
+  birdies?: number | null
   compact?: boolean
 }) {
   if (!name) {
@@ -101,6 +105,9 @@ function PlayerRow({
     <div className={`bracket-player ${isWinner ? 'winner-row' : isLoser ? 'loser-row' : ''}`}>
       {seed !== null && <span className="bracket-seed">{seed}</span>}
       {nameEl}
+      {birdies !== null && birdies !== undefined && birdies > 0 && (
+        <span className="bracket-birdies" title="Birdie">🐦{birdies}</span>
+      )}
       {score !== null && (
         <span className={`bracket-score ${isWinner ? 'win' : 'lose'}`}>{score}</span>
       )}

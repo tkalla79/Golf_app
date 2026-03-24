@@ -183,6 +183,8 @@ export interface BracketSlot {
   holes: number | null
   deadline: string
   placementLabel: string | null // e.g. "Miejsca 1-2" for R4 matches
+  player1Birdies: number
+  player2Birdies: number
 }
 
 // ═══ GLOBAL RANKING ═══
@@ -338,6 +340,8 @@ export async function buildBracketSlots(groupId: number): Promise<BracketSlot[]>
           holes: match.holes,
           deadline: ROUND_DEADLINES[round] ?? '',
           placementLabel: round === 4 ? (PLACEMENT_LABELS[pos] ?? null) : null,
+          player1Birdies: match.player1Birdies,
+          player2Birdies: match.player2Birdies,
         })
       } else {
         // Placeholder — try to resolve from feeder matches
@@ -370,6 +374,8 @@ export async function buildBracketSlots(groupId: number): Promise<BracketSlot[]>
           holes: null,
           deadline: ROUND_DEADLINES[round] ?? '',
           placementLabel: round === 4 ? (PLACEMENT_LABELS[pos] ?? null) : null,
+          player1Birdies: 0,
+          player2Birdies: 0,
         })
       }
     }
