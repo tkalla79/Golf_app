@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { PL } from '@/constants/pl'
-import { RESULT_CODES } from '@/lib/scoring'
+import { RESULT_CODES, RESULT_CODES_18 } from '@/lib/scoring'
 import { use } from 'react'
 
 interface Player {
@@ -45,7 +45,7 @@ interface Standing {
 interface GroupData {
   id: number
   name: string
-  round: { name: string; season: { name: string } }
+  round: { name: string; type: string; holes: number; season: { name: string }; config?: Record<string, unknown> }
 }
 
 export default function AdminGroupPage({
@@ -318,7 +318,7 @@ export default function AdminGroupPage({
                     />
                     <span className="font-medium">{editingMatch.player2.firstName} {editingMatch.player2.lastName}</span>
                   </label>
-                  {!resultForm.isWalkover && (
+                  {!resultForm.isWalkover && group?.round.type !== 'PLAYOFF' && (
                     <label className="flex items-center gap-3 p-3 rounded-lg border border-[var(--color-border)] cursor-pointer hover:border-[var(--color-primary)] transition-colors">
                       <input
                         type="radio"
@@ -331,6 +331,11 @@ export default function AdminGroupPage({
                       <span className="font-medium">Remis</span>
                     </label>
                   )}
+                  {group?.round.type === 'PLAYOFF' && (
+                    <p className="text-xs text-[var(--color-text-body)]/50 italic mt-1">
+                      Remisy w play-off rozstrzygane nagłą śmiercią — zawsze wybierz zwycięzcę.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -341,7 +346,10 @@ export default function AdminGroupPage({
                     Wynik
                   </label>
                   <div className="grid grid-cols-3 gap-2">
-                    {RESULT_CODES.filter((c) => c !== 'Tied').map((code) => (
+                    {(group?.round.type === 'PLAYOFF' && group?.round.holes === 18
+                      ? RESULT_CODES_18
+                      : RESULT_CODES
+                    ).filter((c) => c !== 'Tied').map((code) => (
                       <button
                         key={code}
                         onClick={() => setResultForm({ ...resultForm, resultCode: code })}

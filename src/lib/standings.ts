@@ -81,11 +81,22 @@ export function computeStandings(
     // 1. Big points descending
     if (b.bigPoints !== a.bigPoints) return b.bigPoints - a.bigPoints
 
-    // 2. Head-to-head (only for 2-player tie)
+    // 2a. Head-to-head (only for 2-player tie)
     const h2h = getHeadToHead(a.playerId, b.playerId, matches)
     if (h2h !== 0) return h2h
 
-    // 3. Small points descending
+    // 2b. "Mała tabelka" - for 3+ players with same BP, compute mini-table
+    // from only matches between tied players, then compare mini-BP
+    const tiedGroup = sorted.filter(p => p.bigPoints === a.bigPoints)
+    if (tiedGroup.length >= 3) {
+      const tiedIds = new Set(tiedGroup.map(p => p.playerId))
+      const miniTable = computeMiniTable(tiedIds, matches)
+      const aMini = miniTable.get(a.playerId) ?? 0
+      const bMini = miniTable.get(b.playerId) ?? 0
+      if (bMini !== aMini) return bMini - aMini
+    }
+
+    // 3. Small points descending (all matches, not just mini-table)
     if (b.smallPoints !== a.smallPoints) return b.smallPoints - a.smallPoints
 
     // 4. HCP - higher HCP = higher position (better ranking for weaker player)
@@ -104,6 +115,31 @@ export function computeStandings(
   sorted.sort((a, b) => a.position - b.position)
 
   return sorted
+}
+
+/**
+ * "Mała tabelka" — compute big points from only matches between a set of tied players.
+ * Returns a Map of playerId → mini-table big points.
+ */
+function computeMiniTable(
+  tiedPlayerIds: Set<number>,
+  matches: MatchWithPlayers[]
+): Map<number, number> {
+  const miniPoints = new Map<number, number>()
+  for (const id of tiedPlayerIds) {
+    miniPoints.set(id, 0)
+  }
+
+  for (const match of matches) {
+    if (!match.played) continue
+    if (!tiedPlayerIds.has(match.player1Id) || !tiedPlayerIds.has(match.player2Id)) continue
+
+    // Both players are in the tied group — count their big points
+    miniPoints.set(match.player1Id, (miniPoints.get(match.player1Id) ?? 0) + match.player1BigPoints)
+    miniPoints.set(match.player2Id, (miniPoints.get(match.player2Id) ?? 0) + match.player2BigPoints)
+  }
+
+  return miniPoints
 }
 
 function getHeadToHead(
