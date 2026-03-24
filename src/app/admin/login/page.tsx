@@ -43,7 +43,7 @@ export default function AdminLoginPage() {
             height={64}
             className="mx-auto mb-4"
           />
-          <h1 className="text-2xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          <h1 className="text-2xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
             Don Papa Match Play
           </h1>
           <p className="text-[var(--color-text-body)]/50 text-sm mt-1">Panel administracyjny</p>

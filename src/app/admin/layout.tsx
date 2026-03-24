@@ -53,7 +53,7 @@ function AdminNavInner({ children }: { children: React.ReactNode }) {
                   height={26}
                   className="brightness-0 invert opacity-60"
                 />
-                <span className="text-[var(--color-accent)] font-bold text-sm" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                <span className="text-[var(--color-accent)] font-bold text-sm" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
                   ADMIN
                 </span>
               </Link>

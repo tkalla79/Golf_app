@@ -32,7 +32,7 @@ export default function Navbar({ hasPlayoff = false }: { hasPlayoff?: boolean })
               className="brightness-0 invert"
             />
             <div className="hidden sm:block">
-              <div className="text-white font-bold text-lg tracking-tight" style={{ fontFamily: 'Raleway, sans-serif' }}>
+              <div className="text-white font-bold text-lg tracking-tight" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
                 DON PAPA
               </div>
               <div className="text-[var(--color-accent)] text-xs font-semibold tracking-widest uppercase">
@@ -52,7 +52,7 @@ export default function Navbar({ hasPlayoff = false }: { hasPlayoff?: boolean })
                     ? 'text-[var(--color-accent)]'
                     : 'text-white/80 hover:text-white'
                 }`}
-                style={{ fontFamily: 'Raleway, sans-serif', letterSpacing: '0.08em' }}
+                style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif', letterSpacing: '0.08em' }}
               >
                 {link.label}
               </Link>
@@ -60,7 +60,7 @@ export default function Navbar({ hasPlayoff = false }: { hasPlayoff?: boolean })
             <Link
               href="/admin"
               className="ml-4 btn-primary text-sm uppercase tracking-wider"
-              style={{ fontFamily: 'Raleway, sans-serif', fontSize: '0.7rem', padding: '8px 18px' }}
+              style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif', fontSize: '0.7rem', padding: '8px 18px' }}
             >
               {PL.nav.admin}
             </Link>

@@ -80,7 +80,7 @@ export default async function ZawodnikPage({
 
       {/* Upcoming matches */}
       <div className="card p-6 sm:p-8 mb-8">
-        <h2 className="text-xl font-bold text-[var(--color-text-dark)] mb-6" style={{ fontFamily: 'Raleway, sans-serif' }}>
+        <h2 className="text-xl font-bold text-[var(--color-text-dark)] mb-6" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           {PL.player.upcomingMatches}
           {upcomingMatches.length > 0 && (
             <span className="ml-2 bg-[var(--color-accent)] text-[var(--color-primary-dark)] text-xs font-bold px-2 py-0.5 rounded-full">
@@ -127,7 +127,7 @@ export default async function ZawodnikPage({
 
       {/* Match history */}
       <div className="card p-6 sm:p-8">
-        <h2 className="text-xl font-bold text-[var(--color-text-dark)] mb-6" style={{ fontFamily: 'Raleway, sans-serif' }}>
+        <h2 className="text-xl font-bold text-[var(--color-text-dark)] mb-6" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           {PL.player.matchHistory}
         </h2>
         {playedMatches.length === 0 ? (

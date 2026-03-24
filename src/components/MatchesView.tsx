@@ -79,7 +79,7 @@ export default function MatchesView({
     <div>
       {/* Toggle */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-[var(--color-text-dark)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+        <h2 className="text-xl font-bold text-[var(--color-text-dark)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           Mecze
           <span className="ml-2 text-sm font-normal text-[var(--color-text-body)]/50">
             ({playedMatches.length}/{matches.length})

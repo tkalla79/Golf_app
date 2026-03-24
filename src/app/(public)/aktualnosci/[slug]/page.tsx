@@ -34,7 +34,7 @@ export default async function PostPage({
       <Link
         href="/aktualnosci"
         className="inline-flex items-center gap-1 text-sm text-[var(--color-primary)] font-semibold hover:text-[var(--color-primary-light)] mb-6"
-        style={{ fontFamily: 'Raleway, sans-serif' }}
+        style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
       >
         &larr; {PL.nav.news}
       </Link>
@@ -53,7 +53,7 @@ export default async function PostPage({
       {/* Title */}
       <h1
         className="text-3xl md:text-4xl font-bold text-[var(--color-primary)] leading-tight"
-        style={{ fontFamily: 'Raleway, sans-serif' }}
+        style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
         dangerouslySetInnerHTML={{ __html: post.title.rendered }}
       />
 

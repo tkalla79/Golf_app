@@ -93,7 +93,7 @@ export default function AdminScoringConfigPage({
         </Link>
         <h1
           className="text-3xl font-bold text-[var(--color-primary)] mt-4"
-          style={{ fontFamily: 'Raleway, sans-serif' }}
+          style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
         >
           {PL.scoring.config}
         </h1>
@@ -106,7 +106,7 @@ export default function AdminScoringConfigPage({
       <div className="card p-6 mb-6">
         <h2
           className="text-xl font-bold text-[var(--color-text-dark)] mb-6"
-          style={{ fontFamily: 'Raleway, sans-serif' }}
+          style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
         >
           {PL.scoring.bigPoints}
         </h2>
@@ -131,7 +131,7 @@ export default function AdminScoringConfigPage({
       <div className="card p-6 mb-6">
         <h2
           className="text-xl font-bold text-[var(--color-text-dark)] mb-6"
-          style={{ fontFamily: 'Raleway, sans-serif' }}
+          style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
         >
           {PL.scoring.smallPoints}
         </h2>

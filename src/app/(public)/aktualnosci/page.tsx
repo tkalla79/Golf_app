@@ -21,7 +21,7 @@ export default async function AktualnosciPage() {
       <div className="mb-8">
         <h1
           className="text-4xl font-bold text-[var(--color-primary)]"
-          style={{ fontFamily: 'Raleway, sans-serif' }}
+          style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
         >
           {PL.nav.news}
         </h1>
@@ -56,7 +56,7 @@ export default async function AktualnosciPage() {
                 <div className="p-5">
                   <h2
                     className="text-lg font-bold text-[var(--color-primary)] leading-tight"
-                    style={{ fontFamily: 'Raleway, sans-serif' }}
+                    style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
                     dangerouslySetInnerHTML={{ __html: post.title.rendered }}
                   />
                   <p className="text-xs text-[var(--color-text-body)]/60 mt-2">

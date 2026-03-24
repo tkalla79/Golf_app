@@ -29,7 +29,7 @@ export default async function AdminDashboard() {
   return (
     <div>
       <div className="mb-10">
-        <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+        <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           Dashboard
         </h1>
         <div className="flex items-center gap-3 mt-2">
@@ -69,7 +69,7 @@ export default async function AdminDashboard() {
 
       {/* Reminders */}
       <div className="card p-6 mb-10">
-        <h2 className="text-lg font-bold text-[var(--color-primary)] mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>
+        <h2 className="text-lg font-bold text-[var(--color-primary)] mb-1" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           Przypomnienia o meczach
         </h2>
         <p className="text-sm text-[var(--color-text-body)]/60 mb-4">
@@ -82,7 +82,7 @@ export default async function AdminDashboard() {
       {activeSeason && (
         <div className="card p-0 overflow-hidden">
           <div className="bg-[var(--color-primary)] px-6 py-4">
-            <h2 className="text-white font-bold tracking-wide" style={{ fontFamily: 'Raleway, sans-serif' }}>
+            <h2 className="text-white font-bold tracking-wide" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
               Rundy sezonu
             </h2>
           </div>

@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Lato, Raleway } from 'next/font/google'
 import './globals.css'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 
-const inter = Inter({ subsets: ['latin', 'latin-ext'] })
+const lato = Lato({ subsets: ['latin', 'latin-ext'], weight: ['300', '400', '700', '900'], variable: '--font-lato' })
+const raleway = Raleway({ subsets: ['latin', 'latin-ext'], weight: ['500', '600', '700'], variable: '--font-raleway' })
 
 export const metadata: Metadata = {
   title: 'Don Papa Match Play - Karolinka Golf Park',
@@ -25,7 +26,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Don Papa MP" />
         <link rel="apple-touch-icon" href="/logo.png" />
       </head>
-      <body className={`${inter.className} bg-gray-50 min-h-screen`}>
+      <body className={`${lato.variable} ${raleway.variable} bg-gray-50 min-h-screen`}>
         <ServiceWorkerRegistration />
         {children}
       </body>

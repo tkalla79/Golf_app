@@ -74,7 +74,7 @@ export default function GenerateRoundsPage() {
   return (
     <div>
       <div className="mb-10">
-        <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+        <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           {PL.nav.generateRounds}
         </h1>
         <div className="flex items-center gap-3 mt-2">
@@ -93,7 +93,7 @@ export default function GenerateRoundsPage() {
         </div>
       ) : (
         <div className="space-y-4 mb-10">
-          <h2 className="text-lg font-bold text-[var(--color-text-dark)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          <h2 className="text-lg font-bold text-[var(--color-text-dark)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
             Zakończone rundy
           </h2>
           {completedRounds.map((round) => (
@@ -119,13 +119,13 @@ export default function GenerateRoundsPage() {
 
       {preview && (
         <div>
-          <h2 className="text-xl font-bold text-[var(--color-text-dark)] mb-6" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          <h2 className="text-xl font-bold text-[var(--color-text-dark)] mb-6" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
             Podgląd nowych grup
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {preview.map((group, i) => (
               <div key={i} className="card p-5">
-                <h3 className="font-bold text-[var(--color-primary)] mb-3" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                <h3 className="font-bold text-[var(--color-primary)] mb-3" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
                   {group.name}
                 </h3>
                 <div className="space-y-2">

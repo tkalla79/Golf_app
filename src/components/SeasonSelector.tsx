@@ -36,7 +36,7 @@ export default function SeasonSelector({ seasons, currentSeasonId }: { seasons: 
       value={currentSeasonId}
       onChange={handleChange}
       className="bg-transparent border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm font-semibold text-[var(--color-primary)] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50"
-      style={{ fontFamily: 'Raleway, sans-serif' }}
+      style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
     >
       {seasons.map(s => (
         <option key={s.id} value={s.id}>

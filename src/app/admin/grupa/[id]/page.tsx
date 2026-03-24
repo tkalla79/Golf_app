@@ -120,7 +120,7 @@ export default function AdminGroupPage({
     <div>
       {/* Header */}
       <div className="mb-10">
-        <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+        <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           {group.name}
         </h1>
         <div className="flex items-center gap-3 mt-2">
@@ -134,7 +134,7 @@ export default function AdminGroupPage({
       {/* Standings */}
       <div className="card p-0 mb-10 overflow-hidden">
         <div className="bg-[var(--color-primary)] px-6 py-4">
-          <h2 className="text-white font-bold tracking-wide" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          <h2 className="text-white font-bold tracking-wide" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
             {PL.group.standings}
           </h2>
         </div>
@@ -179,7 +179,7 @@ export default function AdminGroupPage({
       {/* Unplayed matches */}
       {unplayedMatches.length > 0 && (
         <div className="mb-10">
-          <h2 className="text-xl font-bold text-[var(--color-text-dark)] mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          <h2 className="text-xl font-bold text-[var(--color-text-dark)] mb-4" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
             Do rozegrania
             <span className="ml-2 bg-[var(--color-accent)] text-[var(--color-primary-dark)] text-xs font-bold px-2 py-0.5 rounded-full">
               {unplayedMatches.length}
@@ -211,7 +211,7 @@ export default function AdminGroupPage({
       {/* Played matches */}
       {playedMatches.length > 0 && (
         <div>
-          <h2 className="text-xl font-bold text-[var(--color-text-dark)] mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          <h2 className="text-xl font-bold text-[var(--color-text-dark)] mb-4" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
             Rozegrane ({playedMatches.length})
           </h2>
           <div className="space-y-3">
@@ -259,7 +259,7 @@ export default function AdminGroupPage({
       {editingMatch && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="card p-8 w-full max-w-md">
-            <h3 className="text-xl font-bold text-[var(--color-primary)] mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>
+            <h3 className="text-xl font-bold text-[var(--color-primary)] mb-1" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
               Wprowadź wynik
             </h3>
             <div className="flex items-center gap-3 mb-6">

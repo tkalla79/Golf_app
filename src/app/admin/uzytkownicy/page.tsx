@@ -60,7 +60,7 @@ export default function AdminUsersPage() {
     <div>
       <div className="flex justify-between items-center mb-10">
         <div>
-          <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
             {PL.nav.manageAdmins}
           </h1>
           <div className="flex items-center gap-3 mt-2">

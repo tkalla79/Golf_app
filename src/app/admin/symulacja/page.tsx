@@ -85,7 +85,7 @@ export default function SimulationPage() {
     <div>
       <h1
         className="text-2xl font-bold text-[var(--color-text-heading)] mb-6"
-        style={{ fontFamily: 'Raleway, sans-serif' }}
+        style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
       >
         {PL.simulation.title}
       </h1>
@@ -104,7 +104,7 @@ export default function SimulationPage() {
           >
             <h3
               className="text-base font-bold text-[var(--color-text-heading)] mb-2"
-              style={{ fontFamily: 'Raleway, sans-serif' }}
+              style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
             >
               {label}
             </h3>

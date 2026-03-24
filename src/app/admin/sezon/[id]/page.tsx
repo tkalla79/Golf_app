@@ -174,7 +174,7 @@ export default function AdminSeasonDetailPage({
         <Link href="/admin/sezon" className="text-sm text-[var(--color-primary)] hover:text-[var(--color-accent)] transition-colors font-medium">
           &larr; Sezony
         </Link>
-        <h1 className="text-3xl font-bold text-[var(--color-primary)] mt-4" style={{ fontFamily: 'Raleway, sans-serif' }}>
+        <h1 className="text-3xl font-bold text-[var(--color-primary)] mt-4" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           {season.name}
         </h1>
         <div className="flex items-center gap-3 mt-2">
@@ -196,7 +196,7 @@ export default function AdminSeasonDetailPage({
 
       {/* Add round button */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-[var(--color-text-dark)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+        <h2 className="text-xl font-bold text-[var(--color-text-dark)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           Rundy
         </h2>
         <button onClick={() => setShowRoundForm(true)} className="btn-primary text-sm">
@@ -274,7 +274,7 @@ export default function AdminSeasonDetailPage({
             {/* Round header */}
             <div className="bg-[var(--color-primary)] px-6 py-4 flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <h3 className="text-white font-bold" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                <h3 className="text-white font-bold" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
                   {round.name}
                 </h3>
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
@@ -404,7 +404,7 @@ export default function AdminSeasonDetailPage({
       {assigningGroup !== null && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="card p-8 w-full max-w-lg max-h-[80vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-[var(--color-primary)] mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>
+            <h3 className="text-xl font-bold text-[var(--color-primary)] mb-1" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
               Przypisz zawodników
             </h3>
             <div className="flex items-center gap-3 mb-6">

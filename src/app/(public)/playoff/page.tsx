@@ -34,7 +34,7 @@ export default async function PlayoffPage({
   if (!selectedSeasonId) {
     return (
       <div className="text-center py-20">
-        <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+        <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           {PL.playoff.title}
         </h1>
         <p className="mt-4 text-[var(--color-text-body)]">{PL.playoff.noPlayoff}</p>
@@ -63,7 +63,7 @@ export default async function PlayoffPage({
     return (
       <div className="text-center py-20">
         <div className="flex items-center justify-center gap-4 flex-wrap">
-          <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
             {PL.playoff.title}
           </h1>
           <SeasonSelector seasons={allSeasons} currentSeasonId={selectedSeasonId} />
@@ -91,7 +91,7 @@ export default async function PlayoffPage({
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-4 flex-wrap">
-          <h1 className="text-4xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          <h1 className="text-4xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
             {PL.playoff.title} {season!.year}
           </h1>
           <SeasonSelector seasons={allSeasons} currentSeasonId={selectedSeasonId} />

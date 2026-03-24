@@ -14,7 +14,7 @@ export default async function ZawodnicyPage() {
     <div>
       {/* Header */}
       <div className="mb-10">
-        <h1 className="text-4xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+        <h1 className="text-4xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           {PL.nav.players}
         </h1>
         <div className="flex items-center gap-3 mt-3">

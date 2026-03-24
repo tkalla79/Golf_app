@@ -28,7 +28,7 @@ export default async function GrupyPage({
   if (!selectedSeasonId) {
     return (
       <div className="text-center py-20">
-        <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+        <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           {PL.nav.groups}
         </h1>
         <p className="mt-4 text-[var(--color-text-body)]">{PL.common.noData}</p>
@@ -69,7 +69,7 @@ export default async function GrupyPage({
   if (!selectedRound || selectedRound.groups.length === 0) {
     return (
       <div className="text-center py-20">
-        <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+        <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           {PL.nav.groups}
         </h1>
         <SeasonSelector seasons={allSeasons} currentSeasonId={selectedSeasonId} />
@@ -91,7 +91,7 @@ export default async function GrupyPage({
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-4 flex-wrap">
-          <h1 className="text-4xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          <h1 className="text-4xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
             {season!.name}
           </h1>
           <SeasonSelector seasons={allSeasons} currentSeasonId={selectedSeasonId} />
@@ -123,7 +123,7 @@ export default async function GrupyPage({
                   ? 'text-[var(--color-primary)] border-[var(--color-accent)]'
                   : 'text-[var(--color-text-body)]/40 border-transparent hover:text-[var(--color-primary)]'
               }`}
-              style={{ fontFamily: 'Raleway, sans-serif' }}
+              style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
             >
               {round.name}
               {round.status === 'ACTIVE' && (
@@ -149,7 +149,7 @@ export default async function GrupyPage({
             >
               {/* Group header */}
               <div className="bg-[var(--color-primary)] px-5 py-3 flex justify-between items-center">
-                <h2 className="text-white font-bold tracking-wide" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                <h2 className="text-white font-bold tracking-wide" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
                   {group.name}
                 </h2>
                 <span className="text-white/50 text-xs font-medium">

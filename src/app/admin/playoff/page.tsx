@@ -92,7 +92,7 @@ export default function AdminPlayoffPage() {
     return (
       <div>
         <h1 className="text-3xl font-bold text-[var(--color-primary)] mb-6"
-            style={{ fontFamily: 'Raleway, sans-serif' }}>
+            style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           {PL.playoff.title}
         </h1>
         <p className="text-[var(--color-text-body)] mb-8">{PL.playoff.playoffExists}</p>
@@ -124,7 +124,7 @@ export default function AdminPlayoffPage() {
     return (
       <div>
         <h1 className="text-3xl font-bold text-[var(--color-primary)] mb-6"
-            style={{ fontFamily: 'Raleway, sans-serif' }}>
+            style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           {PL.playoff.seedingPreview}
         </h1>
 
@@ -177,7 +177,7 @@ export default function AdminPlayoffPage() {
   return (
     <div>
       <h1 className="text-3xl font-bold text-[var(--color-primary)] mb-6"
-          style={{ fontFamily: 'Raleway, sans-serif' }}>
+          style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
         {PL.playoff.title}
       </h1>
       {error ? (

@@ -34,7 +34,7 @@ export default async function PublicLayout({
                 className="brightness-0 invert opacity-60"
               />
               <div>
-                <div className="text-white font-bold text-sm" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                <div className="text-white font-bold text-sm" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
                   Don Papa Match Play
                 </div>
                 <div className="text-xs text-white/40 mt-1">

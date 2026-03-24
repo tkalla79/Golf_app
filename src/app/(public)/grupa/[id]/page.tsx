@@ -42,7 +42,7 @@ export default async function GrupaPage({
 
       {/* Header */}
       <div className="mb-10">
-        <h1 className="text-4xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'Raleway, sans-serif' }}>
+        <h1 className="text-4xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           {group.name}
         </h1>
         <div className="flex items-center gap-3 mt-2">
@@ -56,7 +56,7 @@ export default async function GrupaPage({
       {/* Standings table */}
       <div className="card p-0 mb-10 overflow-hidden">
         <div className="bg-[var(--color-primary)] px-6 py-4">
-          <h2 className="text-white font-bold text-lg tracking-wide" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          <h2 className="text-white font-bold text-lg tracking-wide" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
             {PL.group.standings}
           </h2>
         </div>
