@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getPlayerSession } from '@/lib/player-auth'
 import PlayerProfileEditor from '@/components/PlayerProfileEditor'
+import MatchScheduler from '@/components/MatchScheduler'
 
 export const dynamic = 'force-dynamic'
 
@@ -105,25 +106,43 @@ export default async function ZawodnikPage({
               return (
                 <div
                   key={match.id}
-                  className="match-row border-[var(--color-accent)]/30 bg-[var(--color-accent)]/[0.04]"
+                  className="flex flex-col border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/[0.04] rounded-lg px-4 py-3"
                 >
-                  <div className="flex-1">
-                    <span className="font-semibold text-[var(--color-text-dark)]">
-                      vs{' '}
-                      <Link
-                        href={`/zawodnik/${opponent.slug}`}
-                        className="text-[var(--color-primary)] hover:text-[var(--color-accent)] transition-colors"
-                      >
-                        {opponent.firstName} {opponent.lastName}
-                      </Link>
-                    </span>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex-1">
+                      <span className="font-semibold text-[var(--color-text-dark)]">
+                        vs{' '}
+                        <Link
+                          href={`/zawodnik/${opponent.slug}`}
+                          className="text-[var(--color-primary)] hover:text-[var(--color-accent)] transition-colors"
+                        >
+                          {opponent.firstName} {opponent.lastName}
+                        </Link>
+                      </span>
+                    </div>
+                    <Link
+                      href={`/grupa/${match.groupId}`}
+                      className="text-xs text-[var(--color-text-body)]/50 hover:text-[var(--color-primary)] transition-colors"
+                    >
+                      {match.group.round.name} &middot; {match.group.name}
+                    </Link>
                   </div>
-                  <Link
-                    href={`/grupa/${match.groupId}`}
-                    className="text-xs text-[var(--color-text-body)]/50 hover:text-[var(--color-primary)] transition-colors"
-                  >
-                    {match.group.round.name} &middot; {match.group.name}
-                  </Link>
+                  {isLoggedIn && (
+                    <MatchScheduler
+                      matchId={match.id}
+                      scheduledDate={match.scheduledDate}
+                    />
+                  )}
+                  {!isLoggedIn && match.scheduledDate && (
+                    <div className="mt-2">
+                      <span className="inline-flex items-center gap-1.5 bg-[var(--color-accent)]/15 text-[var(--color-primary-dark)] text-xs font-semibold px-3 py-1 rounded-full border border-[var(--color-accent)]/30">
+                        <svg className="w-3 h-3 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {new Date(match.scheduledDate).toLocaleString('pl-PL', { weekday: 'short', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )
             })}

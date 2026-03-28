@@ -39,6 +39,7 @@ model Player {
   matchesAsP1  Match[]       @relation("player1")
   matchesAsP2  Match[]       @relation("player2")
   matchesWon   Match[]       @relation("winner")
+  hallOfFame   HallOfFameEntry[]
 
   @@map("players")
 }
@@ -52,7 +53,9 @@ model Season {
   createdAt DateTime     @default(now()) @map("created_at")
   updatedAt DateTime     @updatedAt @map("updated_at")
 
-  rounds Round[]
+  rounds     Round[]
+  hallOfFame HallOfFameEntry[]
+  photos     SeasonPhoto[]
 
   @@map("seasons")
 }
@@ -146,6 +149,7 @@ model Match {
   played             Boolean  @default(false)
   isWalkover         Boolean  @default(false) @map("is_walkover")
   notes              String?  @db.Text
+  scheduledDate      DateTime? @map("scheduled_date")
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
@@ -160,4 +164,35 @@ model Match {
 
   @@index([groupId, bracketRound, bracketPosition])
   @@map("matches")
+}
+
+model HallOfFameEntry {
+  id          Int      @id @default(autoincrement())
+  playerId    Int?     @map("player_id")
+  seasonId    Int?     @map("season_id")
+  playerName  String   @map("player_name") @db.VarChar(200)
+  seasonName  String   @map("season_name") @db.VarChar(100)
+  year        Int
+  photoUrl    String?  @map("photo_url") @db.VarChar(500)
+  description String?  @db.Text
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  player Player? @relation(fields: [playerId], references: [id], onDelete: SetNull)
+  season Season? @relation(fields: [seasonId], references: [id], onDelete: SetNull)
+
+  @@map("hall_of_fame")
+}
+
+model SeasonPhoto {
+  id        Int      @id @default(autoincrement())
+  seasonId  Int      @map("season_id")
+  url       String   @db.VarChar(500)
+  caption   String?  @db.VarChar(300)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@map("season_photos")
 }

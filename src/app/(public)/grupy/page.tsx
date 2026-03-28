@@ -61,6 +61,24 @@ export default async function GrupyPage({
 
   const allRounds = season?.rounds ?? []
 
+  // Upcoming scheduled matches for the active season
+  const scheduledMatches = activeSeason?.id === selectedSeasonId
+    ? await prisma.match.findMany({
+        where: {
+          played: false,
+          scheduledDate: { not: null },
+          group: { round: { seasonId: selectedSeasonId } },
+        },
+        orderBy: { scheduledDate: 'asc' },
+        take: 8,
+        include: {
+          player1: { select: { firstName: true, lastName: true, slug: true } },
+          player2: { select: { firstName: true, lastName: true, slug: true } },
+          group: { include: { round: { select: { name: true } } } },
+        },
+      })
+    : []
+
   // Select requested round, or active round, or latest completed
   let selectedRound = requestedRound
     ? allRounds.find(r => r.roundNumber === requestedRound)
@@ -131,6 +149,54 @@ export default async function GrupyPage({
               )}
             </Link>
           ))}
+        </div>
+      )}
+
+      {/* Upcoming scheduled matches */}
+      {scheduledMatches.length > 0 && (
+        <div className="mb-10">
+          <h2
+            className="text-xl font-bold text-[var(--color-text-dark)] mb-4"
+            style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
+          >
+            {PL.schedule.title}
+            <span className="ml-2 bg-[var(--color-accent)] text-[var(--color-primary-dark)] text-xs font-bold px-2 py-0.5 rounded-full">
+              {scheduledMatches.length}
+            </span>
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {scheduledMatches.map((match) => (
+              <div
+                key={match.id}
+                className="card p-4 border-l-4 border-[var(--color-accent)]"
+              >
+                <div className="flex items-center gap-1.5 text-xs text-[var(--color-accent)] font-semibold mb-2">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {new Date(match.scheduledDate!).toLocaleString('pl-PL', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </div>
+                <div className="text-sm font-semibold text-[var(--color-text-dark)] leading-snug">
+                  <Link href={`/zawodnik/${match.player1.slug}`} className="hover:text-[var(--color-accent)] transition-colors">
+                    {match.player1.firstName} {match.player1.lastName}
+                  </Link>
+                  <span className="text-[var(--color-text-body)]/40 mx-1.5 font-normal">vs</span>
+                  <Link href={`/zawodnik/${match.player2.slug}`} className="hover:text-[var(--color-accent)] transition-colors">
+                    {match.player2.firstName} {match.player2.lastName}
+                  </Link>
+                </div>
+                <div className="text-xs text-[var(--color-text-body)]/50 mt-1.5">
+                  {match.group.round.name} &middot; {match.group.name}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

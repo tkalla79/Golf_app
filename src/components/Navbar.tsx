@@ -15,6 +15,8 @@ export default function Navbar({ hasPlayoff = false }: { hasPlayoff?: boolean })
     ...(hasPlayoff ? [{ href: '/playoff', label: PL.nav.playoff }] : []),
     { href: '/zawodnicy', label: PL.nav.players },
     { href: '/aktualnosci', label: PL.nav.news },
+    { href: '/galeria-slaw', label: PL.nav.hallOfFame },
+    { href: '/poprzednie-sezony', label: PL.nav.previousSeasons },
     { href: '/regulamin', label: PL.nav.rules },
   ]
 
@@ -42,12 +44,12 @@ export default function Navbar({ hasPlayoff = false }: { hasPlayoff?: boolean })
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-1">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-5 py-2 rounded text-sm font-semibold tracking-wide uppercase transition-colors ${
+                className={`px-3 py-2 rounded text-sm font-semibold tracking-wide uppercase transition-colors ${
                   pathname.startsWith(link.href)
                     ? 'text-[var(--color-accent)]'
                     : 'text-white/80 hover:text-white'
@@ -69,7 +71,7 @@ export default function Navbar({ hasPlayoff = false }: { hasPlayoff?: boolean })
           {/* Mobile toggle */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden p-2 text-white"
+            className="lg:hidden p-2 text-white"
             aria-label="Menu"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,7 +86,7 @@ export default function Navbar({ hasPlayoff = false }: { hasPlayoff?: boolean })
 
         {/* Mobile menu */}
         {menuOpen && (
-          <div className="md:hidden pb-6 space-y-1 border-t border-white/10 pt-4">
+          <div className="lg:hidden pb-6 space-y-1 border-t border-white/10 pt-4">
             {links.map((link) => (
               <Link
                 key={link.href}

@@ -1,4 +1,5 @@
 import Navbar from '@/components/Navbar'
+import SponsorBar from '@/components/SponsorBar'
 import Image from 'next/image'
 import { prisma } from '@/lib/db'
 
@@ -23,7 +24,10 @@ export default async function PublicLayout({
         {children}
       </main>
       <footer className="bg-[var(--color-bg-dark)] text-white/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10">
+          <SponsorBar />
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <Image
@@ -60,6 +64,7 @@ export default async function PublicLayout({
           </div>
         </div>
       </footer>
+
     </div>
   )
 }
