@@ -100,7 +100,7 @@ export default function MatchScheduler({ matchId, scheduledDate: initialDate }: 
           }}
           className="text-xs text-[var(--color-primary)] hover:text-[var(--color-accent)] transition-colors font-medium underline underline-offset-2"
         >
-          {scheduledDate ? 'Zmień termin' : PL.schedule.selectDate}
+          {scheduledDate ? PL.schedule.changeDate : PL.schedule.selectDate}
         </button>
         {message && (
           <span className="text-xs text-[var(--color-success)] font-medium">{message}</span>

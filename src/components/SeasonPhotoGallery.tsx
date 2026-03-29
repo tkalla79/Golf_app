@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { PL } from '@/constants/pl'
 
 interface Photo {
   id: number
@@ -15,6 +16,15 @@ interface SeasonPhotoGalleryProps {
 
 export default function SeasonPhotoGallery({ photos }: SeasonPhotoGalleryProps) {
   const [lightbox, setLightbox] = useState<Photo | null>(null)
+
+  useEffect(() => {
+    if (!lightbox) return
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightbox(null)
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [lightbox])
 
   if (photos.length === 0) return null
 
@@ -56,7 +66,7 @@ export default function SeasonPhotoGallery({ photos }: SeasonPhotoGalleryProps) 
               onClick={() => setLightbox(null)}
               className="absolute -top-10 right-0 text-white/70 hover:text-white text-sm font-medium"
             >
-              ✕ Zamknij
+              ✕ {PL.common.close}
             </button>
             <div className="relative w-full" style={{ aspectRatio: '4/3' }}>
               <Image

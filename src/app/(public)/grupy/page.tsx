@@ -15,6 +15,17 @@ export default async function GrupyPage({
   const requestedRound = params.runda ? parseInt(params.runda) : null
   const requestedSeasonId = params.sezon ? parseInt(params.sezon) : null
 
+  if ((params.runda && isNaN(requestedRound!)) || (params.sezon && isNaN(requestedSeasonId!))) {
+    return (
+      <div className="text-center py-20">
+        <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
+          {PL.nav.groups}
+        </h1>
+        <p className="mt-4 text-[var(--color-text-body)]">{PL.common.noData}</p>
+      </div>
+    )
+  }
+
   // Fetch all seasons for the selector
   const allSeasons = await prisma.season.findMany({
     orderBy: { year: 'desc' },
@@ -219,7 +230,7 @@ export default async function GrupyPage({
                   {group.name}
                 </h2>
                 <span className="text-white/50 text-xs font-medium">
-                  {playedCount}/{totalMatches} meczów
+                  {playedCount}/{totalMatches} {PL.schedule.matches}
                 </span>
               </div>
 

@@ -19,7 +19,7 @@ export default async function PoprzedneSezonyPage() {
         include: {
           groups: {
             include: {
-              _count: { select: { players: true } },
+              players: { select: { playerId: true } },
             },
           },
         },
@@ -51,12 +51,15 @@ export default async function PoprzedneSezonyPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {seasons.map((season) => {
-            const totalPlayers = season.rounds.reduce((sum, r) =>
-              sum + r.groups.reduce((gs, g) => gs + g._count.players, 0), 0
-            )
-            const uniquePlayers = season.rounds.length > 0
-              ? Math.max(...season.rounds.map(r => r.groups.reduce((gs, g) => gs + g._count.players, 0)))
-              : 0
+            const playerIds = new Set<number>()
+            for (const round of season.rounds) {
+              for (const group of round.groups) {
+                for (const gp of group.players) {
+                  playerIds.add(gp.playerId)
+                }
+              }
+            }
+            const uniquePlayers = playerIds.size
 
             return (
               <Link
@@ -98,13 +101,13 @@ export default async function PoprzedneSezonyPage() {
                         {PL.previousSeasons.players}
                       </div>
                       <div className="font-bold text-[var(--color-primary)] text-lg">
-                        {uniquePlayers || totalPlayers}
+                        {uniquePlayers}
                       </div>
                     </div>
                     {season._count.photos > 0 && (
                       <div>
                         <div className="text-[var(--color-text-body)]/50 text-xs uppercase tracking-wide mb-0.5">
-                          Zdjęcia
+                          {PL.previousSeasons.photos}
                         </div>
                         <div className="font-bold text-[var(--color-accent)] text-lg flex items-center gap-1">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,7 +119,7 @@ export default async function PoprzedneSezonyPage() {
                     )}
                   </div>
                   <div className="mt-4 text-xs text-[var(--color-primary)] font-semibold flex items-center gap-1">
-                    Zobacz wyniki &rarr;
+                    {PL.previousSeasons.viewResults} &rarr;
                   </div>
                 </div>
               </Link>

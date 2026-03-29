@@ -8,6 +8,9 @@ export async function PATCH(
 ) {
   const { id } = await params
   const matchId = Number(id)
+  if (isNaN(matchId)) {
+    return NextResponse.json({ error: 'Nieprawidłowe ID meczu' }, { status: 400 })
+  }
 
   const playerSession = await getPlayerSession()
   if (!playerSession) {
@@ -37,6 +40,13 @@ export async function PATCH(
 
   const body = await req.json()
   const { scheduledDate } = body
+
+  if (scheduledDate !== null && scheduledDate !== undefined) {
+    const parsed = new Date(scheduledDate)
+    if (isNaN(parsed.getTime())) {
+      return NextResponse.json({ error: 'Nieprawidłowy format daty' }, { status: 400 })
+    }
+  }
 
   const updated = await prisma.match.update({
     where: { id: matchId },

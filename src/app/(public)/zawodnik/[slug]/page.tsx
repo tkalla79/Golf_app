@@ -65,7 +65,7 @@ export default async function ZawodnikPage({
       {/* Breadcrumb */}
       <div className="mb-6">
         <Link href="/zawodnicy" className="text-sm text-[var(--color-primary)] hover:text-[var(--color-accent)] transition-colors font-medium">
-          &larr; Wszyscy zawodnicy
+          &larr; {PL.common.allPlayers}
         </Link>
       </div>
 

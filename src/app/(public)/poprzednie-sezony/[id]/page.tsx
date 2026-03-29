@@ -14,6 +14,7 @@ export default async function PoprzedniSezonPage({
 }) {
   const { id } = await params
   const seasonId = parseInt(id)
+  if (isNaN(seasonId)) return notFound()
 
   const season = await prisma.season.findUnique({
     where: { id: seasonId, status: 'COMPLETED' },
@@ -145,7 +146,7 @@ export default async function PoprzedniSezonPage({
                     {group.matches.filter(m => m.played).length > 0 && (
                       <div>
                         <h4 className="text-sm font-semibold text-[var(--color-text-body)]/60 uppercase tracking-wider mb-3">
-                          Wyniki meczów
+                          {PL.previousSeasons.matchResults}
                         </h4>
                         <div className="space-y-2">
                           {group.matches.filter(m => m.played).map((match) => (

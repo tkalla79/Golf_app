@@ -55,7 +55,7 @@ export default async function HallOfFamePage() {
             {PL.hallOfFame.noData}
           </h2>
           <p className="text-sm text-[var(--color-text-body)] opacity-60">
-            Tu pojawią się zdjęcia i dane zwycięzców kolejnych sezonów.
+            {PL.hallOfFame.noDataHint}
           </p>
         </div>
       ) : (
@@ -90,7 +90,7 @@ export default async function HallOfFamePage() {
                       />
                     </svg>
                     <span className="text-white/30 text-xs mt-2 uppercase tracking-widest">
-                      Zdjęcie wkrótce
+                      {PL.hallOfFame.photoSoon}
                     </span>
                   </div>
                 )}
