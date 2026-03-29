@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import { SPONSORS } from '@/constants/sponsors'
 import { PL } from '@/constants/pl'
 
@@ -18,17 +17,10 @@ export default function SponsorBar() {
             href={sponsor.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center opacity-50 hover:opacity-100 grayscale hover:grayscale-0 transition-all duration-300"
+            className="flex items-center opacity-50 hover:opacity-100 transition-all duration-300"
             title={sponsor.name}
           >
-            <Image
-              src={sponsor.logo}
-              alt={sponsor.name}
-              width={120}
-              height={40}
-              className="object-contain max-h-10"
-              style={{ maxHeight: '40px', width: 'auto' }}
-            />
+            <span className="text-white/40 text-sm font-medium">{sponsor.name}</span>
           </a>
         ))}
       </div>
