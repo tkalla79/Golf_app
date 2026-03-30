@@ -4,6 +4,7 @@ import { PL } from '@/constants/pl'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import SeasonPhotoGallery from '@/components/SeasonPhotoGallery'
+import Image from 'next/image'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,6 +34,7 @@ export default async function PoprzedniSezonPage({
         },
       },
       photos: { orderBy: { sortOrder: 'asc' } },
+      documents: { orderBy: { sortOrder: 'asc' } },
     },
   })
 
@@ -195,6 +197,56 @@ export default async function PoprzedniSezonPage({
           <SeasonPhotoGallery photos={season.photos} />
         )}
       </div>
+
+      {/* Documents / Results tables */}
+      {season.documents.length > 0 && (
+        <div className="mt-12">
+          <h2
+            className="text-xl font-bold text-[var(--color-text-dark)] mb-6 pb-2 border-b-2 border-[var(--color-accent)]/30"
+            style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
+          >
+            {PL.previousSeasons.documents}
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {season.documents.map((doc) => (
+              <a
+                key={doc.id}
+                href={doc.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="card p-0 overflow-hidden hover:shadow-md transition-shadow group"
+              >
+                {doc.docType === 'pdf' ? (
+                  <div className="flex items-center gap-4 p-4">
+                    <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span className="text-red-600 font-bold text-xs">PDF</span>
+                    </div>
+                    <span className="font-medium text-[var(--color-text-dark)] group-hover:text-[var(--color-accent)] transition-colors text-sm">
+                      {doc.title}
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="relative aspect-video bg-[var(--color-bg-section)]">
+                      <Image
+                        src={doc.url}
+                        alt={doc.title}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="p-3">
+                      <p className="text-sm font-medium text-[var(--color-text-dark)] group-hover:text-[var(--color-accent)] transition-colors">
+                        {doc.title}
+                      </p>
+                    </div>
+                  </>
+                )}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

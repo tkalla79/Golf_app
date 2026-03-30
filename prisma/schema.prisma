@@ -56,6 +56,7 @@ model Season {
   rounds     Round[]
   hallOfFame HallOfFameEntry[]
   photos     SeasonPhoto[]
+  documents  SeasonDocument[]
 
   @@map("seasons")
 }
@@ -195,4 +196,18 @@ model SeasonPhoto {
   season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
 
   @@map("season_photos")
+}
+
+model SeasonDocument {
+  id        Int      @id @default(autoincrement())
+  seasonId  Int      @map("season_id")
+  url       String   @db.VarChar(500)
+  title     String   @db.VarChar(300)
+  docType   String   @default("image") @map("doc_type") @db.VarChar(50)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@map("season_documents")
 }

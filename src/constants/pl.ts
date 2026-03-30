@@ -182,6 +182,7 @@ export const PL = {
     noCompletedSeasons: 'Brak zakończonych sezonów',
     rounds: 'rundy',
     players: 'zawodników',
+    documents: 'Tabele wyników i dokumenty',
   },
   sponsors: {
     title: 'Partnerzy',

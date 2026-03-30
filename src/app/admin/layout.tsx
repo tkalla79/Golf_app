@@ -36,6 +36,7 @@ function AdminNavInner({ children }: { children: React.ReactNode }) {
     { href: '/admin/generuj-rundy', label: 'Generuj rundy' },
     { href: '/admin/uzytkownicy', label: 'Administratorzy' },
     { href: '/admin/symulacja', label: 'Symulacja' },
+    { href: '/admin/galeria-slaw', label: 'Galeria Sław' },
   ]
 
   return (

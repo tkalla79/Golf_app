@@ -192,6 +192,9 @@ export default function AdminSeasonDetailPage({
         <Link href={`/admin/sezon/${id}/config`} className="btn-secondary text-sm">
           Edytuj punktację
         </Link>
+        <Link href={`/admin/sezon/${id}/zdjecia`} className="btn-secondary text-sm">
+          Zdjęcia i dokumenty
+        </Link>
       </div>
 
       {/* Add round button */}
