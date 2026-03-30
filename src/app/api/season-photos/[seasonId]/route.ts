@@ -7,8 +7,11 @@ export async function GET(
   { params }: { params: Promise<{ seasonId: string }> }
 ) {
   const { seasonId } = await params
+  const id = parseInt(seasonId)
+  if (isNaN(id)) return NextResponse.json({ error: 'Nieprawidłowe ID' }, { status: 400 })
+
   const photos = await prisma.seasonPhoto.findMany({
-    where: { seasonId: parseInt(seasonId) },
+    where: { seasonId: id },
     orderBy: { sortOrder: 'asc' },
   })
   return NextResponse.json(photos)
@@ -22,6 +25,9 @@ export async function POST(
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { seasonId } = await params
+  const id = parseInt(seasonId)
+  if (isNaN(id)) return NextResponse.json({ error: 'Nieprawidłowe ID' }, { status: 400 })
+
   const body = await request.json()
   const { url, caption, sortOrder } = body
 
@@ -31,7 +37,7 @@ export async function POST(
 
   const photo = await prisma.seasonPhoto.create({
     data: {
-      seasonId: parseInt(seasonId),
+      seasonId: id,
       url,
       caption: caption || null,
       sortOrder: sortOrder ? Number(sortOrder) : 0,

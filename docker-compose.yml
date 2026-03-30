@@ -20,6 +20,7 @@ services:
     env_file: .env
     volumes:
       - avatars_data:/app/public/avatars
+      - uploads_data:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -90,6 +91,8 @@ volumes:
   caddy_config:
     driver: local
   avatars_data:
+    driver: local
+  uploads_data:
     driver: local
   wordpress_data:
     driver: local

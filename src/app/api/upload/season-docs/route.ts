@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf']
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
 
 export async function POST(request: NextRequest) {
   const session = await auth()
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (!ALLOWED_TYPES.includes(file.type)) {
-    return NextResponse.json({ error: 'Dozwolone formaty: JPG, PNG, WEBP, GIF, PDF' }, { status: 400 })
+    return NextResponse.json({ error: 'Dozwolone formaty: JPG, PNG, WEBP, PDF' }, { status: 400 })
   }
 
   if (file.size > 20 * 1024 * 1024) {
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
   const ext = file.name.split('.').pop()?.toLowerCase() || 'pdf'
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-  const uploadDir = path.join(process.cwd(), 'public', 'season-docs')
+  const uploadDir = path.join(process.cwd(), 'uploads', 'season-docs')
   const filePath = path.join(uploadDir, filename)
 
   await mkdir(uploadDir, { recursive: true })
@@ -38,5 +38,5 @@ export async function POST(request: NextRequest) {
 
   const docType = file.type === 'application/pdf' ? 'pdf' : 'image'
 
-  return NextResponse.json({ url: `/season-docs/${filename}`, docType })
+  return NextResponse.json({ url: `/api/uploads/season-docs/${filename}`, docType })
 }

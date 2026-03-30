@@ -7,8 +7,11 @@ export async function GET(
   { params }: { params: Promise<{ seasonId: string }> }
 ) {
   const { seasonId } = await params
+  const id = parseInt(seasonId)
+  if (isNaN(id)) return NextResponse.json({ error: 'Nieprawidłowe ID' }, { status: 400 })
+
   const docs = await prisma.seasonDocument.findMany({
-    where: { seasonId: parseInt(seasonId) },
+    where: { seasonId: id },
     orderBy: { sortOrder: 'asc' },
   })
   return NextResponse.json(docs)
@@ -22,6 +25,9 @@ export async function POST(
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { seasonId } = await params
+  const id = parseInt(seasonId)
+  if (isNaN(id)) return NextResponse.json({ error: 'Nieprawidłowe ID' }, { status: 400 })
+
   const body = await request.json()
   const { url, title, docType, sortOrder } = body
 
@@ -31,7 +37,7 @@ export async function POST(
 
   const doc = await prisma.seasonDocument.create({
     data: {
-      seasonId: parseInt(seasonId),
+      seasonId: id,
       url,
       title,
       docType: docType || 'image',

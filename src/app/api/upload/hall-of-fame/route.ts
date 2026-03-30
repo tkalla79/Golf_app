@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+
 export async function POST(request: NextRequest) {
   const session = await auth()
   if (!session) {
@@ -16,8 +18,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Brak pliku' }, { status: 400 })
   }
 
-  if (!file.type.startsWith('image/')) {
-    return NextResponse.json({ error: 'Plik musi być obrazem' }, { status: 400 })
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return NextResponse.json({ error: 'Dozwolone formaty: JPG, PNG, WEBP' }, { status: 400 })
   }
 
   if (file.size > 5 * 1024 * 1024) {
@@ -26,7 +28,7 @@ export async function POST(request: NextRequest) {
 
   const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-  const uploadDir = path.join(process.cwd(), 'public', 'hall-of-fame')
+  const uploadDir = path.join(process.cwd(), 'uploads', 'hall-of-fame')
   const filePath = path.join(uploadDir, filename)
 
   await mkdir(uploadDir, { recursive: true })
@@ -34,5 +36,5 @@ export async function POST(request: NextRequest) {
   const bytes = await file.arrayBuffer()
   await writeFile(filePath, Buffer.from(bytes))
 
-  return NextResponse.json({ url: `/hall-of-fame/${filename}` })
+  return NextResponse.json({ url: `/api/uploads/hall-of-fame/${filename}` })
 }
