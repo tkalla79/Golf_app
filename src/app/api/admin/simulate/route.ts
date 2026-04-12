@@ -19,6 +19,7 @@ import {
   BRACKET_SEEDS,
   BRACKET_NAMES,
   BRACKET_HOLES,
+  BRACKET_DISPLAY_NAMES,
   autoAdvancePlayoff,
 } from '@/lib/playoff'
 
@@ -37,7 +38,7 @@ function randomResult(
   resultCodes: readonly string[] = RESULT_CODES,
 ) {
   const isDraw = Math.random() < 0.15
-  const resultCode = isDraw ? 'Tied' : pick(resultCodes.filter((c) => c !== 'Tied'))
+  const resultCode = isDraw ? 'A/S' : pick(resultCodes.filter((c) => c !== 'A/S'))
   const winnerId = isDraw ? null : (Math.random() < 0.5 ? player1Id : player2Id)
 
   const input: MatchResultInput = { winnerId, resultCode, isWalkover: false }
@@ -213,7 +214,7 @@ async function createPlayoff(seasonId: number): Promise<boolean> {
   const round = await prisma.round.create({
     data: {
       seasonId,
-      name: 'Play-off',
+      name: 'Playoff',
       roundNumber: 99,
       type: 'PLAYOFF',
       status: 'ACTIVE',
@@ -229,7 +230,7 @@ async function createPlayoff(seasonId: number): Promise<boolean> {
     const group = await prisma.group.create({
       data: {
         roundId: round.id,
-        name: `Drabinka ${bracketName}`,
+        name: BRACKET_DISPLAY_NAMES[bracketName] || `Liga ${bracketName}`,
         sortOrder: bi,
         status: 'ACTIVE',
       },
@@ -310,7 +311,7 @@ async function simulateFullSeason(seasonId: number, config: SeasonConfig) {
     })
 
     for (const group of groups) {
-      const bracketName = group.name.replace('Drabinka ', '')
+      const bracketName = Object.entries(BRACKET_DISPLAY_NAMES).find(([, v]) => v === group.name)?.[0] || group.name
       const holes = BRACKET_HOLES[bracketName] ?? 9
       const codes = holes === 18 ? RESULT_CODES_18 : RESULT_CODES
 
@@ -331,8 +332,8 @@ async function simulateFullSeason(seasonId: number, config: SeasonConfig) {
             data: {
               played: true,
               winnerId: res.winnerId ?? m.player1Id, // playoff must have a winner
-              resultCode: res.resultCode === 'Tied'
-                ? pick(codes.filter((c) => c !== 'Tied'))
+              resultCode: res.resultCode === 'A/S'
+                ? pick(codes.filter((c) => c !== 'A/S'))
                 : res.resultCode,
               player1BigPoints: res.player1BigPoints,
               player2BigPoints: res.player2BigPoints,
@@ -451,7 +452,7 @@ export async function POST(request: NextRequest) {
         break
       case 'to-playoff':
         stats = await simulateToPlayoff(season.id, config)
-        message = `Zasymulowano ${stats.matchesSimulated} meczów, utworzono ${stats.roundsCreated} rund. Play-off ${stats.playoffCreated ? 'utworzony' : 'już istniał'}.`
+        message = `Zasymulowano ${stats.matchesSimulated} meczów, utworzono ${stats.roundsCreated} rund. Playoff ${stats.playoffCreated ? 'utworzony' : 'już istniał'}.`
         break
       case 'full-season':
         stats = await simulateFullSeason(season.id, config)

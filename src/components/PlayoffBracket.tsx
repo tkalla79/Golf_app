@@ -68,7 +68,7 @@ export default function PlayoffBracket({ brackets }: Props) {
             }`}
             style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
           >
-            {b.name.replace('Drabinka ', '')}
+            {b.name}
             <span className="block text-[0.6rem] font-normal normal-case tracking-normal text-[var(--color-text-body)]/40">
               {HOLES_LABELS[b.bracketKey] ?? ''}
             </span>
@@ -198,7 +198,7 @@ export default function PlayoffBracket({ brackets }: Props) {
         <div className="bg-[var(--color-primary)] border-2 border-[var(--color-accent)] rounded-xl p-6 text-center my-8">
           <div className="text-3xl mb-2">🏆</div>
           <div className="text-[0.65rem] font-bold tracking-[0.25em] uppercase text-[var(--color-accent)]">
-            {PL.playoff.champion} {active.name.replace('Drabinka ', '')}
+            {PL.playoff.champion} — {active.name}
           </div>
           <div className="text-white font-bold text-xl mt-1" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
             {r4Slots[0].winnerId === r4Slots[0].player1Id ? r4Slots[0].player1Name : r4Slots[0].player2Name}

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Regulamin — Don Papa Match Play 2026',
-  description: 'Regulamin Rozgrywek Ligi Don Papa Match Play 2026 — zasady gry, punktacja, play-off, terminy.',
+  description: 'Regulamin Rozgrywek Ligi Don Papa Match Play 2026 — zasady gry, punktacja, playoff, terminy.',
 }
 
 export const dynamic = 'force-dynamic'
@@ -33,11 +33,11 @@ export default function RegulaminPage() {
           <ul className="regulamin-list">
             <li>Mecze ligowe rozgrywane są na polu <strong>KGP</strong> (Karolinka Golf Park).</li>
             <li><strong>Runda grupowa:</strong> 9 dołków.</li>
-            <li><strong>Faza PLAY-OFF:</strong>
+            <li><strong>Faza Playoff:</strong>
               <ul className="regulamin-sublist">
-                <li>Drabinka 1–16: <strong>18 dołków</strong></li>
-                <li>Drabinka 17–32: <strong>9 lub 18 dołków</strong> (do wyboru graczy po wzajemnym uzgodnieniu)</li>
-                <li>Drabinka 33–48: <strong>9 dołków</strong></li>
+                <li>Pierwsza Liga Playoff (1–16): <strong>18 dołków</strong></li>
+                <li>Druga Liga Playoff (17–32): <strong>9 lub 18 dołków</strong> (do wyboru graczy po wzajemnym uzgodnieniu)</li>
+                <li>Trzecia Liga Playoff (33–48): <strong>9 dołków</strong></li>
               </ul>
             </li>
             <li>Format: <strong>Match play brutto</strong> zgodnie z regułami R&amp;A Rules Limited oraz regulaminem lokalnym pola KGP.</li>
@@ -69,7 +69,7 @@ export default function RegulaminPage() {
                 <tr><td>Runda 2</td><td>25 maja – 21 czerwca 2026</td></tr>
                 <tr><td>Runda 3</td><td>22 czerwca – 19 lipca 2026</td></tr>
                 <tr><td>Runda 4</td><td>20 lipca – 16 sierpnia 2026</td></tr>
-                <tr><td>Faza PLAY-OFF</td><td>17 sierpnia – 31 października 2026</td></tr>
+                <tr><td>Faza Playoff</td><td>17 sierpnia – 31 października 2026</td></tr>
                 <tr><td className="font-semibold">Finał</td><td>Sobota/niedziela, druga połowa października 2026</td></tr>
               </tbody>
             </table>
@@ -93,7 +93,7 @@ export default function RegulaminPage() {
             </li>
             <li>Liczebność ostatnich grup zależna od liczby uczestników Ligi.</li>
             <li>W kolejnych rundach grupowych obowiązują zasady awansów i spadków według reguł stosowanych w poprzednim sezonie.</li>
-            <li>Rozstawienie w drabinkach PLAY-OFF ustala Organizator na podstawie wyników fazy grupowej.</li>
+            <li>Rozstawienie w drabinkach Playoff ustala Organizator na podstawie wyników fazy grupowej.</li>
           </ul>
         </section>
 
@@ -151,7 +151,7 @@ export default function RegulaminPage() {
                 </tr>
               </thead>
               <tbody>
-                <tr><td>Tied (remis)</td><td className="text-center">0</td><td className="text-center">0</td></tr>
+                <tr><td>A/S (remis)</td><td className="text-center">0</td><td className="text-center">0</td></tr>
                 <tr><td>1Up</td><td className="text-center text-[var(--color-success)] font-semibold">+1</td><td className="text-center text-[var(--color-danger)] font-semibold">−1</td></tr>
                 <tr><td>2Up</td><td className="text-center text-[var(--color-success)] font-semibold">+2</td><td className="text-center text-[var(--color-danger)] font-semibold">−2</td></tr>
                 <tr><td>2&amp;1</td><td className="text-center text-[var(--color-success)] font-semibold">+3</td><td className="text-center text-[var(--color-danger)] font-semibold">−3</td></tr>
@@ -169,13 +169,13 @@ export default function RegulaminPage() {
           </p>
         </section>
 
-        {/* IV. Faza PLAY-OFF */}
+        {/* IV. Faza Playoff */}
         <section>
-          <h2 className="regulamin-h2">IV. Faza PLAY-OFF</h2>
+          <h2 className="regulamin-h2">IV. Faza Playoff</h2>
 
-          <h3 className="regulamin-h3">1. Drabinki</h3>
+          <h3 className="regulamin-h3">1. Ligi Playoff</h3>
 
-          <h4 className="regulamin-h4">Drabinka 1–16 (18 dołków)</h4>
+          <h4 className="regulamin-h4">Pierwsza Liga Playoff (18 dołków)</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div className="bg-[var(--color-primary)]/[0.03] rounded-lg p-4 border border-[var(--color-border)]">
               <div className="text-xs font-bold uppercase tracking-wider text-[var(--color-primary)]/50 mb-2">Górna połowa</div>
@@ -193,7 +193,7 @@ export default function RegulaminPage() {
             </div>
           </div>
 
-          <h4 className="regulamin-h4">Drabinka 17–32 (9/18 dołków)</h4>
+          <h4 className="regulamin-h4">Druga Liga Playoff (9/18 dołków)</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div className="bg-[var(--color-primary)]/[0.03] rounded-lg p-4 border border-[var(--color-border)]">
               <div className="text-xs font-bold uppercase tracking-wider text-[var(--color-primary)]/50 mb-2">Górna połowa</div>
@@ -211,7 +211,7 @@ export default function RegulaminPage() {
             </div>
           </div>
 
-          <h4 className="regulamin-h4">Drabinka 33–48 (9 dołków)</h4>
+          <h4 className="regulamin-h4">Trzecia Liga Playoff (9 dołków)</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div className="bg-[var(--color-primary)]/[0.03] rounded-lg p-4 border border-[var(--color-border)]">
               <div className="text-xs font-bold uppercase tracking-wider text-[var(--color-primary)]/50 mb-2">Górna połowa</div>
@@ -229,7 +229,7 @@ export default function RegulaminPage() {
             </div>
           </div>
 
-          <h3 className="regulamin-h3">2. Terminy meczów play-off</h3>
+          <h3 className="regulamin-h3">2. Terminy meczów playoff</h3>
           <div className="overflow-x-auto">
             <table className="regulamin-table">
               <thead>
@@ -251,9 +251,9 @@ export default function RegulaminPage() {
           </p>
 
           <h3 className="regulamin-h3">3. Dogrywka</h3>
-          <p className="mb-4">Remisy w PLAY-OFF rozstrzygane są w formacie <strong>„nagłej śmierci"</strong> od dołka nr 1.</p>
+          <p className="mb-4">Remisy w Playoff rozstrzygane są w formacie <strong>„nagłej śmierci"</strong> od dołka nr 1.</p>
 
-          <h3 className="regulamin-h3">4. Nierozegrane mecze fazy play-off</h3>
+          <h3 className="regulamin-h3">4. Nierozegrane mecze fazy playoff</h3>
           <p className="mb-3">W przypadku nierozegrania meczu w terminie, Zarząd Ligi może przyznać walkower. Decyzja uwzględnia:</p>
           <ol className="regulamin-ordered">
             <li>Obiektywne zaangażowanie graczy w organizację meczu.</li>

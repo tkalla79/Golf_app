@@ -64,13 +64,13 @@ export default function SimulationPage() {
     {
       action: 'to-playoff',
       label: PL.simulation.simulateToPlayoff,
-      description: 'Symuluje bieżącą rundę, generuje kolejne rundy i tworzy drabinki play-off.',
+      description: 'Symuluje bieżącą rundę, generuje kolejne rundy i tworzy drabinki playoff.',
       variant: 'primary',
     },
     {
       action: 'full-season',
       label: PL.simulation.simulateFullSeason,
-      description: 'Symuluje cały sezon włącznie z meczami play-off.',
+      description: 'Symuluje cały sezon włącznie z meczami playoff.',
       variant: 'primary',
     },
     {

@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { getPlayerSession } from '@/lib/player-auth'
 import PlayerProfileEditor from '@/components/PlayerProfileEditor'
 import MatchScheduler from '@/components/MatchScheduler'
+import AvailabilityPanel from '@/components/AvailabilityPanel'
 
 export const dynamic = 'force-dynamic'
 
@@ -54,6 +55,18 @@ export default async function ZawodnikPage({
 
   const upcomingMatches = matches.filter((m) => !m.played)
   const playedMatches = matches.filter((m) => m.played)
+
+  // Find all unique group IDs from upcoming matches (for availability panel)
+  const activeGroupIds = [...new Set(upcomingMatches.map((m) => m.groupId))]
+
+  // Prepare upcoming matches data for AvailabilityPanel
+  const upcomingMatchesForPanel = upcomingMatches.map((m) => ({
+    id: m.id,
+    player1Id: m.player1Id,
+    player2Id: m.player2Id,
+    player1: { id: m.player1.id, firstName: m.player1.firstName, lastName: m.player1.lastName, slug: m.player1.slug },
+    player2: { id: m.player2.id, firstName: m.player2.firstName, lastName: m.player2.lastName, slug: m.player2.slug },
+  }))
 
   // Total birdies in season
   const totalBirdies = playedMatches.reduce((sum, m) => {
@@ -139,7 +152,7 @@ export default async function ZawodnikPage({
                         <svg className="w-3 h-3 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        {new Date(match.scheduledDate).toLocaleString('pl-PL', { weekday: 'short', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                        {new Date(match.scheduledDate).toLocaleString('pl-PL', { timeZone: 'Europe/Warsaw', weekday: 'short', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                   )}
@@ -149,6 +162,16 @@ export default async function ZawodnikPage({
           </div>
         )}
       </div>
+
+      {/* Availability panel */}
+      {activeGroupIds.length > 0 && (
+        <AvailabilityPanel
+          playerId={player.id}
+          isLoggedIn={isLoggedIn}
+          upcomingMatches={upcomingMatchesForPanel}
+          groupIds={activeGroupIds}
+        />
+      )}
 
       {/* Match history */}
       <div className="card p-6 sm:p-8">
@@ -189,11 +212,18 @@ export default async function ZawodnikPage({
                   }`}
                 >
                   <div className="flex-1">
-                    <span className="font-semibold text-[var(--color-text-dark)]">
+                    <span className="font-semibold">
+                      <span className={`text-xs font-bold mr-1.5 ${
+                        won ? 'text-[var(--color-success)]' : lost ? 'text-[var(--color-danger)]' : 'text-[var(--color-accent)]'
+                      }`}>
+                        {won ? 'W' : lost ? 'L' : 'R'}
+                      </span>
                       vs{' '}
                       <Link
                         href={`/zawodnik/${opponent.slug}`}
-                        className="text-[var(--color-primary)] hover:text-[var(--color-accent)] transition-colors"
+                        className={`hover:text-[var(--color-accent)] transition-colors ${
+                          won ? 'text-[var(--color-success)]' : lost ? 'text-[var(--color-danger)]' : 'text-[var(--color-primary)]'
+                        }`}
                       >
                         {opponent.firstName} {opponent.lastName}
                       </Link>
@@ -203,12 +233,14 @@ export default async function ZawodnikPage({
                     </div>
                   </div>
                   <span className={`mx-3 ${
-                    won ? 'badge-win' : drawn ? 'badge-draw' : match.isWalkover ? 'badge-walkover' : 'badge-win'
+                    won ? 'badge-win' : drawn ? 'badge-draw' : match.isWalkover ? 'badge-walkover' : 'badge-unplayed'
                   }`}>
                     {match.isWalkover ? 'W/O' : match.resultCode}
                   </span>
                   <div className="text-right text-sm min-w-[80px]">
-                    <span className="font-bold text-[var(--color-primary)]">{playerBigPts} pkt</span>
+                    <span className={`font-bold ${
+                      won ? 'text-[var(--color-success)]' : lost ? 'text-[var(--color-danger)]' : 'text-[var(--color-accent)]'
+                    }`}>{playerBigPts} pkt</span>
                     <div className="text-xs text-[var(--color-text-body)]/40">
                       {playerSmallPts > 0 ? `+${playerSmallPts}` : playerSmallPts} m.pkt
                     </div>

@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { computeGlobalRanking, BRACKET_SEEDS, BRACKET_NAMES, BRACKET_HOLES, autoAdvancePlayoff } from '@/lib/playoff'
+import { computeGlobalRanking, BRACKET_SEEDS, BRACKET_NAMES, BRACKET_HOLES, BRACKET_DISPLAY_NAMES, autoAdvancePlayoff } from '@/lib/playoff'
 
 export async function POST(request: NextRequest) {
   const session = await auth()
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     where: { seasonId, type: 'PLAYOFF' },
   })
   if (existing) {
-    return NextResponse.json({ error: 'Play-off już istnieje' }, { status: 409 })
+    return NextResponse.json({ error: 'Playoff już istnieje' }, { status: 409 })
   }
 
   // Get ranking
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
   const round = await prisma.round.create({
     data: {
       seasonId,
-      name: 'Play-off',
+      name: 'Playoff',
       roundNumber: 99, // high number to sort after group rounds
       type: 'PLAYOFF',
       status: 'ACTIVE',
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     const group = await prisma.group.create({
       data: {
         roundId: round.id,
-        name: `Drabinka ${bracketName}`,
+        name: BRACKET_DISPLAY_NAMES[bracketName] || `Liga ${bracketName}`,
         sortOrder: bracketIdx,
         status: 'ACTIVE',
       },
@@ -138,6 +138,6 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     roundId: round.id,
     groups: createdGroups.map(g => ({ id: g.id, name: g.name })),
-    message: 'Play-off utworzony pomyślnie',
+    message: 'Playoff utworzony pomyślnie',
   })
 }

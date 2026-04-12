@@ -38,9 +38,9 @@ export async function POST(
 
   const isPlayoff = match.group.round.type === 'PLAYOFF'
 
-  // Block "Tied" result for playoff (sudden death resolves ties)
-  if (isPlayoff && resultCode === 'Tied' && !isWalkover) {
-    return NextResponse.json({ error: 'Remis nie jest dozwolony w play-off (nagła śmierć od dołka 1)' }, { status: 400 })
+  // Block "A/S" (draw) result for playoff (sudden death resolves ties)
+  if (isPlayoff && resultCode === 'A/S' && !isWalkover) {
+    return NextResponse.json({ error: 'Remis nie jest dozwolony w playoff (nagła śmierć od dołka 1)' }, { status: 400 })
   }
 
   // Compute points only for group-stage matches
@@ -56,7 +56,7 @@ export async function POST(
     points = computePoints(
       {
         winnerId: winnerId ? parseInt(winnerId) : null,
-        resultCode: resultCode || 'Tied',
+        resultCode: resultCode || 'A/S',
         isWalkover: !!isWalkover,
       },
       match.player1Id,

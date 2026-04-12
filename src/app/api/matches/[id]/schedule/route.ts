@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getPlayerSession } from '@/lib/player-auth'
+import { auth } from '@/lib/auth'
 
 export async function PATCH(
   req: Request,
@@ -12,8 +13,11 @@ export async function PATCH(
     return NextResponse.json({ error: 'Nieprawidłowe ID meczu' }, { status: 400 })
   }
 
+  // Check admin auth OR player auth
+  const adminSession = await auth()
   const playerSession = await getPlayerSession()
-  if (!playerSession) {
+
+  if (!adminSession && !playerSession) {
     return NextResponse.json({ error: 'Musisz być zalogowany' }, { status: 401 })
   }
 
@@ -30,12 +34,15 @@ export async function PATCH(
     return NextResponse.json({ error: 'Mecz już został rozegrany' }, { status: 400 })
   }
 
-  const isParticipant =
-    playerSession.playerId === match.player1Id ||
-    playerSession.playerId === match.player2Id
+  // If not admin, check that player is a participant
+  if (!adminSession && playerSession) {
+    const isParticipant =
+      playerSession.playerId === match.player1Id ||
+      playerSession.playerId === match.player2Id
 
-  if (!isParticipant) {
-    return NextResponse.json({ error: 'Możesz umawiać tylko swoje mecze' }, { status: 403 })
+    if (!isParticipant) {
+      return NextResponse.json({ error: 'Możesz umawiać tylko swoje mecze' }, { status: 403 })
+    }
   }
 
   const body = await req.json()

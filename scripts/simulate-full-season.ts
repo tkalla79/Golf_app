@@ -6,8 +6,8 @@
  * Phases:
  *   1. Simulate Round 1 (existing 225 unplayed matches)
  *   2. Generate Rounds 2-4 with regrouping, simulate each
- *   3. Create Play-off brackets from global ranking
- *   4. Simulate all Play-off rounds (auto-advancing brackets)
+ *   3. Create Playoff brackets from global ranking
+ *   4. Simulate all Playoff rounds (auto-advancing brackets)
  */
 
 import { PrismaClient } from '@prisma/client'
@@ -29,6 +29,7 @@ import {
   BRACKET_SEEDS,
   BRACKET_NAMES,
   BRACKET_HOLES,
+  BRACKET_DISPLAY_NAMES,
   ROUND_NAMES,
   autoAdvancePlayoff,
 } from '../src/lib/playoff'
@@ -51,7 +52,7 @@ function randomResult(
   resultCodes: readonly string[] = RESULT_CODES,
 ) {
   const isDraw = Math.random() < 0.15
-  const resultCode = isDraw ? 'Tied' : pick(resultCodes.filter((c) => c !== 'Tied'))
+  const resultCode = isDraw ? 'A/S' : pick(resultCodes.filter((c) => c !== 'A/S'))
   const winnerId = isDraw ? null : (Math.random() < 0.5 ? player1Id : player2Id)
 
   const input: MatchResultInput = { winnerId, resultCode, isWalkover: false }
@@ -199,17 +200,17 @@ async function phase2(seasonId: number, config: SeasonConfig) {
 }
 
 // ---------------------------------------------------------------------------
-// Phase 3 -- Create Play-off
+// Phase 3 -- Create Playoff
 // ---------------------------------------------------------------------------
 
 async function phase3(seasonId: number): Promise<number> {
-  console.log('\n=== PHASE 3: Create Play-off ===')
+  console.log('\n=== PHASE 3: Create Playoff ===')
 
   const ranking = await computeGlobalRanking(seasonId)
   console.log(`  Global ranking computed: ${ranking.length} players`)
 
   if (ranking.length < 16) {
-    throw new Error(`Not enough players for play-off: ${ranking.length}`)
+    throw new Error(`Not enough players for playoff: ${ranking.length}`)
   }
 
   // Print top-10
@@ -226,7 +227,7 @@ async function phase3(seasonId: number): Promise<number> {
   const round = await prisma.round.create({
     data: {
       seasonId,
-      name: 'Play-off',
+      name: 'Playoff',
       roundNumber: 99,
       type: 'PLAYOFF',
       status: 'ACTIVE',
@@ -242,7 +243,7 @@ async function phase3(seasonId: number): Promise<number> {
     const group = await prisma.group.create({
       data: {
         roundId: round.id,
-        name: `Drabinka ${bracketName}`,
+        name: BRACKET_DISPLAY_NAMES[bracketName] || `Liga ${bracketName}`,
         sortOrder: bi,
         status: 'ACTIVE',
       },
@@ -304,11 +305,11 @@ async function phase3(seasonId: number): Promise<number> {
 }
 
 // ---------------------------------------------------------------------------
-// Phase 4 -- Simulate Play-off matches round-by-round
+// Phase 4 -- Simulate Playoff matches round-by-round
 // ---------------------------------------------------------------------------
 
 async function phase4(playoffRoundId: number, seasonId: number) {
-  console.log('\n=== PHASE 4: Simulate Play-off ===')
+  console.log('\n=== PHASE 4: Simulate Playoff ===')
 
   // Load season config (for scoring) - playoff uses 18-hole codes for bracket 1-16
   const season = await prisma.season.findUnique({ where: { id: seasonId } })
@@ -322,7 +323,7 @@ async function phase4(playoffRoundId: number, seasonId: number) {
   const bracketWinners: { bracket: string; winner: string }[] = []
 
   for (const group of groups) {
-    const bracketName = group.name.replace('Drabinka ', '')
+    const bracketName = Object.entries(BRACKET_DISPLAY_NAMES).find(([, v]) => v === group.name)?.[0] || group.name
     const holes = BRACKET_HOLES[bracketName] ?? 9
     // Use extended result codes for 18-hole matches
     const { RESULT_CODES_18 } = await import('../src/lib/scoring')
@@ -362,8 +363,8 @@ async function phase4(playoffRoundId: number, seasonId: number) {
           data: {
             played: true,
             winnerId: res.winnerId ?? m.player1Id, // playoff must have a winner
-            resultCode: res.resultCode === 'Tied'
-              ? pick(codes.filter((c) => c !== 'Tied'))
+            resultCode: res.resultCode === 'A/S'
+              ? pick(codes.filter((c) => c !== 'A/S'))
               : res.resultCode,
             player1BigPoints: res.player1BigPoints,
             player2BigPoints: res.player2BigPoints,
@@ -444,7 +445,7 @@ async function main() {
     )
   }
 
-  console.log('\n  Play-off Bracket Winners:')
+  console.log('\n  Playoff Bracket Winners:')
   for (const bw of bracketWinners) {
     console.log(`    Bracket ${bw.bracket}: ${bw.winner}`)
   }

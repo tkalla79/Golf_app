@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react'
 import { PL } from '@/constants/pl'
-import { BRACKET_SEEDS, BRACKET_NAMES } from '@/lib/playoff'
+import { BRACKET_SEEDS, BRACKET_NAMES, BRACKET_DISPLAY_NAMES } from '@/lib/playoff'
 import type { RankedPlayer } from '@/lib/playoff'
 import Link from 'next/link'
 
@@ -44,7 +44,7 @@ export default function AdminPlayoffPage() {
           }
         }
       } catch {
-        setError('Nie udało się załadować danych play-off')
+        setError('Nie udało się załadować danych playoff')
       }
       setLoading(false)
       return
@@ -140,7 +140,7 @@ export default function AdminPlayoffPage() {
           return (
             <div key={bracketName} className="card p-6 mb-6">
               <h2 className="text-xl font-bold text-[var(--color-primary)] mb-4">
-                Drabinka {bracketName}
+                {BRACKET_DISPLAY_NAMES[bracketName] || bracketName}
               </h2>
               <div className="space-y-2">
                 {seeds.map(([s1, s2], idx) => {

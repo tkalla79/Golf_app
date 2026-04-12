@@ -29,6 +29,7 @@ interface Match {
   player2Birdies: number
   played: boolean
   isWalkover: boolean
+  scheduledDate: string | null
 }
 
 interface Standing {
@@ -194,16 +195,48 @@ export default function AdminGroupPage({
           <div className="space-y-3">
             {unplayedMatches.map((match) => (
               <div key={match.id} className="match-row border-[var(--color-accent)]/30 bg-[var(--color-accent)]/[0.04]">
-                <span className="font-semibold text-[var(--color-text-dark)] flex-1">
-                  {match.player1.firstName} {match.player1.lastName}
-                </span>
-                <span className="badge-unplayed mx-3">vs</span>
-                <span className="font-semibold text-[var(--color-text-dark)] flex-1 text-right">
-                  {match.player2.firstName} {match.player2.lastName}
-                </span>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-[var(--color-text-dark)]">
+                      {match.player1.firstName} {match.player1.lastName}
+                    </span>
+                    <span className="badge-unplayed">vs</span>
+                    <span className="font-semibold text-[var(--color-text-dark)]">
+                      {match.player2.firstName} {match.player2.lastName}
+                    </span>
+                  </div>
+                  {match.scheduledDate && (
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs text-[var(--color-accent)] font-semibold">
+                        {new Date(match.scheduledDate).toLocaleString('pl-PL', {
+                          timeZone: 'Europe/Warsaw',
+                          weekday: 'short',
+                          day: 'numeric',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                      <button
+                        onClick={async () => {
+                          if (!confirm('Usunąć zaplanowany termin tego meczu?')) return
+                          await fetch(`/api/matches/${match.id}/schedule`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ scheduledDate: null }),
+                          })
+                          loadData()
+                        }}
+                        className="text-xs text-[var(--color-danger)] hover:underline font-medium"
+                      >
+                        Usuń termin
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={() => openResultForm(match)}
-                  className="ml-4 btn-primary text-xs uppercase tracking-wider"
+                  className="ml-4 btn-primary text-xs uppercase tracking-wider flex-shrink-0"
                   style={{ padding: '6px 16px' }}
                 >
                   Wynik
@@ -331,7 +364,7 @@ export default function AdminGroupPage({
                         name="winner"
                         value=""
                         checked={resultForm.winnerId === ''}
-                        onChange={() => setResultForm({ ...resultForm, winnerId: '', resultCode: 'Tied' })}
+                        onChange={() => setResultForm({ ...resultForm, winnerId: '', resultCode: 'A/S' })}
                         className="text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                       />
                       <span className="font-medium">Remis</span>
@@ -339,7 +372,7 @@ export default function AdminGroupPage({
                   )}
                   {group?.round.type === 'PLAYOFF' && (
                     <p className="text-xs text-[var(--color-text-body)]/50 italic mt-1">
-                      Remisy w play-off rozstrzygane nagłą śmiercią — zawsze wybierz zwycięzcę.
+                      Remisy w playoff rozstrzygane nagłą śmiercią — zawsze wybierz zwycięzcę.
                     </p>
                   )}
                 </div>
@@ -355,7 +388,7 @@ export default function AdminGroupPage({
                     {(group?.round.type === 'PLAYOFF' && group?.round.holes === 18
                       ? RESULT_CODES_18
                       : RESULT_CODES
-                    ).filter((c) => c !== 'Tied').map((code) => (
+                    ).filter((c) => c !== 'A/S').map((code) => (
                       <button
                         key={code}
                         onClick={() => setResultForm({ ...resultForm, resultCode: code })}
@@ -411,7 +444,7 @@ export default function AdminGroupPage({
             <div className="flex gap-3 mt-8">
               <button
                 onClick={handleSubmitResult}
-                disabled={!resultForm.winnerId && resultForm.resultCode !== 'Tied'}
+                disabled={!resultForm.winnerId && resultForm.resultCode !== 'A/S'}
                 className="flex-1 btn-primary py-3 text-center text-sm uppercase tracking-wider disabled:opacity-40"
               >
                 Zapisz wynik

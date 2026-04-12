@@ -27,6 +27,12 @@ export const BRACKET_SEEDS: Record<string, [number, number][]> = {
 
 export const BRACKET_NAMES = ['1-16', '17-32', '33-48'] as const
 
+export const BRACKET_DISPLAY_NAMES: Record<string, string> = {
+  '1-16': 'Pierwsza Liga Playoff',
+  '17-32': 'Druga Liga Playoff',
+  '33-48': 'Trzecia Liga Playoff',
+}
+
 export const BRACKET_HOLES: Record<string, number> = {
   '1-16': 18,
   '17-32': 9,

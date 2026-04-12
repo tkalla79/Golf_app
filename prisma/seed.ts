@@ -90,7 +90,7 @@ async function main() {
       config: {
         scoring: { win: 3, draw: 2, loss: 1, unplayed: 0, walkover_winner: 3, walkover_loser: 0 },
         small_points_map: {
-          'Tied': [0, 0], '1Up': [1, -1], '2Up': [2, -2], '2&1': [3, -3],
+          'A/S': [0, 0], '1Up': [1, -1], '2Up': [2, -2], '2&1': [3, -3],
           '3&1': [4, -4], '3&2': [5, -5], '4&2': [6, -6], '4&3': [7, -7],
           '5&3': [8, -8], '5&4': [9, -9],
         },

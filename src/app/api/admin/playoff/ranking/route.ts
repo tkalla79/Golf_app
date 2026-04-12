@@ -24,7 +24,7 @@ export async function GET() {
   })
 
   if (existingPlayoff) {
-    return NextResponse.json({ error: 'Play-off już istnieje' }, { status: 409 })
+    return NextResponse.json({ error: 'Playoff już istnieje' }, { status: 409 })
   }
 
   const ranking = await computeGlobalRanking(activeSeason.id)

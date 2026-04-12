@@ -35,11 +35,13 @@ model Player {
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
-  groupPlayers GroupPlayer[]
-  matchesAsP1  Match[]       @relation("player1")
-  matchesAsP2  Match[]       @relation("player2")
-  matchesWon   Match[]       @relation("winner")
-  hallOfFame   HallOfFameEntry[]
+  groupPlayers       GroupPlayer[]
+  matchesAsP1        Match[]              @relation("player1")
+  matchesAsP2        Match[]              @relation("player2")
+  matchesWon         Match[]              @relation("winner")
+  hallOfFame         HallOfFameEntry[]
+  availabilitySlots  AvailabilitySlot[]   @relation("slotOwner")
+  slotJoined         AvailabilitySlot[]   @relation("slotPairedBy")
 
   @@map("players")
 }
@@ -151,6 +153,7 @@ model Match {
   isWalkover         Boolean  @default(false) @map("is_walkover")
   notes              String?  @db.Text
   scheduledDate      DateTime? @map("scheduled_date")
+  reminderSent       Boolean  @default(false) @map("reminder_sent")
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
@@ -158,6 +161,7 @@ model Match {
   player1 Player  @relation("player1", fields: [player1Id], references: [id], onDelete: Cascade)
   player2 Player  @relation("player2", fields: [player2Id], references: [id], onDelete: Cascade)
   winner  Player? @relation("winner", fields: [winnerId], references: [id], onDelete: SetNull)
+  availabilitySlots AvailabilitySlot[]
 
   bracketRound    Int?     @map("bracket_round")
   bracketPosition Int?     @map("bracket_position")
@@ -210,4 +214,29 @@ model SeasonDocument {
   season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
 
   @@map("season_documents")
+}
+
+model AvailabilitySlot {
+  id         Int            @id @default(autoincrement())
+  playerId   Int            @map("player_id")
+  matchId    Int            @map("match_id")
+  dateStart  DateTime       @map("date_start")
+  dateEnd    DateTime       @map("date_end")
+  status     SlotStatus     @default(OPEN)
+  pairedById Int?           @map("paired_by_id")
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  player   Player  @relation("slotOwner", fields: [playerId], references: [id], onDelete: Cascade)
+  pairedBy Player? @relation("slotPairedBy", fields: [pairedById], references: [id])
+  match    Match   @relation(fields: [matchId], references: [id])
+
+  @@index([matchId, status])
+  @@index([playerId, matchId, status])
+  @@map("availability_slots")
+}
+
+enum SlotStatus {
+  OPEN
+  PAIRED
+  CANCELLED
 }

@@ -9,8 +9,8 @@ import SeasonSelector from '@/components/SeasonSelector'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Play-off | Don Papa Match Play',
-  description: 'Drabinki play-off ligi golfowej Don Papa Match Play - Karolinka Golf Park',
+  title: 'Playoff | Don Papa Match Play',
+  description: 'Drabinki playoff ligi golfowej Don Papa Match Play - Karolinka Golf Park',
 }
 
 export default async function PlayoffPage({

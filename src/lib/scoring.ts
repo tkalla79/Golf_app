@@ -33,7 +33,7 @@ export const DEFAULT_SEASON_CONFIG: SeasonConfig = {
     walkover_loser: 0,
   },
   small_points_map: {
-    'Tied': [0, 0],
+    'A/S': [0, 0],
     '1Up': [1, -1],
     '2Up': [2, -2],
     '2&1': [3, -3],
@@ -64,7 +64,7 @@ export function computePoints(
     }
   }
 
-  if (input.resultCode === 'Tied' || !input.winnerId) {
+  if (input.resultCode === 'A/S' || !input.winnerId) {
     return {
       player1BigPoints: scoring.draw,
       player2BigPoints: scoring.draw,
@@ -86,7 +86,7 @@ export function computePoints(
 }
 
 export const RESULT_CODES = [
-  'Tied',
+  'A/S',
   '1Up',
   '2Up',
   '2&1',

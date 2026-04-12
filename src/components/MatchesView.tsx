@@ -66,7 +66,7 @@ export default function MatchesView({
     const isDraw = match.played && !match.winnerId
 
     let resultText = ''
-    if (isDraw) resultText = 'AS'
+    if (isDraw) resultText = 'A/S'
     else if (match.isWalkover) resultText = 'W/O'
     else resultText = match.resultCode || ''
 
@@ -135,14 +135,14 @@ export default function MatchesView({
                   const isDraw = match.played && !match.winnerId
                   return (
                     <div key={match.id} className="match-row">
-                      <span className={`font-semibold flex-1 ${p1Won ? 'text-[var(--color-success)]' : 'text-[var(--color-text-dark)]'}`}>
+                      <span className={`font-semibold flex-1 ${p1Won ? 'text-[var(--color-success)]' : p2Won ? 'text-[var(--color-danger)]' : 'text-[var(--color-text-dark)]'}`}>
                         {match.player1.firstName} {match.player1.lastName}
                         {p1Won && <span className="ml-1 text-xs">&#10003;</span>}
                       </span>
                       <span className={`mx-4 ${isDraw ? 'badge-draw' : match.isWalkover ? 'badge-walkover' : 'badge-win'}`}>
                         {match.isWalkover ? 'W/O' : match.resultCode}
                       </span>
-                      <span className={`font-semibold flex-1 text-right ${p2Won ? 'text-[var(--color-success)]' : 'text-[var(--color-text-dark)]'}`}>
+                      <span className={`font-semibold flex-1 text-right ${p2Won ? 'text-[var(--color-success)]' : p1Won ? 'text-[var(--color-danger)]' : 'text-[var(--color-text-dark)]'}`}>
                         {p2Won && <span className="mr-1 text-xs">&#10003;</span>}
                         {match.player2.firstName} {match.player2.lastName}
                       </span>

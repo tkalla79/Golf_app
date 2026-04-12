@@ -10,14 +10,16 @@ interface MatchSchedulerProps {
 
 function formatForInput(date: Date | null): string {
   if (!date) return ''
-  const d = new Date(date)
+  // Konwertuj UTC date do lokalnego czasu Warsaw dla datetime-local input
+  const warsaw = new Date(new Date(date).toLocaleString('en-US', { timeZone: 'Europe/Warsaw' }))
   const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  return `${warsaw.getFullYear()}-${pad(warsaw.getMonth() + 1)}-${pad(warsaw.getDate())}T${pad(warsaw.getHours())}:${pad(warsaw.getMinutes())}`
 }
 
 function formatPolish(date: Date | null): string {
   if (!date) return ''
   return new Date(date).toLocaleString('pl-PL', {
+    timeZone: 'Europe/Warsaw',
     weekday: 'short',
     day: 'numeric',
     month: 'long',
@@ -40,7 +42,7 @@ export default function MatchScheduler({ matchId, scheduledDate: initialDate }: 
       const res = await fetch(`/api/matches/${matchId}/schedule`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scheduledDate: inputValue || null }),
+        body: JSON.stringify({ scheduledDate: inputValue ? new Date(inputValue).toISOString() : null }),
       })
       if (!res.ok) {
         const err = await res.json()
