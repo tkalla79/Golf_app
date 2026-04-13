@@ -392,6 +392,11 @@ async function resetSimulation(seasonId: number) {
       where: { id: { not: firstRound.id }, seasonId: season.id },
     })
 
+    // Delete availability slots for round 1 matches (updateMany won't cascade)
+    await prisma.availabilitySlot.deleteMany({
+      where: { match: { group: { roundId: firstRound.id } } },
+    })
+
     // Reset results in round 1
     await prisma.match.updateMany({
       where: { group: { roundId: firstRound.id } },
@@ -408,6 +413,8 @@ async function resetSimulation(seasonId: number) {
         player2Birdies: 0,
         bracketRound: null,
         bracketPosition: null,
+        scheduledDate: null,
+        reminderSent: false,
       },
     })
 
