@@ -227,8 +227,8 @@ model AvailabilitySlot {
   createdAt  DateTime       @default(now()) @map("created_at")
 
   player   Player  @relation("slotOwner", fields: [playerId], references: [id], onDelete: Cascade)
-  pairedBy Player? @relation("slotPairedBy", fields: [pairedById], references: [id])
-  match    Match   @relation(fields: [matchId], references: [id])
+  pairedBy Player? @relation("slotPairedBy", fields: [pairedById], references: [id], onDelete: SetNull)
+  match    Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
   @@index([matchId, status])
   @@index([playerId, matchId, status])

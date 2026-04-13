@@ -40,11 +40,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ sent: 0, errors: 0, matchesFound: 0, timestamp: now.toISOString() })
   }
 
-  // Step 2: Fetch full data for claimed matches (already marked reminderSent=true)
+  // Step 2: Fetch full data for freshly claimed matches only
+  // Filter by updatedAt to avoid re-sending for matches claimed in previous cron runs
+  const claimCutoff = new Date(now.getTime() - 60 * 1000) // 1 minute ago
   const matches = await prisma.match.findMany({
     where: {
       reminderSent: true,
       played: false,
+      updatedAt: { gte: claimCutoff },
       scheduledDate: {
         gte: windowStart,
         lte: windowEnd,

@@ -11,12 +11,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'groupId jest wymagany' }, { status: 400 })
   }
 
+  const gid = parseInt(groupId)
+  if (isNaN(gid)) {
+    return NextResponse.json({ error: 'Nieprawidłowe groupId' }, { status: 400 })
+  }
+
   const slots = await prisma.availabilitySlot.findMany({
     where: {
       status: 'OPEN',
       dateEnd: { gt: new Date() },
       match: {
-        groupId: parseInt(groupId),
+        groupId: gid,
         played: false,
       },
     },
