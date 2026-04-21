@@ -40,7 +40,11 @@
 | 1e-d | 2024 Lipiec (7gr A-G, 70 meczów) | ✅ 0 rozbieżności |
 | 1e-e | 2024 Sierpień (7gr A-G, 70 meczów) | ✅ 0 rozbieżności |
 | 1e-f | 2024 Playoff (final standings 1-35 + finale + semi) | ✅ minimum |
-| 1f | Sezon 2023 (kwiecień-lipiec/sierpień + playoff, ~29 obrazów) | ⏸ |
+| 1f-a | 2023 Kwiecień (6gr A-F, F=4os, 56 meczów) | ✅ 0 rozbieżności |
+| 1f-b | 2023 Maj (6gr A-F × 5os, 60 meczów) | ✅ 0 po fix |
+| 1f-c | 2023 Czerwiec (6gr A-F × 5os, 60 meczów) | ✅ 0 po fix |
+| 1f-d | 2023 Lipiec/Sierpień (6gr A-F × 5os, 60 meczów) | ✅ 0 rozbieżności |
+| 1f-e | 2023 Playoff (3 ligi: 1-8, 9-16, 17-24 = 24 graczy) | ✅ minimum (finały + semi) |
 | 5.2 | `<SeasonHighlightsPanel>` na stronie sezonu archiwalnego | ⏸ |
 | 1 | OCR 103 obrazów → `scripts/historical-data/seasons.json` | ⏸ |
 | 3 | `/api/admin/seasons/historical-import` + admin UI | ⏸ |

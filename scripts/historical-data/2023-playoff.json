@@ -1,0 +1,207 @@
+{
+  "_metadata": {
+    "source": "historia don papa.docx",
+    "images": "30-33 (playoff final ranking + 3 brackets)",
+    "extractedAt": "2026-04-21",
+    "notes": [
+      "Playoff 2023 has 3 leagues: Pierwsza (1-8), Druga (9-16), Trzecia (17-24).",
+      "Only 24 players in playoff (vs 35/32 in later years) — league was smaller.",
+      "Players #25-30 from regular season did not enter playoff.",
+      "NOTE: image30 ranking shows Łukasiuk #3, Klyk #4; image31 bracket shows Klyk won 3-4 match 2up. Discrepancy flagged."
+    ]
+  },
+  "season": { "year": 2023, "name": "Sezon 2023", "scoringSystem": "historical-1-0.5-0" },
+  "round": { "name": "Runda 5 — Playoff 2023", "roundNumber": 99, "holes": 9, "type": "PLAYOFF" },
+  "finalStandings": [
+    { "position": 1, "name": "Jerzy Górski" },
+    { "position": 2, "name": "Janusz Zieliński" },
+    { "position": 3, "name": "Krzysztof Łukasiuk" },
+    { "position": 4, "name": "Marek Klyk" },
+    { "position": 5, "name": "Sebastian Szot" },
+    { "position": 6, "name": "Janusz Patraś" },
+    { "position": 7, "name": "Remigiusz Wiśniewski" },
+    { "position": 8, "name": "Wojciech Szwedowski" },
+    { "position": 9, "name": "Tomasz Śleziak" },
+    { "position": 10, "name": "Grzegorz Ptak" },
+    { "position": 11, "name": "Wojciech Stelmach" },
+    { "position": 12, "name": "Sylwester Sienkiewicz" },
+    { "position": 13, "name": "Mirosław Domagała" },
+    { "position": 14, "name": "Paweł Ślusarczyk" },
+    { "position": 15, "name": "Zbigniew Bajek" },
+    { "position": 16, "name": "Zbigniew Marciniak" },
+    { "position": 17, "name": "Maciej Skucik" },
+    { "position": 18, "name": "Marek Turski" },
+    { "position": 19, "name": "Grzegorz Możdżonek" },
+    { "position": 20, "name": "Jakub Krok" },
+    { "position": 21, "name": "Marek Zapisek" },
+    { "position": 22, "name": "Ryszard Białecki" },
+    { "position": 23, "name": "Łukasz Cieplik" },
+    { "position": 24, "name": "Ryszard Michalewski" }
+  ],
+  "brackets": [
+    {
+      "name": "Pierwsza Liga Playoff",
+      "sourceImage": "image31.png",
+      "participants": [
+        "Jerzy Górski",
+        "Janusz Zieliński",
+        "Krzysztof Łukasiuk",
+        "Marek Klyk",
+        "Sebastian Szot",
+        "Janusz Patraś",
+        "Remigiusz Wiśniewski",
+        "Wojciech Szwedowski"
+      ],
+      "finals": [
+        {
+          "placementLabel": "MIEJSCA 1-2",
+          "bracketRound": 3,
+          "player1": "Janusz Zieliński",
+          "player2": "Jerzy Górski",
+          "winner": "Jerzy Górski",
+          "code": "3&2",
+          "comment": "CHAMPIONSHIP 2023 — Górski wygrał finał"
+        },
+        {
+          "placementLabel": "MIEJSCA 3-4",
+          "bracketRound": 3,
+          "player1": "Marek Klyk",
+          "player2": "Krzysztof Łukasiuk",
+          "winner": "Marek Klyk",
+          "code": "2Up",
+          "comment": "3rd-4th match (note: bracket shows Klyk won but official ranking shows Łukasiuk #3)"
+        },
+        {
+          "placementLabel": "Semi 1 (upper bracket)",
+          "bracketRound": 2,
+          "player1": "Krzysztof Łukasiuk",
+          "player2": "Jerzy Górski",
+          "winner": "Jerzy Górski",
+          "code": "3&2"
+        },
+        {
+          "placementLabel": "Semi 2 (upper bracket)",
+          "bracketRound": 2,
+          "player1": "Marek Klyk",
+          "player2": "Janusz Zieliński",
+          "winner": "Janusz Zieliński",
+          "code": "6&5"
+        },
+        {
+          "placementLabel": "MIEJSCA 5-6",
+          "bracketRound": 2,
+          "player1": "Sebastian Szot",
+          "player2": "Janusz Patraś",
+          "winner": "Sebastian Szot",
+          "code": "4&2"
+        },
+        {
+          "placementLabel": "MIEJSCA 7-8",
+          "bracketRound": 2,
+          "player1": "Remigiusz Wiśniewski",
+          "player2": "Wojciech Szwedowski",
+          "winner": "Remigiusz Wiśniewski",
+          "code": "4&2"
+        }
+      ]
+    },
+    {
+      "name": "Druga Liga Playoff",
+      "sourceImage": "image32.png",
+      "participants": [
+        "Tomasz Śleziak",
+        "Grzegorz Ptak",
+        "Wojciech Stelmach",
+        "Sylwester Sienkiewicz",
+        "Mirosław Domagała",
+        "Paweł Ślusarczyk",
+        "Zbigniew Bajek",
+        "Zbigniew Marciniak"
+      ],
+      "finals": [
+        {
+          "placementLabel": "MIEJSCA 9-10",
+          "bracketRound": 3,
+          "player1": "Tomasz Śleziak",
+          "player2": "Grzegorz Ptak",
+          "winner": "Tomasz Śleziak",
+          "code": "1Up",
+          "comment": "Druga Liga championship"
+        },
+        {
+          "placementLabel": "MIEJSCA 11-12",
+          "bracketRound": 3,
+          "player1": "Wojciech Stelmach",
+          "player2": "Sylwester Sienkiewicz",
+          "winner": "Wojciech Stelmach",
+          "code": "5&4"
+        },
+        {
+          "placementLabel": "MIEJSCA 13-14",
+          "bracketRound": 3,
+          "player1": "Mirosław Domagała",
+          "player2": "Paweł Ślusarczyk",
+          "winner": "Mirosław Domagała",
+          "code": "1Up"
+        },
+        {
+          "placementLabel": "MIEJSCA 15-16",
+          "bracketRound": 3,
+          "player1": "Zbigniew Bajek",
+          "player2": "Zbigniew Marciniak",
+          "winner": "Zbigniew Bajek",
+          "code": "2Up"
+        }
+      ]
+    },
+    {
+      "name": "Trzecia Liga Playoff",
+      "sourceImage": "image33.png",
+      "participants": [
+        "Maciej Skucik",
+        "Marek Turski",
+        "Grzegorz Możdżonek",
+        "Jakub Krok",
+        "Marek Zapisek",
+        "Ryszard Białecki",
+        "Łukasz Cieplik",
+        "Ryszard Michalewski"
+      ],
+      "finals": [
+        {
+          "placementLabel": "MIEJSCA 17-18",
+          "bracketRound": 3,
+          "player1": "Maciej Skucik",
+          "player2": "Marek Turski",
+          "winner": "Maciej Skucik",
+          "code": "3&2",
+          "comment": "Trzecia Liga championship"
+        },
+        {
+          "placementLabel": "MIEJSCA 19-20",
+          "bracketRound": 3,
+          "player1": "Grzegorz Możdżonek",
+          "player2": "Jakub Krok",
+          "winner": "Grzegorz Możdżonek",
+          "code": "1Up"
+        },
+        {
+          "placementLabel": "MIEJSCA 21-22",
+          "bracketRound": 3,
+          "player1": "Marek Zapisek",
+          "player2": "Ryszard Białecki",
+          "winner": "Marek Zapisek",
+          "code": "3&2"
+        },
+        {
+          "placementLabel": "MIEJSCA 23-24",
+          "bracketRound": 3,
+          "player1": "Łukasz Cieplik",
+          "player2": "Ryszard Michalewski",
+          "winner": "Łukasz Cieplik",
+          "code": "5&4"
+        }
+      ]
+    }
+  ]
+}
