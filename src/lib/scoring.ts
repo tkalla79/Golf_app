@@ -43,6 +43,9 @@ export const DEFAULT_SEASON_CONFIG: SeasonConfig = {
     '4&3': [7, -7],
     '5&3': [8, -8],
     '5&4': [9, -9],
+    // Ret = opponent retired during the round (historical code).
+    // Awards same big points as a win, zero small points (margin unknown).
+    'Ret': [0, 0],
   },
 }
 
@@ -96,6 +99,7 @@ export const RESULT_CODES = [
   '4&3',
   '5&3',
   '5&4',
+  'Ret',
 ] as const
 
 // 18-hole match play result codes (includes all 9-hole codes plus extended margins)

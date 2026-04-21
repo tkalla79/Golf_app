@@ -6,6 +6,8 @@ import { getPlayerSession } from '@/lib/player-auth'
 import PlayerProfileEditor from '@/components/PlayerProfileEditor'
 import MatchScheduler from '@/components/MatchScheduler'
 import AvailabilityPanel from '@/components/AvailabilityPanel'
+import CareerOverview from '@/components/CareerOverview'
+import SeasonHistoryTable from '@/components/SeasonHistoryTable'
 
 export const dynamic = 'force-dynamic'
 
@@ -97,6 +99,9 @@ export default async function ZawodnikPage({
         hasPassword={!!player.passwordHash}
         totalBirdies={totalBirdies}
       />
+
+      {/* Career overview (hidden when no played matches) */}
+      <CareerOverview playerId={player.id} />
 
       {/* Upcoming matches */}
       <div className="card p-6 sm:p-8 mb-8">
@@ -251,6 +256,9 @@ export default async function ZawodnikPage({
           </div>
         )}
       </div>
+
+      {/* Season-by-season history (hidden when no historical seasons) */}
+      <SeasonHistoryTable playerId={player.id} />
     </div>
   )
 }

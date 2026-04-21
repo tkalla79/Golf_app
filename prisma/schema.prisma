@@ -32,6 +32,8 @@ model Player {
   loginToken      String?   @unique @map("login_token") @db.VarChar(255)
   loginTokenExpiry DateTime? @map("login_token_expiry")
   active          Boolean   @default(true)
+  isHistorical    Boolean   @default(false) @map("is_historical")
+  archivedAt      DateTime? @map("archived_at")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
