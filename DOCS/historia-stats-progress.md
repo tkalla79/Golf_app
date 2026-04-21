@@ -34,8 +34,13 @@
 | 3a | `scripts/historical-data/import-season.ts` (CLI importer) | ✅ zrobione |
 | 3a-val | `scripts/historical-data/validate.ts` (walidator) | ✅ zrobione |
 | 3b | Admin UI do importu (web form) | ⏸ kolejna sesja |
-| 1e | Sezon 2024 (kwiecień-sierpień + playoff, ~64 obrazy) | ⏸ kolejna sesja |
-| 1f | Sezon 2023 (kwiecień-lipiec/sierpień + playoff, ~29 obrazów) | ⏸ kolejna sesja |
+| 1e-a | 2024 Kwiecień (6gr A-F, 60 meczów) | ✅ 0 rozbieżności |
+| 1e-b | 2024 Maj (7gr A-G, 70 meczów) | ✅ 0 rozbieżności po fix Wiśniewski vs Szwedowski |
+| 1e-c | 2024 Czerwiec (7gr A-G, 70 meczów) | ✅ 0 rozbieżności po fix Łukasiuk vs Zieliński |
+| 1e-d | 2024 Lipiec (7gr A-G, 70 meczów) | ✅ 0 rozbieżności |
+| 1e-e | 2024 Sierpień (7gr A-G, 70 meczów) | ✅ 0 rozbieżności |
+| 1e-f | 2024 Playoff (final standings 1-35 + finale + semi) | ✅ minimum |
+| 1f | Sezon 2023 (kwiecień-lipiec/sierpień + playoff, ~29 obrazów) | ⏸ |
 | 5.2 | `<SeasonHighlightsPanel>` na stronie sezonu archiwalnego | ⏸ |
 | 1 | OCR 103 obrazów → `scripts/historical-data/seasons.json` | ⏸ |
 | 3 | `/api/admin/seasons/historical-import` + admin UI | ⏸ |

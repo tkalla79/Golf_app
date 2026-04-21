@@ -1,0 +1,183 @@
+{
+  "_metadata": {
+    "source": "historia don papa.docx",
+    "images": "68-72 (final ranking table + 2 league brackets)",
+    "extractedAt": "2026-04-21",
+    "notes": [
+      "Playoff has 2 leagues: Pierwsza Liga (#1-16) and Druga Liga (#17-32).",
+      "Players #33-35 (Szemainda, Tarkowski, Turski) did not play playoff.",
+      "This file captures: final overall standings from image68, finals + semifinals from image69-72.",
+      "Detailed placement games (5-16, 17-32) deferred — not critical for championship/finals stats."
+    ]
+  },
+  "season": { "year": 2024, "name": "Sezon 2024", "scoringSystem": "historical-1-0.5-0" },
+  "round": { "name": "Runda 6 — Playoff 2024", "roundNumber": 99, "holes": 9, "type": "PLAYOFF" },
+  "finalStandings": [
+    { "position": 1, "name": "Sebastian Szot" },
+    { "position": 2, "name": "Janusz Zieliński" },
+    { "position": 3, "name": "Jerzy Górski" },
+    { "position": 4, "name": "Remigiusz Wiśniewski" },
+    { "position": 5, "name": "Krzysztof Łukasiuk" },
+    { "position": 6, "name": "Marek Klyk" },
+    { "position": 7, "name": "Grzegorz Ptak" },
+    { "position": 8, "name": "Tomasz Śleziak" },
+    { "position": 9, "name": "Jakub Michalak" },
+    { "position": 10, "name": "Krzysztof Wingert" },
+    { "position": 11, "name": "Maciej Skucik" },
+    { "position": 12, "name": "Paweł Ślusarczyk" },
+    { "position": 13, "name": "Stanisław Bielewicz" },
+    { "position": 14, "name": "Mirosław Domagała" },
+    { "position": 15, "name": "Sylwester Sienkiewicz" },
+    { "position": 16, "name": "Artur Kiowski" },
+    { "position": 17, "name": "Wojciech Szwedowski" },
+    { "position": 18, "name": "Wojciech Stelmach" },
+    { "position": 19, "name": "Jakub Krok" },
+    { "position": 20, "name": "Grzegorz Kuliś" },
+    { "position": 21, "name": "Marek Zapisek" },
+    { "position": 22, "name": "Wojciech Stefanik" },
+    { "position": 23, "name": "Roman Staś" },
+    { "position": 24, "name": "Fabio Szic" },
+    { "position": 25, "name": "Zbigniew Marciniak" },
+    { "position": 26, "name": "Andrzej Lepich" },
+    { "position": 27, "name": "Łukasz Cieplik" },
+    { "position": 28, "name": "Grzegorz Możdżonek" },
+    { "position": 29, "name": "Robert Warnecki" },
+    { "position": 30, "name": "Ryszard Białecki" },
+    { "position": 31, "name": "Marcin Stelmach" },
+    { "position": 32, "name": "Artur Pawlik" },
+    { "position": 33, "name": "Marcin Szemainda" },
+    { "position": 34, "name": "Tomasz Tarkowski" },
+    { "position": 35, "name": "Marek Turski" }
+  ],
+  "brackets": [
+    {
+      "name": "Pierwsza Liga Playoff",
+      "sourceImages": ["image69.png", "image70.png"],
+      "participants": [
+        "Sebastian Szot",
+        "Janusz Zieliński",
+        "Jerzy Górski",
+        "Remigiusz Wiśniewski",
+        "Krzysztof Łukasiuk",
+        "Marek Klyk",
+        "Grzegorz Ptak",
+        "Tomasz Śleziak",
+        "Jakub Michalak",
+        "Krzysztof Wingert",
+        "Maciej Skucik",
+        "Paweł Ślusarczyk",
+        "Stanisław Bielewicz",
+        "Mirosław Domagała",
+        "Sylwester Sienkiewicz",
+        "Artur Kiowski"
+      ],
+      "finals": [
+        {
+          "placementLabel": "MIEJSCA 1-2",
+          "bracketRound": 4,
+          "player1": "Sebastian Szot",
+          "player2": "Janusz Zieliński",
+          "winner": "Sebastian Szot",
+          "code": "5&4",
+          "comment": "CHAMPIONSHIP — Pierwsza Liga final"
+        },
+        {
+          "placementLabel": "MIEJSCA 3-4",
+          "bracketRound": 4,
+          "player1": "Remigiusz Wiśniewski",
+          "player2": "Jerzy Górski",
+          "winner": "Jerzy Górski",
+          "code": "WO",
+          "comment": "3rd-4th place (Wiśniewski oddał walkowerem)"
+        },
+        {
+          "placementLabel": "Semi 1",
+          "bracketRound": 3,
+          "player1": "Sebastian Szot",
+          "player2": "Remigiusz Wiśniewski",
+          "winner": "Sebastian Szot",
+          "code": "4&3",
+          "comment": "Semifinal upper bracket"
+        },
+        {
+          "placementLabel": "Semi 2",
+          "bracketRound": 3,
+          "player1": "Janusz Zieliński",
+          "player2": "Jerzy Górski",
+          "winner": "Janusz Zieliński",
+          "code": "2&1",
+          "comment": "Semifinal upper bracket"
+        },
+        {
+          "placementLabel": "MIEJSCA 5-6",
+          "bracketRound": 3,
+          "player1": "Krzysztof Łukasiuk",
+          "player2": "Marek Klyk",
+          "winner": "Krzysztof Łukasiuk",
+          "code": "3&1",
+          "comment": "5th place playoff"
+        },
+        {
+          "placementLabel": "MIEJSCA 7-8",
+          "bracketRound": 3,
+          "player1": "Grzegorz Ptak",
+          "player2": "Tomasz Śleziak",
+          "winner": "Grzegorz Ptak",
+          "code": "5&4",
+          "comment": "7th place playoff"
+        }
+      ]
+    },
+    {
+      "name": "Druga Liga Playoff",
+      "sourceImages": ["image71.png", "image72.png"],
+      "participants": [
+        "Wojciech Szwedowski",
+        "Wojciech Stelmach",
+        "Jakub Krok",
+        "Grzegorz Kuliś",
+        "Marek Zapisek",
+        "Wojciech Stefanik",
+        "Roman Staś",
+        "Fabio Szic",
+        "Zbigniew Marciniak",
+        "Andrzej Lepich",
+        "Łukasz Cieplik",
+        "Grzegorz Możdżonek",
+        "Robert Warnecki",
+        "Ryszard Białecki",
+        "Marcin Stelmach",
+        "Artur Pawlik"
+      ],
+      "finals": [
+        {
+          "placementLabel": "MIEJSCA 17-18",
+          "bracketRound": 4,
+          "player1": "Wojciech Szwedowski",
+          "player2": "Wojciech Stelmach",
+          "winner": "Wojciech Szwedowski",
+          "code": "6&5",
+          "comment": "Druga Liga championship"
+        },
+        {
+          "placementLabel": "MIEJSCA 19-20",
+          "bracketRound": 4,
+          "player1": "Wojciech Stelmach",
+          "player2": "Jakub Krok",
+          "winner": "Wojciech Stelmach",
+          "code": "1Up",
+          "comment": "19th place — note: Stelmach appears in both 17-18 and 19-20 (bracket routing quirk)"
+        },
+        {
+          "placementLabel": "MIEJSCA 25-26",
+          "bracketRound": 4,
+          "player1": "Andrzej Lepich",
+          "player2": "Zbigniew Marciniak",
+          "winner": "Zbigniew Marciniak",
+          "code": "2&1",
+          "comment": "25th place"
+        }
+      ]
+    }
+  ]
+}
