@@ -4,6 +4,7 @@ import { PL } from '@/constants/pl'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import SeasonPhotoGallery from '@/components/SeasonPhotoGallery'
+import SeasonHighlightsPanel from '@/components/SeasonHighlightsPanel'
 import Image from 'next/image'
 
 export const dynamic = 'force-dynamic'
@@ -65,6 +66,9 @@ export default async function PoprzedniSezonPage({
         </div>
         <span className="inline-block w-12 h-0.5 bg-[var(--color-accent)] mt-3" />
       </div>
+
+      {/* Season highlights — champions, top scorers, biggest upset */}
+      <SeasonHighlightsPanel seasonId={season.id} />
 
       {/* Rounds */}
       {season.rounds.map((round) => (

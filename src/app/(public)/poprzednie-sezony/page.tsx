@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db'
 import { PL } from '@/constants/pl'
 import Link from 'next/link'
+import { getSeasonHighlights } from '@/lib/season-stats'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,6 +28,15 @@ export default async function PoprzedneSezonyPage() {
       _count: { select: { photos: true } },
     },
   })
+
+  // Fetch highlights for each season in parallel — cheap for a short list of COMPLETED seasons.
+  const highlightsMap = new Map(
+    (
+      await Promise.all(
+        seasons.map(async (s) => [s.id, await getSeasonHighlights(s.id)] as const),
+      )
+    ),
+  )
 
   return (
     <div>
@@ -118,6 +128,44 @@ export default async function PoprzedneSezonyPage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Season teaser highlights — champion + top scorer */}
+                  {(() => {
+                    const h = highlightsMap.get(season.id)
+                    if (!h || h.playedMatches === 0) return null
+                    const topChampion = h.champions[0]
+                    const topBirdie = h.topBirdieScorers[0]
+                    return (
+                      <div className="mt-4 pt-4 border-t border-[var(--color-text-body)]/10 space-y-1.5">
+                        {topChampion && (
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-[var(--color-accent)]">🏆</span>
+                            <span className="text-[var(--color-text-body)]/60">
+                              {PL.previousSeasons.champion}:
+                            </span>
+                            <span className="font-semibold text-[var(--color-text-dark)]">
+                              {topChampion.championName}
+                            </span>
+                          </div>
+                        )}
+                        {topBirdie && (
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-[var(--color-success)]">🎯</span>
+                            <span className="text-[var(--color-text-body)]/60">
+                              {PL.previousSeasons.topBirdie}:
+                            </span>
+                            <span className="font-semibold text-[var(--color-text-dark)]">
+                              {topBirdie.playerName}
+                            </span>
+                            <span className="text-[var(--color-text-body)]/50">
+                              ({topBirdie.value})
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
+
                   <div className="mt-4 text-xs text-[var(--color-primary)] font-semibold flex items-center gap-1">
                     {PL.previousSeasons.viewResults} &rarr;
                   </div>

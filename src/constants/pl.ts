@@ -55,6 +55,20 @@ export const PL = {
     addPlayer: 'Dodaj zawodnika',
     editPlayer: 'Edytuj zawodnika',
   },
+  seasonHighlights: {
+    championsTitle: 'Mistrzowie sezonu',
+    statsTitle: 'Statystyki sezonu',
+    finalVs: 'Finał vs.',
+    topBirdies: 'Najwięcej birdie',
+    topWinRate: 'Najwyższa skuteczność',
+    biggestUpset: 'Największa niespodzianka',
+    uniquePlayers: 'Zawodników',
+    playedMatches: 'Rozegranych',
+    avgHcp: 'Średni HCP',
+    halvedRate: '% A/S',
+    longestMatch: 'Najbardziej zdecydowana wygrana',
+    group: 'Grupa',
+  },
   career: {
     title: 'Statystyki kariery',
     historyTitle: 'Historia sezonów',
@@ -191,6 +205,8 @@ export const PL = {
     noDataHint: 'Tu pojawią się zdjęcia i dane zwycięzców kolejnych sezonów.',
     photoSoon: 'Zdjęcie wkrótce',
     season: 'Sezon',
+    filter: 'Rok',
+    allYears: 'Wszystkie',
   },
   schedule: {
     title: 'Nadchodzące mecze',
@@ -216,6 +232,8 @@ export const PL = {
     rounds: 'rundy',
     players: 'zawodników',
     documents: 'Tabele wyników i dokumenty',
+    champion: 'Mistrz',
+    topBirdie: 'Najwięcej birdie',
   },
   availability: {
     title: 'Dostępność',

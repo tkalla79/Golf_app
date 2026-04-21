@@ -21,6 +21,10 @@
 | 5.1b | `pl.ts` — `career.*` etykiety (40+ stringów) | ✅ zrobione |
 | 5.1c | `zawodnik/[slug]/page.tsx` — integracja komponentów | ✅ zrobione |
 | 5.1d | `npm run build` po integracji | ✅ czyste |
+| 5.2 | `<SeasonHighlightsPanel>` + integracja na `/poprzednie-sezony/[id]` | ✅ zrobione |
+| 5.3 | Teaser highlights (champion + top birdie) na kartach listy sezonów | ✅ zrobione |
+| 5.4 | Galeria Sław — filtr po roku, grupowanie, linki do profili | ✅ zrobione |
+| 5.5 | `npm run build` po 5.2/5.3/5.4 | ✅ czyste |
 | 5.2 | `<SeasonHighlightsPanel>` na stronie sezonu archiwalnego | ⏸ |
 | 1 | OCR 103 obrazów → `scripts/historical-data/seasons.json` | ⏸ |
 | 3 | `/api/admin/seasons/historical-import` + admin UI | ⏸ |
@@ -67,6 +71,39 @@ archivedAt      DateTime? @map("archived_at")
 - `getSeasonHighlights(seasonId)` — champions per bracket, top birdie scorers (top 3), top win rate (top 3), biggest upset (HCP-based), longest match, avgHcp, halvedRate, walkoverRate
 
 **Weryfikacja:** `npm run build` — przeszedł pomyślnie, wszystkie routes skompilowane.
+
+### 2026-04-21 — Etap 5.1/5.2/5.3/5.4 (UI)
+
+**`src/components/CareerOverview.tsx`** (nowy, 190 linii):
+- Karta headline ze kafelkami (sezony, mistrzostwa, finały, W-L-A/S, skuteczność, birdies)
+- Akordeon "Więcej statystyk": avg margin, biggest win, halved rate, close matches, upsets, walkowery, retired, playoff appearances, big/small pts
+- Sekcja head-to-head top 3 rywali (każdy linkuje do profilu)
+- Auto-ukrywa się gdy player nie ma rozegranych meczów
+
+**`src/components/SeasonHistoryTable.tsx`** (nowy, 92 linie):
+- Tabela sezon-po-sezonie: Sezon (link) | Poz. | Meczów | W-L-A/S | Pkt | Playoff
+- Wynik playoff: Mistrz / Finalista / Półfinał / Ćwierćfinał / 1/8
+- Badge kolorystyczny dla mistrza (złoty) i finalisty (zielony)
+
+**`src/components/SeasonHighlightsPanel.tsx`** (nowy, 220 linii) — na stronie archiwalnego sezonu:
+- Pasek "Mistrzowie sezonu" z gradient cards per liga (L1 złoty, L2 zielony, L3 niebieski)
+- Top birdie scorers (top 3) + Top win rate (top 3, min 3 mecze)
+- Biggest upset callout (różnica HCP, wynik, runda/grupa)
+- Core season metrics: liczba zawodników, rozegranych, avg HCP, % A/S
+- Footer: najbardziej zdecydowana wygrana
+
+**`src/app/(public)/poprzednie-sezony/page.tsx`** — teaser highlights:
+- `getSeasonHighlights()` dla każdego sezonu w Promise.all
+- Karta sezonu zawiera mini-sekcję: mistrz L1 🏆 + top birdie 🎯
+
+**`src/app/(public)/galeria-slaw/page.tsx`** — przepisana:
+- Filtr po roku (query param `?year=2024`)
+- Grupowanie wpisów per rok z separatorem
+- Nazwisko zawodnika linkuje do `/zawodnik/[slug]` gdy `playerId` jest ustawione
+
+**`src/constants/pl.ts`** — 50+ nowych etykiet w `career.*`, `seasonHighlights.*`, `previousSeasons.*`, `hallOfFame.*`.
+
+**Weryfikacja:** 3 builds przeszły czysto (po każdej większej integracji).
 
 ---
 
