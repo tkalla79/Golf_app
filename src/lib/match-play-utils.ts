@@ -11,7 +11,15 @@
  * These helpers are used by stats code, UI rendering, and OCR import validation.
  */
 
-export type MatchOutcome = 'win' | 'loss' | 'halved' | 'walkover' | 'retired' | 'notPlayed'
+export type MatchOutcome =
+  | 'win'
+  | 'loss'
+  | 'halved'
+  | 'walkoverWin'
+  | 'walkoverLoss'
+  | 'retired' // player won because opponent retired
+  | 'retiredLoss' // player lost because they retired
+  | 'notPlayed'
 
 /**
  * Parse the numeric margin (holes up) from a match-play result code.
@@ -88,10 +96,12 @@ export function matchOutcome(
   playerId: number,
 ): MatchOutcome {
   if (!match.played) return 'notPlayed'
-  if (match.isWalkover) return 'walkover'
+  if (match.isWalkover) {
+    return match.winnerId === playerId ? 'walkoverWin' : 'walkoverLoss'
+  }
   if (isHalved(match.resultCode)) return 'halved'
   if (isRetired(match.resultCode)) {
-    return match.winnerId === playerId ? 'retired' : 'loss'
+    return match.winnerId === playerId ? 'retired' : 'retiredLoss'
   }
   if (match.winnerId === playerId) return 'win'
   if (match.winnerId && match.winnerId !== playerId) return 'loss'
@@ -123,20 +133,21 @@ export function signedMargin(
 
 /**
  * Compute the longest consecutive winning streak from a chronologically ordered
- * list of outcomes. Halves/walkovers/retires break the streak only if they are losses;
- * configurable via `breakOn`.
+ * list of outcomes.
+ *
+ * Counted as a win: `win`, `walkoverWin`, `retired` (opponent retired).
+ * Counted as a loss (breaks streak): `loss`, `walkoverLoss`, `retiredLoss`.
+ * `halved` breaks by default (configurable). `notPlayed` is skipped.
  */
 export function longestWinStreak(
   outcomes: MatchOutcome[],
-  opts: { breakOnHalved?: boolean; breakOnWalkover?: boolean } = {},
+  opts: { breakOnHalved?: boolean } = {},
 ): number {
-  const { breakOnHalved = true, breakOnWalkover = false } = opts
+  const { breakOnHalved = true } = opts
   let best = 0
   let current = 0
   for (const o of outcomes) {
-    const isWin = o === 'win' || o === 'walkover' || o === 'retired'
-    const countsAsWin = o === 'win' || (o === 'retired') || (o === 'walkover' && !breakOnWalkover)
-    if (isWin && countsAsWin) {
+    if (o === 'win' || o === 'walkoverWin' || o === 'retired') {
       current++
       if (current > best) best = current
     } else if (o === 'notPlayed') {
@@ -144,6 +155,7 @@ export function longestWinStreak(
     } else if (o === 'halved' && !breakOnHalved) {
       // Preserve streak.
     } else {
+      // Any loss (loss, walkoverLoss, retiredLoss) or halved with break
       current = 0
     }
   }

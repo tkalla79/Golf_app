@@ -212,7 +212,7 @@ export async function getSeasonHighlights(seasonId: number): Promise<SeasonHighl
         },
         p.id,
       )
-      if (outcome === 'win' || outcome === 'retired' || (outcome === 'walkover' && m.winnerId === p.id)) {
+      if (outcome === 'win' || outcome === 'retired' || outcome === 'walkoverWin') {
         rec.wins++
       }
       recordMap.set(p.id, rec)

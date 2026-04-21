@@ -110,14 +110,41 @@ function splitName(full: string): { firstName: string; lastName: string } {
 }
 
 /**
- * Find existing Player by exact firstName+lastName match, or create a new
+ * Polish diminutive → canonical first name map for historical names.
+ * Extend this if new diminutives appear in new data.
+ */
+const DIMINUTIVES: Record<string, string> = {
+  Jurek: 'Jerzy',
+  Remik: 'Remigiusz',
+  Mirek: 'Mirosław',
+  Rysiu: 'Ryszard',
+  Julka: 'Julia',
+  Zbyszek: 'Zbigniew',
+  Bartek: 'Bartłomiej',
+}
+
+function normalizeFirstName(firstName: string): string {
+  return DIMINUTIVES[firstName] ?? firstName
+}
+
+/**
+ * Find existing Player by fuzzy firstName+lastName match, or create a new
  * historical one (active=false, isHistorical=true).
+ *
+ * Matching order:
+ *  1. Exact firstName+lastName
+ *  2. Reversed order (handle "Nazwisko Imię" format in old docs)
+ *  3. Normalized diminutive (Jurek → Jerzy, etc.) on firstName
+ *  4. Normalized diminutive on lastName (for reversed format)
+ *  5. Create new if still not found
  */
 async function upsertPlayer(
   fullName: string,
   tx: Prisma.TransactionClient,
 ): Promise<{ id: number; firstName: string; lastName: string; slug: string }> {
   const { firstName, lastName } = splitName(fullName)
+  const normFirst = normalizeFirstName(firstName)
+  const normLast = normalizeFirstName(lastName)
 
   // Try exact match
   let player = await tx.player.findFirst({
@@ -133,18 +160,37 @@ async function upsertPlayer(
   })
   if (player) return player
 
-  // Not found — create new historical player
-  let slug = toSlug(firstName, lastName)
+  // Try normalized first name (Jurek → Jerzy)
+  if (normFirst !== firstName) {
+    player = await tx.player.findFirst({
+      where: { firstName: normFirst, lastName },
+      select: { id: true, firstName: true, lastName: true, slug: true },
+    })
+    if (player) return player
+  }
+
+  // Try reversed + normalized last-as-first (e.g. "Górski Jurek" → "Jerzy Górski")
+  if (normLast !== lastName) {
+    player = await tx.player.findFirst({
+      where: { firstName: normLast, lastName: firstName },
+      select: { id: true, firstName: true, lastName: true, slug: true },
+    })
+    if (player) return player
+  }
+
+  // Not found — create new historical player (use normalized first name if it differs)
+  const canonFirst = normFirst !== firstName ? normFirst : firstName
+  let slug = toSlug(canonFirst, lastName)
   // Ensure slug uniqueness
   let suffix = 0
   while (await tx.player.findUnique({ where: { slug } })) {
     suffix++
-    slug = `${toSlug(firstName, lastName)}-${suffix}`
+    slug = `${toSlug(canonFirst, lastName)}-${suffix}`
   }
 
   const created = await tx.player.create({
     data: {
-      firstName,
+      firstName: canonFirst,
       lastName,
       slug,
       active: false,
@@ -372,8 +418,17 @@ async function importSeason(files: string[], dryRun: boolean) {
             for (const m of bracket.finals) {
               const p1 = await upsertPlayer(m.player1, tx)
               const p2 = await upsertPlayer(m.player2, tx)
-              const winnerIsP1 = m.winner === m.player1
-              const winnerId = m.winner ? (winnerIsP1 ? p1.id : p2.id) : null
+              let winnerId: number | null = null
+              if (m.winner !== null && m.winner !== undefined) {
+                if (m.winner === m.player1) winnerId = p1.id
+                else if (m.winner === m.player2) winnerId = p2.id
+                else {
+                  throw new Error(
+                    `Playoff match "${m.placementLabel}" in bracket "${bracket.name}": winner "${m.winner}" does not match player1 ("${m.player1}") or player2 ("${m.player2}")`,
+                  )
+                }
+              }
+              const winnerIsP1 = winnerId === p1.id
 
               const smallPointsMap: Record<string, number> = {
                 'A/S': 0, '1Up': 1, '2Up': 2, '3Up': 3, '4Up': 4, '5Up': 5,
@@ -463,7 +518,7 @@ async function importSeason(files: string[], dryRun: boolean) {
         throw new Error('__DRY_RUN_ROLLBACK__')
       }
     },
-    { timeout: 120000 },
+    { timeout: 300000, maxWait: 10000 },
   ).catch((err) => {
     if (err instanceof Error && err.message === '__DRY_RUN_ROLLBACK__') {
       console.log(`Dry run complete — no changes written`)

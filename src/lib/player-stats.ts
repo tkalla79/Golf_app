@@ -251,27 +251,22 @@ export async function getCareerStats(playerId: number): Promise<CareerStats> {
     smallPoints += isP1 ? m.player1SmallPoints : m.player2SmallPoints
     birdies += isP1 ? m.player1Birdies : m.player2Birdies
 
-    // Outcome tallies
+    // Outcome tallies — outcome already includes winner vs loser distinction
     if (outcome === 'win') wins++
     else if (outcome === 'loss') losses++
     else if (outcome === 'halved') halved++
-    else if (outcome === 'walkover') {
-      if (m.winnerId === playerId) {
-        walkoverWins++
-        wins++
-      } else {
-        walkoverLosses++
-        losses++
-      }
+    else if (outcome === 'walkoverWin') {
+      walkoverWins++
+      wins++
+    } else if (outcome === 'walkoverLoss') {
+      walkoverLosses++
+      losses++
     } else if (outcome === 'retired') {
-      // playerId won against someone who retired
       retiredWins++
       wins++
-    }
-    // For opponents retiring against the player — we recorded that as 'loss' in matchOutcome,
-    // but we also want to count retiredLosses specifically. Check resultCode+winnerId.
-    if (isRetired(m.resultCode) && m.winnerId && m.winnerId !== playerId) {
+    } else if (outcome === 'retiredLoss') {
       retiredLosses++
+      losses++
     }
 
     // Margin tracking (skip WO and Ret — undefined margin)
@@ -329,10 +324,9 @@ export async function getCareerStats(playerId: number): Promise<CareerStats> {
         halved: 0,
       }
       h.played++
-      if (outcome === 'win' || outcome === 'walkover' || outcome === 'retired') {
-        if (m.winnerId === playerId) h.won++
-        else if (m.winnerId === opponent.id) h.lost++
-      } else if (outcome === 'loss') {
+      if (outcome === 'win' || outcome === 'walkoverWin' || outcome === 'retired') {
+        h.won++
+      } else if (outcome === 'loss' || outcome === 'walkoverLoss' || outcome === 'retiredLoss') {
         h.lost++
       } else if (outcome === 'halved') {
         h.halved++
@@ -531,11 +525,13 @@ export async function getSeasonHistory(playerId: number): Promise<SeasonHistoryR
         playerId,
       )
       row.matchesPlayed++
-      if (outcome === 'win' || outcome === 'walkover' || outcome === 'retired') {
-        if (m.winnerId === playerId) row.wins++
-        else row.losses++
-      } else if (outcome === 'loss') row.losses++
-      else if (outcome === 'halved') row.halved++
+      if (outcome === 'win' || outcome === 'walkoverWin' || outcome === 'retired') {
+        row.wins++
+      } else if (outcome === 'loss' || outcome === 'walkoverLoss' || outcome === 'retiredLoss') {
+        row.losses++
+      } else if (outcome === 'halved') {
+        row.halved++
+      }
 
       row.bigPoints += Number(isP1 ? m.player1BigPoints : m.player2BigPoints)
       row.smallPoints += isP1 ? m.player1SmallPoints : m.player2SmallPoints
