@@ -247,7 +247,7 @@ export async function getCareerStats(playerId: number): Promise<CareerStats> {
     }
 
     // Points + birdies
-    bigPoints += isP1 ? m.player1BigPoints : m.player2BigPoints
+    bigPoints += Number(isP1 ? m.player1BigPoints : m.player2BigPoints)
     smallPoints += isP1 ? m.player1SmallPoints : m.player2SmallPoints
     birdies += isP1 ? m.player1Birdies : m.player2Birdies
 
@@ -537,7 +537,7 @@ export async function getSeasonHistory(playerId: number): Promise<SeasonHistoryR
       } else if (outcome === 'loss') row.losses++
       else if (outcome === 'halved') row.halved++
 
-      row.bigPoints += isP1 ? m.player1BigPoints : m.player2BigPoints
+      row.bigPoints += Number(isP1 ? m.player1BigPoints : m.player2BigPoints)
       row.smallPoints += isP1 ? m.player1SmallPoints : m.player2SmallPoints
       row.birdies += isP1 ? m.player1Birdies : m.player2Birdies
     }

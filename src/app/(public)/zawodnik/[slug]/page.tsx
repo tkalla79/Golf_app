@@ -245,7 +245,7 @@ export default async function ZawodnikPage({
                   <div className="text-right text-sm min-w-[80px]">
                     <span className={`font-bold ${
                       won ? 'text-[var(--color-success)]' : lost ? 'text-[var(--color-danger)]' : 'text-[var(--color-accent)]'
-                    }`}>{playerBigPts} pkt</span>
+                    }`}>{Number(playerBigPts)} pkt</span>
                     <div className="text-xs text-[var(--color-text-body)]/40">
                       {playerSmallPts > 0 ? `+${playerSmallPts}` : playerSmallPts} m.pkt
                     </div>

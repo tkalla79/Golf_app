@@ -145,8 +145,10 @@ model Match {
   player2Id          Int      @map("player2_id")
   resultCode         String?  @map("result_code") @db.VarChar(20)
   winnerId           Int?     @map("winner_id")
-  player1BigPoints   Int      @default(0) @map("player1_big_points")
-  player2BigPoints   Int      @default(0) @map("player2_big_points")
+  // Big points support halves (0, 0.5, 1) for historical seasons that used the 1/0.5/0
+  // scoring system. Current seasons use 3/2/1 but still fit in Decimal(4,1).
+  player1BigPoints   Decimal  @default(0) @map("player1_big_points") @db.Decimal(4, 1)
+  player2BigPoints   Decimal  @default(0) @map("player2_big_points") @db.Decimal(4, 1)
   player1SmallPoints Int      @default(0) @map("player1_small_points")
   player2SmallPoints Int      @default(0) @map("player2_small_points")
   player1Birdies     Int      @default(0) @map("player1_birdies")

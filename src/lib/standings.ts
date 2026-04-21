@@ -60,8 +60,8 @@ export function computeStandings(
 
     p1.played++
     p2.played++
-    p1.bigPoints += match.player1BigPoints
-    p2.bigPoints += match.player2BigPoints
+    p1.bigPoints += Number(match.player1BigPoints)
+    p2.bigPoints += Number(match.player2BigPoints)
     p1.smallPoints += match.player1SmallPoints
     p2.smallPoints += match.player2SmallPoints
     p1.birdies += match.player1Birdies
@@ -152,8 +152,8 @@ function computeMiniTable(
     if (!tiedPlayerIds.has(match.player1Id) || !tiedPlayerIds.has(match.player2Id)) continue
 
     // Both players are in the tied group — count their big points
-    miniPoints.set(match.player1Id, (miniPoints.get(match.player1Id) ?? 0) + match.player1BigPoints)
-    miniPoints.set(match.player2Id, (miniPoints.get(match.player2Id) ?? 0) + match.player2BigPoints)
+    miniPoints.set(match.player1Id, (miniPoints.get(match.player1Id) ?? 0) + Number(match.player1BigPoints))
+    miniPoints.set(match.player2Id, (miniPoints.get(match.player2Id) ?? 0) + Number(match.player2BigPoints))
   }
 
   return miniPoints

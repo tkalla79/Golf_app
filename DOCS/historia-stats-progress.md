@@ -25,6 +25,17 @@
 | 5.3 | Teaser highlights (champion + top birdie) na kartach listy sezonów | ✅ zrobione |
 | 5.4 | Galeria Sław — filtr po roku, grupowanie, linki do profili | ✅ zrobione |
 | 5.5 | `npm run build` po 5.2/5.3/5.4 | ✅ czyste |
+| 6 | Migracja schema: `Match.player[12]BigPoints` Int → Decimal(4,1) | ✅ zrobione |
+| 6b | Kody `3Up`, `4Up`, `5Up` w RESULT_CODES (dla 9-hole decisive wins) | ✅ zrobione |
+| 1a | Transkrypcja 2025 Kwiecień/maj (5 grup × 9 graczy = 180 meczów) | ✅ zrobione (3 rozbieżności — ranking vs matrix) |
+| 1b | Transkrypcja 2025 Czerwiec (9 grup × 5 = 90 meczów) | ✅ walidacja 0 błędów |
+| 1c | Transkrypcja 2025 Lipiec (9 grup × 5 = 90 meczów) | ✅ walidacja 0 błędów |
+| 1d | Transkrypcja 2025 Playoff (finale + standings 1-45) | ✅ minimum (finale + pozycje, szczegóły bracket do kolejnej sesji) |
+| 3a | `scripts/historical-data/import-season.ts` (CLI importer) | ✅ zrobione |
+| 3a-val | `scripts/historical-data/validate.ts` (walidator) | ✅ zrobione |
+| 3b | Admin UI do importu (web form) | ⏸ kolejna sesja |
+| 1e | Sezon 2024 (kwiecień-sierpień + playoff, ~64 obrazy) | ⏸ kolejna sesja |
+| 1f | Sezon 2023 (kwiecień-lipiec/sierpień + playoff, ~29 obrazów) | ⏸ kolejna sesja |
 | 5.2 | `<SeasonHighlightsPanel>` na stronie sezonu archiwalnego | ⏸ |
 | 1 | OCR 103 obrazów → `scripts/historical-data/seasons.json` | ⏸ |
 | 3 | `/api/admin/seasons/historical-import` + admin UI | ⏸ |
@@ -104,6 +115,42 @@ archivedAt      DateTime? @map("archived_at")
 **`src/constants/pl.ts`** — 50+ nowych etykiet w `career.*`, `seasonHighlights.*`, `previousSeasons.*`, `hallOfFame.*`.
 
 **Weryfikacja:** 3 builds przeszły czysto (po każdej większej integracji).
+
+### 2026-04-21 — Etap 6 + 1abcd (migracja schema + transkrypcja sezonu 2025)
+
+**Migracja schema:**
+- `Match.player1BigPoints` i `player2BigPoints`: `Int` → `Decimal(4,1)` — historyczne sezony używają 1/0.5/0 (remis = 0.5 pkt).
+- Adaptacja 3 plików: `standings.ts` (2 miejsca), `player-stats.ts` (2 miejsca), `zawodnik/[slug]/page.tsx` — wszystkie użycia `big_points` zostały opakowane w `Number()`.
+
+**Nowe kody wynikowe w `scoring.ts`:**
+- `3Up`, `4Up`, `5Up` — decisive win w 9-hole match play gdzie gracze zagrali całe 9 dołków z przewagą 3-5.
+
+**Transkrypcja sezonu 2025** (4 pliki JSON w `scripts/historical-data/`):
+- `2025-kwiecien-maj.json` — 5 grup × 9 graczy, 180 meczów, 3 rozbieżności ranking vs matrix (Gr 1: Kuliś +1, Warnecki +1, Glinka -2; suma zero — prawdopodobnie błąd w oryginale).
+- `2025-czerwiec.json` — 9 grup × 5 graczy, 90 meczów, **0 rozbieżności**.
+- `2025-lipiec.json` — 9 grup × 5 graczy, 90 meczów, **0 rozbieżności**.
+- `2025-playoff.json` — finale każdej ligi + final ranking 1-45. Szczegóły bracket (1/8, ćwierć, pół, placement) odłożone do kolejnej sesji.
+
+**Skrypty pomocnicze:**
+- `scripts/historical-data/validate.ts` — walidator: porównuje sumę big pts z matrycy z `officialPoints` z rankingu. Wypisuje rozbieżności.
+- `scripts/historical-data/import-season.ts` — CLI importer: tworzy Season/Rounds/Groups/GroupPlayers/Matches w pojedynczej transakcji Prisma. Wspiera `--dry-run`. Automatycznie tworzy brakujących zawodników z `isHistorical=true, active=false`.
+
+**Kody w systemie historycznym obsłużone:**
+- `A/S` — remis (draw, 0.5 pts każdy)
+- `1Up-5Up`, `X&Y` — normalne wyniki match play
+- `Ret` — opponent retired during round (wygrany dostaje 1 pt)
+- `WO` — walkower (isWalkover=true, wygrany dostaje 1 pt)
+- `NP` / `NZ` — nie rozegrany mecz (played=false, 0 pts obu stronom)
+
+**Uruchomienie importu (po `prisma db push`):**
+```bash
+npx tsx scripts/historical-data/import-season.ts --dry-run \
+  scripts/historical-data/2025-kwiecien-maj.json \
+  scripts/historical-data/2025-czerwiec.json \
+  scripts/historical-data/2025-lipiec.json \
+  scripts/historical-data/2025-playoff.json
+```
+Po sprawdzeniu dry-run — uruchom bez `--dry-run` by zaimportować.
 
 ---
 

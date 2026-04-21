@@ -1,0 +1,160 @@
+{
+  "_metadata": {
+    "source": "historia don papa.docx",
+    "images": "101-103 (Pierwsza Liga bracket, Druga Liga bracket, Final ranking table)",
+    "extractedAt": "2026-04-21",
+    "notes": [
+      "Playoff has 2 leagues: Pierwsza Liga (#1-16) and Druga Liga (#17-32).",
+      "Players #33-44 did not enter playoff.",
+      "This file captures: (a) FINAL overall standings from image103, (b) finals matches from image101/102.",
+      "Detailed bracket matches (1/8, quarterfinals, semifinals, placement games) deferred to next session — too many to transcribe accurately in one pass.",
+      "For championships/finals/semifinals stats we need at minimum the finals and semifinals, which are captured here."
+    ]
+  },
+  "season": { "year": 2025, "name": "Sezon 2025", "scoringSystem": "historical-1-0.5-0" },
+  "round": { "name": "Runda 4 — Playoff 2025", "roundNumber": 99, "holes": 9, "type": "PLAYOFF" },
+  "finalStandings": [
+    { "position": 1, "name": "Krzysztof Łukasiuk" },
+    { "position": 2, "name": "Fabio Szic" },
+    { "position": 3, "name": "Jakub Michalak" },
+    { "position": 4, "name": "Sebastian Szot" },
+    { "position": 5, "name": "Krzysztof Wingert" },
+    { "position": 6, "name": "Janusz Zieliński" },
+    { "position": 7, "name": "Jakub Krok" },
+    { "position": 8, "name": "Grzegorz Ptak" },
+    { "position": 9, "name": "Remigiusz Wiśniewski" },
+    { "position": 10, "name": "Wojciech Szwedowski" },
+    { "position": 11, "name": "Tomasz Śleziak" },
+    { "position": 12, "name": "Marek Klyk" },
+    { "position": 13, "name": "Artur Kiowski" },
+    { "position": 14, "name": "Paweł Ślusarczyk" },
+    { "position": 15, "name": "Jerzy Górski" },
+    { "position": 16, "name": "Zbigniew Marciniak" },
+    { "position": 17, "name": "Wojciech Stelmach" },
+    { "position": 18, "name": "Michał Łowiński" },
+    { "position": 19, "name": "Marek Zapisek" },
+    { "position": 20, "name": "Roman Staś" },
+    { "position": 21, "name": "Sylwester Sienkiewicz" },
+    { "position": 22, "name": "Krzysztof Kozłowski" },
+    { "position": 23, "name": "Maciej Skucik" },
+    { "position": 24, "name": "Wojciech Stefanik" },
+    { "position": 25, "name": "Stanisław Bielewicz" },
+    { "position": 26, "name": "Łukasz Cieplik" },
+    { "position": 27, "name": "Grzegorz Możdżonek" },
+    { "position": 28, "name": "Marcin Kucia" },
+    { "position": 29, "name": "Ryszard Białecki" },
+    { "position": 30, "name": "Jacek Stadnicki" },
+    { "position": 31, "name": "Piotr Glinka" },
+    { "position": 32, "name": "Aleksander Sitko" },
+    { "position": 33, "name": "Mirosław Domagała" },
+    { "position": 34, "name": "Tomasz Tarkowski" },
+    { "position": 35, "name": "Mateusz Tymich" },
+    { "position": 36, "name": "Tomasz Len" },
+    { "position": 37, "name": "Grzegorz Kuliś" },
+    { "position": 38, "name": "Marcin Szemainda" },
+    { "position": 39, "name": "Łukasz Lachowski" },
+    { "position": 40, "name": "Marcin Stelmach" },
+    { "position": 41, "name": "Maciej Plewka" },
+    { "position": 42, "name": "Robert Warnecki" },
+    { "position": 43, "name": "Artur Pawlik" },
+    { "position": 44, "name": "Andrzej Lepich" },
+    { "position": 45, "name": "Marek Turski" }
+  ],
+  "brackets": [
+    {
+      "name": "Pierwsza Liga Playoff",
+      "sourceImage": "image101.png",
+      "participants": [
+        "Krzysztof Łukasiuk",
+        "Fabio Szic",
+        "Jakub Michalak",
+        "Sebastian Szot",
+        "Krzysztof Wingert",
+        "Janusz Zieliński",
+        "Jakub Krok",
+        "Grzegorz Ptak",
+        "Remigiusz Wiśniewski",
+        "Wojciech Szwedowski",
+        "Tomasz Śleziak",
+        "Marek Klyk",
+        "Artur Kiowski",
+        "Paweł Ślusarczyk",
+        "Jerzy Górski",
+        "Zbigniew Marciniak"
+      ],
+      "finals": [
+        {
+          "placementLabel": "MIEJSCA 1-2",
+          "bracketRound": 4,
+          "player1": "Krzysztof Łukasiuk",
+          "player2": "Fabio Szic",
+          "winner": "Krzysztof Łukasiuk",
+          "code": "3&2",
+          "comment": "CHAMPIONSHIP — first league finale"
+        },
+        {
+          "placementLabel": "MIEJSCA 3-4",
+          "bracketRound": 4,
+          "player1": "Sebastian Szot",
+          "player2": "Jakub Michalak",
+          "winner": "Jakub Michalak",
+          "code": "4&3",
+          "comment": "Third-place match (final for 3rd–4th)"
+        },
+        {
+          "placementLabel": "Semi 1",
+          "bracketRound": 3,
+          "player1": "Sebastian Szot",
+          "player2": "Krzysztof Łukasiuk",
+          "winner": "Krzysztof Łukasiuk",
+          "code": "1Up",
+          "comment": "Semifinal upper bracket"
+        },
+        {
+          "placementLabel": "Semi 2",
+          "bracketRound": 3,
+          "player1": "Fabio Szic",
+          "player2": "Jakub Michalak",
+          "winner": "Fabio Szic",
+          "code": "1Up",
+          "comment": "Semifinal upper bracket"
+        }
+      ],
+      "_todo": "Full bracket (1/8, quarterfinals, placement games 5-16) — to be transcribed next session from image101"
+    },
+    {
+      "name": "Druga Liga Playoff",
+      "sourceImage": "image102.png",
+      "participants": [
+        "Wojciech Stelmach",
+        "Michał Łowiński",
+        "Marek Zapisek",
+        "Roman Staś",
+        "Sylwester Sienkiewicz",
+        "Krzysztof Kozłowski",
+        "Maciej Skucik",
+        "Wojciech Stefanik",
+        "Stanisław Bielewicz",
+        "Łukasz Cieplik",
+        "Grzegorz Możdżonek",
+        "Marcin Kucia",
+        "Ryszard Białecki",
+        "Jacek Stadnicki",
+        "Piotr Glinka",
+        "Aleksander Sitko"
+      ],
+      "finals": [
+        {
+          "placementLabel": "MIEJSCA 17-18",
+          "bracketRound": 4,
+          "player1": "Michał Łowiński",
+          "player2": "Wojciech Stelmach",
+          "winner": "Wojciech Stelmach",
+          "code": "2Up",
+          "comment": "Second league championship (Stelmach is Druga Liga champion)"
+        }
+      ],
+      "_todo": "Full bracket (1/8, quarterfinals, semifinals, placement games) — to be transcribed next session from image102"
+    }
+  ]
+}

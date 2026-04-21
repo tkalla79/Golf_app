@@ -1,0 +1,215 @@
+{
+  "_metadata": {
+    "source": "historia don papa.docx",
+    "images": "92-100 (9 groups × 5 players each)",
+    "extractedAt": "2026-04-21",
+    "notes": [
+      "9 groups of 5 players each (45 players — re-grouping after June).",
+      "Gr 9 had very poor attendance — only 1 match actually played.",
+      "Walkovers (WO): Kuliś Gr 7, Domagała Gr 6.",
+      "Many NZ matches (nie zagrali) — imported as played=false."
+    ]
+  },
+  "season": { "year": 2025, "name": "Sezon 2025", "scoringSystem": "historical-1-0.5-0" },
+  "round": { "name": "Runda 3 — Lipiec 2025", "roundNumber": 3, "holes": 9, "type": "ROUND_ROBIN" },
+  "groups": [
+    {
+      "name": "1", "sortOrder": 0, "sourceImages": ["image92.png"],
+      "players": [
+        { "name": "Jakub Michalak", "hcpAtStart": 10.2, "officialPosition": 2, "officialPoints": 2 },
+        { "name": "Jerzy Górski", "hcpAtStart": 11.0, "officialPosition": 3, "officialPoints": 2 },
+        { "name": "Fabio Szic", "hcpAtStart": 14.8, "officialPosition": 4, "officialPoints": 2 },
+        { "name": "Marek Klyk", "hcpAtStart": 19.2, "officialPosition": 5, "officialPoints": 0 },
+        { "name": "Sebastian Szot", "hcpAtStart": 11.2, "officialPosition": 1, "officialPoints": 3 }
+      ],
+      "matches": [
+        { "p1": 0, "p2": 1, "winner": 0, "code": "2&1" },
+        { "p1": 0, "p2": 2, "played": false, "code": "NZ" },
+        { "p1": 0, "p2": 3, "winner": 0, "code": "5&4" },
+        { "p1": 0, "p2": 4, "winner": 4, "code": "3&2" },
+        { "p1": 1, "p2": 2, "winner": 1, "code": "WO", "isWalkover": true },
+        { "p1": 1, "p2": 3, "winner": 1, "code": "4&2" },
+        { "p1": 1, "p2": 4, "winner": 4, "code": "3&2" },
+        { "p1": 2, "p2": 3, "winner": 2, "code": "2&1" },
+        { "p1": 2, "p2": 4, "winner": 2, "code": "1Up" },
+        { "p1": 3, "p2": 4, "winner": 4, "code": "5&3" }
+      ]
+    },
+    {
+      "name": "2", "sortOrder": 1, "sourceImages": ["image93.png"],
+      "players": [
+        { "name": "Remigiusz Wiśniewski", "hcpAtStart": 12.6, "officialPosition": 4, "officialPoints": 1 },
+        { "name": "Krzysztof Łukasiuk", "hcpAtStart": 17.6, "officialPosition": 2, "officialPoints": 3 },
+        { "name": "Janusz Zieliński", "hcpAtStart": 15.1, "officialPosition": 3, "officialPoints": 3 },
+        { "name": "Artur Kiowski", "hcpAtStart": 20.3, "officialPosition": 5, "officialPoints": 0 },
+        { "name": "Grzegorz Ptak", "hcpAtStart": 24.1, "officialPosition": 1, "officialPoints": 3 }
+      ],
+      "matches": [
+        { "p1": 0, "p2": 1, "winner": 1, "code": "1Up" },
+        { "p1": 0, "p2": 2, "winner": 2, "code": "4&2" },
+        { "p1": 0, "p2": 3, "winner": 0, "code": "2&1" },
+        { "p1": 0, "p2": 4, "winner": 4, "code": "1Up" },
+        { "p1": 1, "p2": 2, "winner": 2, "code": "2&1" },
+        { "p1": 1, "p2": 3, "winner": 1, "code": "2&1" },
+        { "p1": 1, "p2": 4, "winner": 1, "code": "3&2" },
+        { "p1": 2, "p2": 3, "winner": 2, "code": "2&1" },
+        { "p1": 2, "p2": 4, "winner": 4, "code": "1Up" },
+        { "p1": 3, "p2": 4, "winner": 4, "code": "4&2" }
+      ]
+    },
+    {
+      "name": "3", "sortOrder": 2, "sourceImages": ["image94.png"],
+      "players": [
+        { "name": "Wojciech Stefanik", "hcpAtStart": 31.6, "officialPosition": 5, "officialPoints": 0 },
+        { "name": "Zbigniew Marciniak", "hcpAtStart": 24.2, "officialPosition": 4, "officialPoints": 1.5 },
+        { "name": "Wojciech Szwedowski", "hcpAtStart": 20.0, "officialPosition": 1, "officialPoints": 3.5 },
+        { "name": "Tomasz Śleziak", "hcpAtStart": 23.3, "officialPosition": 3, "officialPoints": 2.5 },
+        { "name": "Jakub Krok", "hcpAtStart": 27.1, "officialPosition": 2, "officialPoints": 2.5 }
+      ],
+      "matches": [
+        { "p1": 0, "p2": 1, "winner": 1, "code": "2&1" },
+        { "p1": 0, "p2": 2, "winner": 2, "code": "2&1" },
+        { "p1": 0, "p2": 3, "winner": 3, "code": "1Up" },
+        { "p1": 0, "p2": 4, "winner": 4, "code": "3&2" },
+        { "p1": 1, "p2": 2, "winner": null, "code": "A/S" },
+        { "p1": 1, "p2": 3, "winner": 3, "code": "2&1" },
+        { "p1": 1, "p2": 4, "winner": 4, "code": "5&4" },
+        { "p1": 2, "p2": 3, "winner": 2, "code": "2&1" },
+        { "p1": 2, "p2": 4, "winner": 2, "code": "4&3" },
+        { "p1": 3, "p2": 4, "winner": null, "code": "A/S" }
+      ]
+    },
+    {
+      "name": "4", "sortOrder": 3, "sourceImages": ["image95.png"],
+      "players": [
+        { "name": "Sylwester Sienkiewicz", "hcpAtStart": 25.6, "officialPosition": 4, "officialPoints": 1.5 },
+        { "name": "Wojciech Stelmach", "hcpAtStart": 23.1, "officialPosition": 5, "officialPoints": 0 },
+        { "name": "Roman Staś", "hcpAtStart": 22.2, "officialPosition": 3, "officialPoints": 2 },
+        { "name": "Krzysztof Wingert", "hcpAtStart": 16.8, "officialPosition": 1, "officialPoints": 3.5 },
+        { "name": "Paweł Ślusarczyk", "hcpAtStart": 21.9, "officialPosition": 2, "officialPoints": 3 }
+      ],
+      "matches": [
+        { "p1": 0, "p2": 1, "winner": 0, "code": "3&2" },
+        { "p1": 0, "p2": 2, "winner": 2, "code": "1Up" },
+        { "p1": 0, "p2": 3, "winner": null, "code": "A/S" },
+        { "p1": 0, "p2": 4, "winner": 4, "code": "5&4" },
+        { "p1": 1, "p2": 2, "winner": 2, "code": "1Up" },
+        { "p1": 1, "p2": 3, "winner": 3, "code": "2&1" },
+        { "p1": 1, "p2": 4, "winner": 4, "code": "3&2" },
+        { "p1": 2, "p2": 3, "winner": 3, "code": "2Up" },
+        { "p1": 2, "p2": 4, "winner": 4, "code": "5&4" },
+        { "p1": 3, "p2": 4, "winner": 3, "code": "2Up" }
+      ]
+    },
+    {
+      "name": "5", "sortOrder": 4, "sourceImages": ["image96.png"],
+      "players": [
+        { "name": "Maciej Skucik", "hcpAtStart": 19.1, "officialPosition": 1, "officialPoints": 3.5 },
+        { "name": "Piotr Glinka", "hcpAtStart": 46.3, "officialPosition": 4, "officialPoints": 0 },
+        { "name": "Krzysztof Kozłowski", "hcpAtStart": 27.2, "officialPosition": 3, "officialPoints": 2 },
+        { "name": "Michał Łowiński", "hcpAtStart": 17.3, "officialPosition": 2, "officialPoints": 2.5 },
+        { "name": "Ryszard Białecki", "hcpAtStart": 0.0, "officialPosition": 5, "officialPoints": 0 }
+      ],
+      "matches": [
+        { "p1": 0, "p2": 1, "winner": 0, "code": "4&3" },
+        { "p1": 0, "p2": 2, "winner": 0, "code": "2&1" },
+        { "p1": 0, "p2": 3, "winner": null, "code": "A/S" },
+        { "p1": 0, "p2": 4, "winner": 0, "code": "3&2" },
+        { "p1": 1, "p2": 2, "winner": 2, "code": "4&2" },
+        { "p1": 1, "p2": 3, "winner": 3, "code": "4&2" },
+        { "p1": 1, "p2": 4, "played": false, "code": "NZ" },
+        { "p1": 2, "p2": 3, "winner": 3, "code": "2Up" },
+        { "p1": 2, "p2": 4, "winner": 2, "code": "4&2" },
+        { "p1": 3, "p2": 4, "played": false, "code": "NZ" }
+      ]
+    },
+    {
+      "name": "6", "sortOrder": 5, "sourceImages": ["image97.png"],
+      "players": [
+        { "name": "Grzegorz Możdżonek", "hcpAtStart": 27.8, "officialPosition": 1, "officialPoints": 3.5 },
+        { "name": "Mirosław Domagała", "hcpAtStart": 21.5, "officialPosition": 5, "officialPoints": 0 },
+        { "name": "Łukasz Cieplik", "hcpAtStart": 31.1, "officialPosition": 4, "officialPoints": 1 },
+        { "name": "Marek Zapisek", "hcpAtStart": 24.5, "officialPosition": 2, "officialPoints": 3 },
+        { "name": "Stanisław Bielewicz", "hcpAtStart": 15.8, "officialPosition": 3, "officialPoints": 2.5 }
+      ],
+      "matches": [
+        { "p1": 0, "p2": 1, "winner": 0, "code": "3&2" },
+        { "p1": 0, "p2": 2, "winner": 0, "code": "2&1" },
+        { "p1": 0, "p2": 3, "winner": 0, "code": "1Up" },
+        { "p1": 0, "p2": 4, "winner": null, "code": "A/S" },
+        { "p1": 1, "p2": 2, "winner": 2, "code": "2&1" },
+        { "p1": 1, "p2": 3, "winner": 3, "code": "WO", "isWalkover": true },
+        { "p1": 1, "p2": 4, "winner": 4, "code": "WO", "isWalkover": true },
+        { "p1": 2, "p2": 3, "winner": 3, "code": "2&1" },
+        { "p1": 2, "p2": 4, "winner": 4, "code": "3&2" },
+        { "p1": 3, "p2": 4, "winner": 3, "code": "3&2" }
+      ]
+    },
+    {
+      "name": "7", "sortOrder": 6, "sourceImages": ["image98.png"],
+      "players": [
+        { "name": "Tomasz Tarkowski", "hcpAtStart": 35.7, "officialPosition": 3, "officialPoints": 2 },
+        { "name": "Grzegorz Kuliś", "hcpAtStart": 37.8, "officialPosition": 5, "officialPoints": 0 },
+        { "name": "Aleksander Sitko", "hcpAtStart": 40.1, "officialPosition": 1, "officialPoints": 3.5 },
+        { "name": "Marcin Kucia", "hcpAtStart": 54.0, "officialPosition": 2, "officialPoints": 3 },
+        { "name": "Tomasz Len", "hcpAtStart": 48.9, "officialPosition": 4, "officialPoints": 1.5 }
+      ],
+      "matches": [
+        { "p1": 0, "p2": 1, "winner": 0, "code": "WO", "isWalkover": true },
+        { "p1": 0, "p2": 2, "winner": 2, "code": "3&1" },
+        { "p1": 0, "p2": 3, "winner": 3, "code": "4&2" },
+        { "p1": 0, "p2": 4, "winner": 0, "code": "4&3" },
+        { "p1": 1, "p2": 2, "winner": 2, "code": "WO", "isWalkover": true },
+        { "p1": 1, "p2": 3, "winner": 3, "code": "WO", "isWalkover": true },
+        { "p1": 1, "p2": 4, "winner": 4, "code": "WO", "isWalkover": true },
+        { "p1": 2, "p2": 3, "winner": 2, "code": "2&1" },
+        { "p1": 2, "p2": 4, "winner": null, "code": "A/S" },
+        { "p1": 3, "p2": 4, "winner": 3, "code": "4&2" }
+      ]
+    },
+    {
+      "name": "8", "sortOrder": 7, "sourceImages": ["image99.png"],
+      "players": [
+        { "name": "Mateusz Tymich", "hcpAtStart": 32.9, "officialPosition": 2, "officialPoints": 3 },
+        { "name": "Robert Warnecki", "hcpAtStart": 35.8, "officialPosition": 5, "officialPoints": 0 },
+        { "name": "Marcin Szemainda", "hcpAtStart": 42.0, "officialPosition": 3, "officialPoints": 0 },
+        { "name": "Jacek Stadnicki", "hcpAtStart": 35.3, "officialPosition": 1, "officialPoints": 3 },
+        { "name": "Maciej Plewka", "hcpAtStart": 36.0, "officialPosition": 4, "officialPoints": 0 }
+      ],
+      "matches": [
+        { "p1": 0, "p2": 1, "winner": 0, "code": "2Up" },
+        { "p1": 0, "p2": 2, "winner": 0, "code": "1Up" },
+        { "p1": 0, "p2": 3, "winner": 3, "code": "3&2" },
+        { "p1": 0, "p2": 4, "winner": 0, "code": "4&2" },
+        { "p1": 1, "p2": 2, "played": false, "code": "NZ" },
+        { "p1": 1, "p2": 3, "winner": 3, "code": "2&1" },
+        { "p1": 1, "p2": 4, "played": false, "code": "NZ" },
+        { "p1": 2, "p2": 3, "played": false, "code": "NZ" },
+        { "p1": 2, "p2": 4, "played": false, "code": "NZ" },
+        { "p1": 3, "p2": 4, "winner": 3, "code": "5&3" }
+      ]
+    },
+    {
+      "name": "9", "sortOrder": 8, "sourceImages": ["image100.png"],
+      "players": [
+        { "name": "Marcin Stelmach", "hcpAtStart": 0.0, "officialPosition": 2, "officialPoints": 0.5 },
+        { "name": "Marek Turski", "hcpAtStart": 0.0, "officialPosition": 4, "officialPoints": 0 },
+        { "name": "Łukasz Lachowski", "hcpAtStart": 54.0, "officialPosition": 1, "officialPoints": 0.5 },
+        { "name": "Artur Pawlik", "hcpAtStart": 28.3, "officialPosition": 3, "officialPoints": 0 },
+        { "name": "Andrzej Lepich", "hcpAtStart": 0.0, "officialPosition": 5, "officialPoints": 0 }
+      ],
+      "matches": [
+        { "p1": 0, "p2": 1, "played": false, "code": "NZ" },
+        { "p1": 0, "p2": 2, "winner": null, "code": "A/S" },
+        { "p1": 0, "p2": 3, "played": false, "code": "NZ" },
+        { "p1": 0, "p2": 4, "played": false, "code": "NZ" },
+        { "p1": 1, "p2": 2, "played": false, "code": "NZ" },
+        { "p1": 1, "p2": 3, "played": false, "code": "NZ" },
+        { "p1": 1, "p2": 4, "played": false, "code": "NZ" },
+        { "p1": 2, "p2": 3, "played": false, "code": "NZ" },
+        { "p1": 2, "p2": 4, "played": false, "code": "NZ" },
+        { "p1": 3, "p2": 4, "played": false, "code": "NZ" }
+      ]
+    }
+  ]
+}
