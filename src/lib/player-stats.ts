@@ -367,15 +367,24 @@ export async function getCareerStats(playerId: number): Promise<CareerStats> {
     )
 
     if (primaryLeagueMatches.length > 0) {
-      const finalMatch = primaryLeagueMatches.find((m) => m.bracketRound === maxRound)
+      // Final = highest round, position 1 (the championship match)
+      const finalMatch = primaryLeagueMatches.find(
+        (m) => m.bracketRound === maxRound && m.bracketPosition === 1,
+      )
       if (finalMatch && finalMatch.played) {
         if (finalMatch.winnerId === playerId) championships++
-        else finalsAppearances++
+        else if (finalMatch.player1Id === playerId || finalMatch.player2Id === playerId) finalsAppearances++
       }
-      // Semifinal = one round below final
-      const semi = primaryLeagueMatches.find((m) => m.bracketRound === maxRound - 1)
-      if (semi && semi.winnerId !== playerId && semi.played) {
-        // Lost in semifinal
+      // Semifinal = player lost in the round before the final (positions 1-2 are semifinals)
+      const semiMatches = primaryLeagueMatches.filter(
+        (m) =>
+          m.bracketRound === maxRound - 1 &&
+          (m.bracketPosition === 1 || m.bracketPosition === 2) &&
+          m.played &&
+          (m.player1Id === playerId || m.player2Id === playerId) &&
+          m.winnerId !== playerId,
+      )
+      if (semiMatches.length > 0) {
         semifinalAppearances++
       }
     }
@@ -558,8 +567,9 @@ export async function getSeasonHistory(playerId: number): Promise<SeasonHistoryR
     if (playoffMatches.length === 0) continue
 
     const maxRound = Math.max(...playoffMatches.map((m) => m.bracketRound ?? 0))
-    const finalMatch = playoffMatches.find((m) => m.bracketRound === maxRound)
-    if (finalMatch?.played) {
+    // Championship match = highest round, position 1
+    const finalMatch = playoffMatches.find((m) => m.bracketRound === maxRound && m.bracketPosition === 1)
+    if (finalMatch?.played && (finalMatch.player1Id === playerId || finalMatch.player2Id === playerId)) {
       if (finalMatch.winnerId === playerId) row.playoffResult = 'Mistrz'
       else row.playoffResult = 'Finalista'
     } else {

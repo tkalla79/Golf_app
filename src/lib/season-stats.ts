@@ -142,7 +142,7 @@ export async function getSeasonHighlights(seasonId: number): Promise<SeasonHighl
   const champions: ChampionEntry[] = []
   for (const [bracketName, bracketMatches] of playoffGroups.entries()) {
     const maxRound = Math.max(...bracketMatches.map((m) => m.bracketRound ?? 0))
-    const finalMatch = bracketMatches.find((m) => m.bracketRound === maxRound && m.played)
+    const finalMatch = bracketMatches.find((m) => m.bracketRound === maxRound && m.bracketPosition === 1 && m.played)
     if (!finalMatch || !finalMatch.winnerId) continue
 
     const champion = finalMatch.winnerId === finalMatch.player1Id ? finalMatch.player1 : finalMatch.player2
