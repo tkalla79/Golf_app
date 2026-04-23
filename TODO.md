@@ -4,9 +4,16 @@
 
 ---
 
-## 🆕 2026-04-21 — Statystyki historyczne (aktualna iteracja)
+## 🆕 2026-04-22 — Statystyki historyczne (aktualna iteracja)
 
-**Aktualny commit:** `c935a35` (po poprawkach audytu)
+**Aktualny commit:** `5cec66e` (skrypt `import-all.sh` do importu 3 sezonów jedną komendą)
+
+**⚠️ STATUS NA PRODUKCJI (sprawdzone 2026-04-22 przez WebFetch):**
+- Kod zdeployowany ✅ — profil zawodnika (np. `/zawodnik/jerzy-gorski`) pokazuje `<CareerOverview>` i `<SeasonHistoryTable>`
+- Migracja schematu ✅ — `prisma db push` wykonany (`isHistorical`, `archivedAt`, `Decimal(4,1)` na BigPoints)
+- **DANE HISTORYCZNE NIE ZAIMPORTOWANE** ❌ — `/poprzednie-sezony` pokazuje "Brak zakończonych sezonów"
+
+**Pozostało 1 krok:** uruchomić `scripts/historical-data/import-all.sh` na serwerze (szczegóły niżej w sekcji "🚀 Co zrobić TERAZ").
 
 ### ✅ Co zostało zrobione w tej iteracji
 
@@ -27,67 +34,56 @@
   - Importer ma `DIMINUTIVES` map (Jurek↔Jerzy, Remik↔Remigiusz, Rysiu↔Ryszard, Julka↔Julia, Zbyszek↔Zbigniew, Mirek↔Mirosław, Bartek↔Bartłomiej)
   - Walidacja playoff winner (throw jeśli nie pasuje do player1/player2)
   - Timeout transakcji 120s → 300s
+- **Playoff display fix** (commit `4cfb4da`):
+  - `/poprzednie-sezony/[id]` — filtr `ROUND_ROBIN` usunięty; playoff rounds są fetchowane i wyświetlane w nowej sekcji "🏆 Playoff"
+  - Każda liga playoff w osobnej karcie z mistrzem w headerze + lista meczów
+  - Link "Zobacz pełną drabinkę" do `/playoff?sezon={id}`
+  - Licznik rund w `/poprzednie-sezony` dodaje badge 🏆 dla sezonów z playoff
+  - Fix `SeasonHighlightsPanel` champion detection: `bracketPosition === 1` (wcześniej brał pierwszy mecz z max `bracketRound`, co mogło być mecz o 3-4 zamiast finału)
+- **Skrypt import-all.sh** (commit `5cec66e`):
+  - Jedna komenda importuje wszystkie 3 sezony zamiast 6 oddzielnych wywołań
 
-### 🎯 CO DALEJ — instrukcja wdrożenia statystyk historycznych
+### 🚀 CO ZROBIĆ TERAZ — import danych historycznych (1 brakujący krok)
 
-**KROK 1 — Deploy kodu na serwer:**
 ```bash
+# ─── Na serwerze produkcyjnym ──────────────────────────────────
 ssh -i .ssh/karolinkagolfpark root@209.38.211.80
 cd /root/Golf_app && git pull
 
-# Rebuild obrazów
-# (lokalnie zbuduj + scp, lub wewnątrz dockera)
-docker compose --env-file .env run --rm migrate  # prisma db push
-docker compose --env-file .env up -d app
+# Rebuild obrazu aplikacji (pobiera najnowsze zmiany w kodzie + nowe pliki JSON)
+docker compose --env-file .env up -d --build app
+
+# ─── IMPORT — jedna komenda, wszystkie 3 sezony ────────────────
+# Preview bez zapisu:
+docker compose --env-file .env run --rm app \
+  bash scripts/historical-data/import-all.sh --dry-run
+
+# Jeśli preview OK — prawdziwy import (5s pauza na Ctrl-C):
+docker compose --env-file .env run --rm app \
+  bash scripts/historical-data/import-all.sh
 ```
 
-**KROK 2 — Import sezonu 2023 (najstarszy, najmniejsza objętość):**
-```bash
-# Najpierw dry-run:
-docker compose --env-file .env run --rm app \
-  npx tsx scripts/historical-data/import-season.ts --dry-run \
-  scripts/historical-data/2023-kwiecien.json \
-  scripts/historical-data/2023-maj.json \
-  scripts/historical-data/2023-czerwiec.json \
-  scripts/historical-data/2023-lipiec-sierpien.json \
-  scripts/historical-data/2023-playoff.json
+Po imporcie (kolejność: 2023 → 2024 → 2025):
+- ~1100 meczów dodanych do bazy
+- Sezony status=`COMPLETED`
+- Historyczni zawodnicy utworzeni z `isHistorical=true, active=false`
+- Istniejący zawodnicy (Górski, Szot, Łukasiuk...) dostają historię dołożoną do ich ID
 
-# Jeśli OK — bez --dry-run:
-docker compose --env-file .env run --rm app \
-  npx tsx scripts/historical-data/import-season.ts \
-  scripts/historical-data/2023-kwiecien.json \
-  scripts/historical-data/2023-maj.json \
-  scripts/historical-data/2023-czerwiec.json \
-  scripts/historical-data/2023-lipiec-sierpien.json \
-  scripts/historical-data/2023-playoff.json
-```
+**⚠️ Jeśli napotkasz błąd** (skopiuj output pełny i napisz):
 
-**KROK 3 — Import 2024 i 2025** (ta sama procedura, inne pliki):
-```bash
-# 2024 (dry-run, potem bez)
-docker compose --env-file .env run --rm app \
-  npx tsx scripts/historical-data/import-season.ts \
-  scripts/historical-data/2024-kwiecien.json \
-  scripts/historical-data/2024-maj.json \
-  scripts/historical-data/2024-czerwiec.json \
-  scripts/historical-data/2024-lipiec.json \
-  scripts/historical-data/2024-sierpien.json \
-  scripts/historical-data/2024-playoff.json
+| Błąd | Rozwiązanie |
+|------|-------------|
+| `tsx: not found` w kontenerze | `docker compose run --rm app sh -c "npm i -g tsx && bash scripts/..."` |
+| `Cannot find module '@/lib/db'` | `docker compose run --rm app sh -c "cd /app && bash scripts/..."` |
+| `Transaction already closed` (timeout) | Zwiększ `timeout: 300000 → 600000` w `import-season.ts:356` |
+| Pliki JSON nie widoczne | Sprawdź `.dockerignore` — `scripts/` nie może być wykluczone |
 
-# 2025 (dry-run, potem bez)
-docker compose --env-file .env run --rm app \
-  npx tsx scripts/historical-data/import-season.ts \
-  scripts/historical-data/2025-kwiecien-maj.json \
-  scripts/historical-data/2025-czerwiec.json \
-  scripts/historical-data/2025-lipiec.json \
-  scripts/historical-data/2025-playoff.json
-```
-
-**KROK 4 — Weryfikacja:**
-1. `https://donpapagolf.pl/poprzednie-sezony` — 3 karty (2023, 2024, 2025) z mistrzem + top birdie
-2. `https://donpapagolf.pl/poprzednie-sezony/[id]` — panel mistrzów + top scorers + biggest upset
-3. `https://donpapagolf.pl/zawodnik/[slug]` — statystyki kariery + tabela sezonów (test na **Jerzy Górski** — mistrz 2023)
-4. Ręczny cross-check: porównaj karierę Jerzy Górski vs oryginalne obrazy z docx
+### Weryfikacja po imporcie
+1. `https://donpapagolf.pl/poprzednie-sezony` — 3 karty sezonów (2023, 2024, 2025) z mistrzem + top birdie + badge "4 + 🏆" (licznik rund + playoff)
+2. `https://donpapagolf.pl/poprzednie-sezony/[id]` — panel mistrzów + top scorers + biggest upset **+ nowa sekcja "🏆 Playoff"** z drabinkami każdej ligi (po commicie `4cfb4da`)
+3. `https://donpapagolf.pl/zawodnik/[slug]` — statystyki kariery + tabela sezonów (test na **Jerzy Górski** — powinien mieć **4 sezony** i **1 mistrzostwo** z 2023)
+4. `https://donpapagolf.pl/playoff?sezon={id}` — pełna drabinka sezonu archiwalnego (jeśli `<PlayoffBracket>` nie wymaga pełnych danych R1-R4, może pokazać tylko częściowe)
+5. Ręczny cross-check: porównaj karierę Jerzy Górski vs oryginalne obrazy z docx
 
 **KROK 5 (opcjonalnie) — Hall of Fame:**
 Dodaj ręcznie w `/admin/galeria-slaw` wpisy dla mistrzów historycznych:
