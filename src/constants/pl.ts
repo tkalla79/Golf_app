@@ -234,6 +234,7 @@ export const PL = {
     documents: 'Tabele wyników i dokumenty',
     champion: 'Mistrz',
     topBirdie: 'Najwięcej birdie',
+    viewFullBracket: 'Zobacz pełną drabinkę',
   },
   availability: {
     title: 'Dostępność',

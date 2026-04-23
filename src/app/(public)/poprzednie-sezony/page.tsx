@@ -16,7 +16,6 @@ export default async function PoprzedneSezonyPage() {
     orderBy: { year: 'desc' },
     include: {
       rounds: {
-        where: { type: 'ROUND_ROBIN' },
         include: {
           groups: {
             include: {
@@ -70,6 +69,8 @@ export default async function PoprzedneSezonyPage() {
               }
             }
             const uniquePlayers = playerIds.size
+            const rrRoundsCount = season.rounds.filter((r) => r.type === 'ROUND_ROBIN').length
+            const hasPlayoff = season.rounds.some((r) => r.type === 'PLAYOFF')
 
             return (
               <Link
@@ -103,7 +104,12 @@ export default async function PoprzedneSezonyPage() {
                         {PL.previousSeasons.rounds}
                       </div>
                       <div className="font-bold text-[var(--color-primary)] text-lg">
-                        {season.rounds.length}
+                        {rrRoundsCount}
+                        {hasPlayoff && (
+                          <span className="ml-1 text-xs text-[var(--color-accent)]" title="+ playoff">
+                            + 🏆
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div>

@@ -22,7 +22,6 @@ export default async function PoprzedniSezonPage({
     where: { id: seasonId, status: 'COMPLETED' },
     include: {
       rounds: {
-        where: { type: 'ROUND_ROBIN' },
         orderBy: { roundNumber: 'asc' },
         include: {
           groups: {
@@ -40,6 +39,10 @@ export default async function PoprzedniSezonPage({
   })
 
   if (!season) return notFound()
+
+  // Split rounds by type for different rendering
+  const rrRounds = season.rounds.filter((r) => r.type === 'ROUND_ROBIN')
+  const playoffRounds = season.rounds.filter((r) => r.type === 'PLAYOFF')
 
   return (
     <div>
@@ -70,8 +73,8 @@ export default async function PoprzedniSezonPage({
       {/* Season highlights — champions, top scorers, biggest upset */}
       <SeasonHighlightsPanel seasonId={season.id} />
 
-      {/* Rounds */}
-      {season.rounds.map((round) => (
+      {/* Round-robin rounds */}
+      {rrRounds.map((round) => (
         <div key={round.id} className="mb-12">
           <h2
             className="text-xl font-bold text-[var(--color-text-dark)] mb-6 pb-2 border-b-2 border-[var(--color-accent)]/30"
@@ -186,6 +189,117 @@ export default async function PoprzedniSezonPage({
           </div>
         </div>
       ))}
+
+      {/* Playoff rounds */}
+      {playoffRounds.length > 0 && (
+        <div className="mb-12">
+          <h2
+            className="text-xl font-bold text-[var(--color-text-dark)] mb-6 pb-2 border-b-2 border-[var(--color-accent)]/30 flex items-center gap-3"
+            style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
+          >
+            <span className="text-2xl">🏆</span>
+            Playoff
+            <Link
+              href={`/playoff?sezon=${season.id}`}
+              className="ml-auto text-xs text-[var(--color-primary)] hover:text-[var(--color-accent)] transition-colors font-semibold"
+            >
+              {PL.previousSeasons.viewFullBracket} &rarr;
+            </Link>
+          </h2>
+
+          <div className="space-y-8">
+            {playoffRounds.flatMap((round) =>
+              round.groups.map((group) => {
+                const playedMatches = group.matches.filter((m) => m.played)
+                // Find final match (highest bracketRound with both players and a winner)
+                const maxBracketRound = Math.max(
+                  ...playedMatches.map((m) => m.bracketRound ?? 0),
+                )
+                const finalMatch = playedMatches.find(
+                  (m) => m.bracketRound === maxBracketRound && m.winner,
+                )
+
+                return (
+                  <div key={group.id} className="card p-0 overflow-hidden">
+                    {/* Bracket header */}
+                    <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] px-5 py-3 flex items-center justify-between">
+                      <h3
+                        className="text-white font-bold tracking-wide"
+                        style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}
+                      >
+                        {group.name}
+                      </h3>
+                      {finalMatch?.winner && (
+                        <div className="flex items-center gap-2 text-xs text-[var(--color-accent)]">
+                          <span className="text-lg">🏆</span>
+                          <Link
+                            href={`/zawodnik/${finalMatch.winner.slug}`}
+                            className="font-bold hover:text-white transition-colors"
+                          >
+                            {finalMatch.winner.firstName} {finalMatch.winner.lastName}
+                          </Link>
+                          {finalMatch.resultCode && (
+                            <span className="text-white/70">({finalMatch.resultCode})</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-5">
+                      {/* Played playoff matches */}
+                      {playedMatches.length === 0 ? (
+                        <p className="text-[var(--color-text-body)]/50 italic text-sm">
+                          Brak rozegranych meczów
+                        </p>
+                      ) : (
+                        <div className="space-y-2">
+                          {playedMatches
+                            .sort((a, b) => (b.bracketRound ?? 0) - (a.bracketRound ?? 0))
+                            .map((match) => (
+                              <div key={match.id} className="match-row text-sm">
+                                <span className="flex-1">
+                                  <Link
+                                    href={`/zawodnik/${match.player1.slug}`}
+                                    className={`hover:text-[var(--color-accent)] transition-colors ${
+                                      match.winnerId === match.player1.id
+                                        ? 'font-bold text-[var(--color-success)]'
+                                        : 'text-[var(--color-primary)]'
+                                    }`}
+                                  >
+                                    {match.player1.firstName} {match.player1.lastName}
+                                  </Link>
+                                  <span className="text-[var(--color-text-body)]/40 mx-2">vs</span>
+                                  <Link
+                                    href={`/zawodnik/${match.player2.slug}`}
+                                    className={`hover:text-[var(--color-accent)] transition-colors ${
+                                      match.winnerId === match.player2.id
+                                        ? 'font-bold text-[var(--color-success)]'
+                                        : 'text-[var(--color-primary)]'
+                                    }`}
+                                  >
+                                    {match.player2.firstName} {match.player2.lastName}
+                                  </Link>
+                                </span>
+                                <span className={match.winnerId ? 'badge-win' : 'badge-draw'}>
+                                  {match.isWalkover ? 'W/O' : match.resultCode ?? 'Remis'}
+                                </span>
+                                {match.notes && (
+                                  <span className="ml-2 text-xs text-[var(--color-text-body)]/50 italic">
+                                    {match.notes}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              }),
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Photo gallery */}
       <div className="mt-12">
