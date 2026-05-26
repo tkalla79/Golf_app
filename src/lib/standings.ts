@@ -97,15 +97,36 @@ export function computeStandings(
   }
 
   const sorted = players
+  /**
+   * Tie-breaker rules — KEEP IN SYNC z `src/app/(public)/regulamin/page.tsx` (sekcja IV.4)
+   *
+   * Kolejność rozstrzygania remisów (gracze z tymi samymi big points):
+   *   1. Małe punkty DESC — suma margin holes ze WSZYSTKICH rozegranych meczów
+   *   2. Head-to-head — bezpośredni mecz (gdy 2 graczy nadal remisuje po m.pkt)
+   *   3. Mała tabelka — big points z meczów tylko między tied players (3+ graczy)
+   *   4. HCP DESC — wyższy HCP → wyższa pozycja (fair na słabszych)
+   *   5. (poza kodem) Losowanie Zarządu Ligi
+   *
+   * Uzasadnienie kolejności:
+   *   - Małe punkty agregują wynik z CAŁEGO sezonu, więc gracz dominujący przewagą
+   *     (np. +32 m.pkt) trafia wyżej niż ten, kto wygrał konkretne 2 mecze w mini-lidze.
+   *   - Mała tabelka jako fallback dla skrajnych remisów po m.pkt — rzadko stosowana.
+   *
+   * Regresja: testy w `src/__tests__/standings.test.ts` blokują zmianę tej kolejności
+   * bez aktualizacji testów I regulaminu.
+   */
   sorted.sort((a, b) => {
-    // 1. Big points descending
+    // 1. Big points DESC
     if (b.bigPoints !== a.bigPoints) return b.bigPoints - a.bigPoints
 
-    // 2a. Head-to-head (only for 2-player tie)
+    // 2. Małe punkty DESC (suma margin ze wszystkich meczów)
+    if (b.smallPoints !== a.smallPoints) return b.smallPoints - a.smallPoints
+
+    // 3. Head-to-head (tylko 2 tied — bezpośredni mecz)
     const h2h = getHeadToHead(a.playerId, b.playerId, matches)
     if (h2h !== 0) return h2h
 
-    // 2b. "Mała tabelka" - pre-computed mini-table for 3+ tied players
+    // 4. Mała tabelka (3+ tied — fallback gdy m.pkt też równe)
     const miniTable = miniTables.get(a.bigPoints)
     if (miniTable) {
       const aMini = miniTable.get(a.playerId) ?? 0
@@ -113,10 +134,7 @@ export function computeStandings(
       if (bMini !== aMini) return bMini - aMini
     }
 
-    // 3. Small points descending (all matches, not just mini-table)
-    if (b.smallPoints !== a.smallPoints) return b.smallPoints - a.smallPoints
-
-    // 4. HCP - higher HCP = higher position (better ranking for weaker player)
+    // 5. HCP DESC — wyższy HCP zajmuje wyższe miejsce
     const aHcp = a.hcpAtStart ?? 0
     const bHcp = b.hcpAtStart ?? 0
     if (bHcp !== aHcp) return bHcp - aHcp

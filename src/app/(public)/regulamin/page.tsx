@@ -133,9 +133,9 @@ export default function RegulaminPage() {
           <h3 className="regulamin-h3">4. Rozstrzyganie remisów w grupach</h3>
           <p className="mb-3">Kolejność w grupie ustalana jest według:</p>
           <ol className="regulamin-ordered">
-            <li><strong>Wynik bezpośredniego meczu</strong> (dla 2 graczy).</li>
-            <li><strong>„Mała tabelka"</strong> — przy większej liczbie remisujących, uwzględniająca tylko mecze pomiędzy nimi.</li>
-            <li><strong>„Małe punkty"</strong> — sumujące wyniki rozegranych meczów gracza wg poniższej tabeli.</li>
+            <li><strong>„Małe punkty"</strong> — suma wyników rozegranych meczów gracza wg tabeli niżej (margines holes ze wszystkich meczów).</li>
+            <li><strong>Wynik bezpośredniego meczu</strong> — gdy 2 graczy ma identyczne małe punkty.</li>
+            <li><strong>„Mała tabelka"</strong> — przy 3 lub większej liczbie remisujących z identycznymi małymi punktami; uwzględnia tylko mecze pomiędzy nimi.</li>
             <li><strong>Aktywny HCP</strong> z dnia rozpoczęcia rundy — gracz z wyższym HCP zajmuje wyższe miejsce.</li>
             <li><strong>Losowanie</strong> przeprowadzone przez Zarząd Ligi (jeśli powyższe nie rozstrzyga).</li>
           </ol>
