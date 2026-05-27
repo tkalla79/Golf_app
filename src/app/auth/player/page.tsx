@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export const dynamic = 'force-dynamic'
 
 export default async function PlayerAuthPage({
@@ -21,9 +23,9 @@ export default async function PlayerAuthPage({
           Nie udało się zalogować
         </h1>
         <p className="text-[var(--color-text-body)] mt-3">{message}</p>
-        <a href="/" className="text-[var(--color-primary)] hover:text-[var(--color-accent)] text-sm font-medium mt-4 inline-block">
+        <Link href="/" className="text-[var(--color-primary)] hover:text-[var(--color-accent)] text-sm font-medium mt-4 inline-block">
           &larr; Strona główna
-        </a>
+        </Link>
       </div>
     </div>
   )

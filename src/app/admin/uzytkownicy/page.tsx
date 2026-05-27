@@ -21,7 +21,14 @@ export default function AdminUsersPage() {
     if (res.ok) setAdmins(await res.json())
   }, [])
 
-  useEffect(() => { loadAdmins() }, [loadAdmins])
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      const res = await fetch('/api/admins')
+      if (!cancelled && res.ok) setAdmins(await res.json())
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

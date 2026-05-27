@@ -25,8 +25,15 @@ export default function AdminSeasonPage() {
   }, [])
 
   useEffect(() => {
-    loadSeasons()
-  }, [loadSeasons])
+    let cancelled = false
+    void (async () => {
+      const res = await fetch('/api/seasons')
+      if (cancelled) return
+      if (res.ok) setSeasons(await res.json())
+      setLoading(false)
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()

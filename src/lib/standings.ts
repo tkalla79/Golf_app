@@ -210,24 +210,31 @@ function resolveMultiTiedAfterMini(
     if (sub.length === 1) {
       result.push(sub[0])
     } else if (sub.length === 2) {
-      // 2 tied po m.pkt: H2H → HCP → losowanie
-      const [a, b] = sub
-      const h2h = getHeadToHead(a.playerId, b.playerId, matches)
-      if (h2h < 0) {
-        result.push(a, b)
-      } else if (h2h > 0) {
-        result.push(b, a)
-      } else {
-        const aHcp = a.hcpAtStart ?? 0
-        const bHcp = b.hcpAtStart ?? 0
-        result.push(...(aHcp >= bHcp ? [a, b] : [b, a]))
-      }
+      result.push(...resolvePairByH2HThenHcp(sub[0], sub[1], matches))
     } else {
       // 3+ tied po m.pkt: HCP → losowanie
       result.push(...[...sub].sort((a, b) => (b.hcpAtStart ?? 0) - (a.hcpAtStart ?? 0)))
     }
   }
   return result
+}
+
+/**
+ * Para tied po m.pkt: H2H → HCP DESC → losowanie (stabilna kolejność wejścia).
+ * Używane gdy m.pkt już zostały sprawdzone — kontrast z `resolvePair`
+ * które startuje od H2H i ma m.pkt jako krok 2.
+ */
+function resolvePairByH2HThenHcp(
+  a: PlayerStanding,
+  b: PlayerStanding,
+  matches: MatchWithPlayers[],
+): [PlayerStanding, PlayerStanding] {
+  const h2h = getHeadToHead(a.playerId, b.playerId, matches)
+  if (h2h < 0) return [a, b]
+  if (h2h > 0) return [b, a]
+  const aHcp = a.hcpAtStart ?? 0
+  const bHcp = b.hcpAtStart ?? 0
+  return aHcp >= bHcp ? [a, b] : [b, a]
 }
 
 /** Bucket players by a key function (used for stable grouping). */

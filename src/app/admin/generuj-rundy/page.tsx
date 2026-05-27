@@ -33,7 +33,14 @@ export default function GenerateRoundsPage() {
     if (res.ok) setSeason(await res.json())
   }, [])
 
-  useEffect(() => { loadSeason() }, [loadSeason])
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      const res = await fetch('/api/seasons/current')
+      if (!cancelled && res.ok) setSeason(await res.json())
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   const completedRounds = season?.rounds.filter((r) => r.status === 'COMPLETED') || []
 

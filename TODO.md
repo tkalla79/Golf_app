@@ -1,10 +1,37 @@
 # Don Papa Match Play — Co zostało do zrobienia
 
-**Ostatnia aktualizacja:** 21 kwietnia 2026 (statystyki historyczne 2023-2025)
+**Ostatnia aktualizacja:** 27 maja 2026 (zespoły DEV+REVIEW, sync standings ↔ regulamin, lint cleanup)
 
 ---
 
-## 🆕 2026-04-22 — Statystyki historyczne (aktualna iteracja)
+## 🆕 2026-05-27 — Zespoły DEV+REVIEW + sync standings + lint cleanup
+
+**Aktualne commity:**
+- `dd9379f` docs: powołanie zespołów DEV + REVIEW (12 osób każdy)
+- `1ebce21` feat(standings): hierarchiczna metodologia tie-breakerów wg regulaminu IV.4
+- `5210fee` fix(standings): przywrócona kolejność tie-breakerów zgodna z regulaminem IV.4
+- `0afe094` fix(standings): małe punkty PRZED małą tabelką jako tie-breaker
+
+**⚠️ STATUS NA PRODUKCJI:** zmiany od `5cec66e` (włącznie ze standings + zespołami) **NIE SĄ NA PRODUKCJI** — wymagają explicit user approval do deploya (per `feedback_deploy.md`).
+
+### ✅ Co zostało zrobione w tej iteracji
+
+- **Zespoły DEV+REVIEW powołane** (`DOCS/DEV-TEAM.md`, `DOCS/REVIEW-TEAM.md`) — 12 osób per zespół, wzorzec z adminbob (18-person tam, 12 tu — dopasowane do skali). Zasada: **review po każdej iteracji ZAWSZE**, format raport PASS/FAIL/N/A z dowodem
+- **Standings ↔ regulamin IV.4 sync** — hierarchiczny algorytm rekurencyjny (Path I dla 2 graczy, Path II dla 3+), pełna zgodność z regulaminem. Header `src/lib/standings.ts` linkuje do `regulamin/page.tsx` (KEEP IN SYNC)
+- **Vitest + 9 testów regression** dla `computeStandings` — pokrywa każdy poziom hierarchii (H2H, m.pkt, HCP, mała tabelka, cyrkularne, finalPosition override). Regresyjny test "Grupa 4" pilnuje przypadku produkcyjnego sezonu 2026
+- **Refactor `resolveMultiTiedAfterMini`** (z 12-person review B.4) — wyciągnięcie duplikacji H2H+HCP do `resolvePairByH2HThenHcp` helper
+- **Lint cleanup** — 13 errors w aplikacji naprawione (8x `react-hooks/set-state-in-effect` w panelach admina, 2x `<a>`→`<Link>`, 1x `prefer-const`, 1x immutability w admin/layout, 1x temporal dead zone w admin/playoff). Pozostałe 9 errors WYŁĄCZNIE w `regulamin/page.tsx` (niesescapowane cudzysłowy) — świadomie pominięte na prośbę PO/TL
+
+### 🎯 Co dalej
+
+- **Wątpliwości regulaminowe** (z review B.8) do potwierdzenia z owner regulaminu:
+  1. H2H gdy mecz nierozegrany — czy walkover liczy się jako H2H, czy schodzić na m.pkt?
+  2. „Losowanie Zarządu Ligi" w kodzie = zachowanie kolejności z Prisma (deterministyczne) — akceptowalne, czy ręczny `finalPosition` override w prod?
+- **`v0.2.0` release tag** — od `v0.1.0` (24 marca 2026) jest ~21 commitów feature'owych bez release tagu
+
+---
+
+## 📜 Archiwum — 2026-04-22 — Statystyki historyczne
 
 **Aktualny commit:** `5cec66e` (skrypt `import-all.sh` do importu 3 sezonów jedną komendą)
 

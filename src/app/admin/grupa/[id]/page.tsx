@@ -81,8 +81,20 @@ export default function AdminGroupPage({
   }, [id])
 
   useEffect(() => {
-    loadData()
-  }, [loadData])
+    let cancelled = false
+    void (async () => {
+      const [groupRes, matchesRes, standingsRes] = await Promise.all([
+        fetch(`/api/groups/${id}`),
+        fetch(`/api/groups/${id}/matches`),
+        fetch(`/api/groups/${id}/standings`),
+      ])
+      if (cancelled) return
+      setGroup(await groupRes.json())
+      setMatches(await matchesRes.json())
+      setStandings(await standingsRes.json())
+    })()
+    return () => { cancelled = true }
+  }, [id])
 
   const openResultForm = (match: Match) => {
     setEditingMatch(match)

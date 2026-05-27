@@ -84,8 +84,19 @@ export default function AdminSeasonDetailPage({
   }, [id])
 
   useEffect(() => {
-    loadData()
-  }, [loadData])
+    let cancelled = false
+    void (async () => {
+      const [seasonRes, playersRes] = await Promise.all([
+        fetch(`/api/seasons/${id}`),
+        fetch('/api/players'),
+      ])
+      if (cancelled) return
+      if (seasonRes.ok) setSeason(await seasonRes.json())
+      if (playersRes.ok) setAllPlayers(await playersRes.json())
+      setLoading(false)
+    })()
+    return () => { cancelled = true }
+  }, [id])
 
   const handleDeleteRound = async (roundId: number, roundName: string) => {
     if (!confirm(`Usunąć rundę "${roundName}"? Ta operacja usunie wszystkie grupy, mecze i wyniki w tej rundzie. Tej operacji nie da się cofnąć.`)) return

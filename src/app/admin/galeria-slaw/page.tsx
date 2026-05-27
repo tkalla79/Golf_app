@@ -37,7 +37,14 @@ export default function AdminGaleriaSlaw() {
     if (res.ok) setEntries(await res.json())
   }, [])
 
-  useEffect(() => { loadEntries() }, [loadEntries])
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      const res = await fetch('/api/hall-of-fame')
+      if (!cancelled && res.ok) setEntries(await res.json())
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

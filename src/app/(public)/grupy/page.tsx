@@ -91,7 +91,7 @@ export default async function GrupyPage({
     : []
 
   // Select requested round, or active round, or latest completed
-  let selectedRound = requestedRound
+  const selectedRound = requestedRound
     ? allRounds.find(r => r.roundNumber === requestedRound)
     : allRounds.find(r => r.status === 'ACTIVE') ?? allRounds[allRounds.length - 1]
 

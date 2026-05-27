@@ -22,45 +22,46 @@ export default function AdminPlayoffPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    checkPlayoffStatus()
-  }, [])
+    let cancelled = false
+    void (async () => {
+      const res = await fetch('/api/admin/playoff/ranking')
+      if (cancelled) return
 
-  async function checkPlayoffStatus() {
-    // Check if playoff already exists
-    const res = await fetch('/api/admin/playoff/ranking')
-    if (res.status === 409) {
-      // Playoff exists — fetch the groups
-      try {
-        const seasonRes = await fetch('/api/seasons/current')
-        if (seasonRes.ok) {
-          const season = await seasonRes.json()
-          const roundRes = await fetch(`/api/seasons/${season.id}`)
-          if (roundRes.ok) {
-            const data = await roundRes.json()
-            const playoffRound = data.rounds?.find((r: { type: string }) => r.type === 'PLAYOFF')
-            if (playoffRound) {
-              setExistingGroups(playoffRound.groups)
+      if (res.status === 409) {
+        try {
+          const seasonRes = await fetch('/api/seasons/current')
+          if (!cancelled && seasonRes.ok) {
+            const season = await seasonRes.json()
+            const roundRes = await fetch(`/api/seasons/${season.id}`)
+            if (!cancelled && roundRes.ok) {
+              const data = await roundRes.json()
+              const playoffRound = data.rounds?.find((r: { type: string }) => r.type === 'PLAYOFF')
+              if (!cancelled && playoffRound) {
+                setExistingGroups(playoffRound.groups)
+              }
             }
           }
+        } catch {
+          if (!cancelled) setError('Nie udało się załadować danych playoff')
         }
-      } catch {
-        setError('Nie udało się załadować danych playoff')
+        if (!cancelled) setLoading(false)
+        return
       }
-      setLoading(false)
-      return
-    }
 
-    if (res.ok) {
-      const data = await res.json()
-      setRanking(data.ranking)
-      setBrackets(data.brackets)
-      setSeasonId(data.seasonId)
-    } else {
-      const data = await res.json()
-      setError(data.error)
-    }
-    setLoading(false)
-  }
+      if (res.ok) {
+        const data = await res.json()
+        if (cancelled) return
+        setRanking(data.ranking)
+        setBrackets(data.brackets)
+        setSeasonId(data.seasonId)
+      } else {
+        const data = await res.json()
+        if (!cancelled) setError(data.error)
+      }
+      if (!cancelled) setLoading(false)
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   async function handleCreate() {
     if (!seasonId) return

@@ -55,7 +55,24 @@ export default function AdminSeasonZdjeciaPage({
     if (docsRes.ok) setDocs(await docsRes.json())
   }, [id])
 
-  useEffect(() => { loadData() }, [loadData])
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      const [seasonRes, photosRes, docsRes] = await Promise.all([
+        fetch(`/api/seasons/${id}`),
+        fetch(`/api/season-photos/${id}`),
+        fetch(`/api/season-docs/${id}`),
+      ])
+      if (cancelled) return
+      if (seasonRes.ok) {
+        const s = await seasonRes.json()
+        if (!cancelled) setSeasonName(s.name || `Sezon #${id}`)
+      }
+      if (!cancelled && photosRes.ok) setPhotos(await photosRes.json())
+      if (!cancelled && docsRes.ok) setDocs(await docsRes.json())
+    })()
+    return () => { cancelled = true }
+  }, [id])
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

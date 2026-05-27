@@ -1,16 +1,25 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useSession, SessionProvider, signOut } from 'next-auth/react'
 import { PL } from '@/constants/pl'
 
 function AdminNavInner({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
+  const router = useRouter()
 
-  if (pathname === '/admin/login') {
+  const isLoginPage = pathname === '/admin/login'
+  const shouldRedirect = !isLoginPage && status !== 'loading' && !session
+
+  useEffect(() => {
+    if (shouldRedirect) router.push('/admin/login')
+  }, [shouldRedirect, router])
+
+  if (isLoginPage) {
     return <>{children}</>
   }
 
@@ -23,9 +32,6 @@ function AdminNavInner({ children }: { children: React.ReactNode }) {
   }
 
   if (!session) {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/admin/login'
-    }
     return null
   }
 

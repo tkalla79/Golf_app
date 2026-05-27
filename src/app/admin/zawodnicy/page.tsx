@@ -25,7 +25,14 @@ export default function AdminPlayersPage() {
     setPlayers(await res.json())
   }, [])
 
-  useEffect(() => { loadPlayers() }, [loadPlayers])
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      const res = await fetch('/api/players')
+      if (!cancelled) setPlayers(await res.json())
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   const resetForm = () => {
     setForm({ firstName: '', lastName: '', email: '', phone: '', hcp: '' })

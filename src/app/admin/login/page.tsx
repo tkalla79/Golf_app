@@ -4,6 +4,7 @@ import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -93,12 +94,12 @@ export default function AdminLoginPage() {
         </form>
 
         <div className="text-center mt-6">
-          <a
+          <Link
             href="/"
             className="text-sm text-[var(--color-primary)] hover:text-[var(--color-accent)] transition-colors font-medium"
           >
             &larr; Wróć na stronę główną
-          </a>
+          </Link>
         </div>
       </div>
     </div>
