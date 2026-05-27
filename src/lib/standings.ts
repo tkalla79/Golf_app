@@ -26,6 +26,30 @@ type GroupPlayerWithPlayer = GroupPlayer & {
   player: Player
 }
 
+/**
+ * Tie-breaker rules — KEEP IN SYNC z `src/app/(public)/regulamin/page.tsx` (sekcja IV.4).
+ *
+ * Algorytm ustalania kolejności w grupach (identyczna liczba dużych punktów):
+ *
+ * ── I. Dla 2 graczy ───────────────────────────────────────────────────
+ *   1) Wynik bezpośredniego meczu (H2H)
+ *   2) (w razie remisu) Małe punkty — suma marginesów
+ *   3) (w razie remisu) Aktywny HCP — wyższy zajmuje wyższe miejsce
+ *   4) (w razie remisu) Losowanie Zarządu Ligi
+ *
+ * ── II. Dla 3+ graczy ────────────────────────────────────────────────
+ *   1) "Mała tabelka" — duże punkty TYLKO z meczów między remisującymi
+ *      • Po małej tabelce gdy 2 graczy nadal tied → wraca do sekwencji I (H2H → m.pkt → HCP → los)
+ *      • Po małej tabelce gdy 3+ graczy nadal tied:
+ *           - Małe punkty
+ *           - (w razie remisu 2 graczy po m.pkt) H2H → HCP → losowanie
+ *           - (w razie remisu 3+ po m.pkt) HCP → losowanie
+ *
+ * Implementacja: rekurencyjne grupowanie zamiast pojedynczego Array.sort()
+ * (różne reguły dla par vs grup wymagają etapowego rozstrzygania).
+ *
+ * Regresja: testy w `src/__tests__/standings.test.ts` weryfikują każdy z poziomów.
+ */
 export function computeStandings(
   groupPlayers: GroupPlayerWithPlayer[],
   matches: MatchWithPlayers[]
@@ -81,77 +105,141 @@ export function computeStandings(
 
   const players = Array.from(standings.values())
 
-  // Pre-compute tied groups and mini-tables BEFORE sorting (to avoid unstable comparator)
-  const byBigPoints = new Map<number, number[]>()
-  for (const p of players) {
-    const group = byBigPoints.get(p.bigPoints) || []
-    group.push(p.playerId)
-    byBigPoints.set(p.bigPoints, group)
-  }
+  // ─── Hierarchical ranking — see header comment for algorithm ────────
+  const ranked = rankByBigPoints(players, matches)
 
-  const miniTables = new Map<number, Map<number, number>>()
-  for (const [bp, playerIds] of byBigPoints) {
-    if (playerIds.length >= 3) {
-      miniTables.set(bp, computeMiniTable(new Set(playerIds), matches))
-    }
-  }
-
-  const sorted = players
-  /**
-   * Tie-breaker rules — KEEP IN SYNC z `src/app/(public)/regulamin/page.tsx` (sekcja IV.4).
-   *
-   * Kolejność rozstrzygania remisów (gracze z tymi samymi big points), zgodna
-   * z OFICJALNYM regulaminem ligi Don Papa Match Play:
-   *
-   *   a) Wynik bezpośredniego meczu (head-to-head) — dla 2 graczy
-   *   b) Mała tabelka — przy 3+ remisujących, big points TYLKO z meczów między nimi
-   *   c) Małe punkty — suma margin holes ze WSZYSTKICH rozegranych meczów gracza
-   *   d) Aktywny HCP — wyższy HCP zajmuje wyższe miejsce (fair na słabszych)
-   *   e) (poza kodem) Losowanie Zarządu Ligi
-   *
-   * UWAGA: Kolejność a) → b) → c) → d) JEST tym co przewiduje regulamin. Może się
-   * zdarzyć że gracz dominujący w m.pkt (np. wysoki +32) wyląduje niżej, jeśli
-   * w wewnętrznej rywalizacji ('małej tabelce') przegrał z innymi remisującymi.
-   * To zamierzony efekt — wzajemna konfrontacja ma pierwszeństwo.
-   *
-   * Regresja: testy w `src/__tests__/standings.test.ts` blokują zmianę tej kolejności
-   * bez aktualizacji testów I regulaminu.
-   */
-  sorted.sort((a, b) => {
-    // 1. Big points DESC
-    if (b.bigPoints !== a.bigPoints) return b.bigPoints - a.bigPoints
-
-    // a) Head-to-head (tylko 2 tied — bezpośredni mecz)
-    const h2h = getHeadToHead(a.playerId, b.playerId, matches)
-    if (h2h !== 0) return h2h
-
-    // b) Mała tabelka (3+ tied — big points z meczów tylko między tied players)
-    const miniTable = miniTables.get(a.bigPoints)
-    if (miniTable) {
-      const aMini = miniTable.get(a.playerId) ?? 0
-      const bMini = miniTable.get(b.playerId) ?? 0
-      if (bMini !== aMini) return bMini - aMini
-    }
-
-    // c) Małe punkty DESC (suma margin ze wszystkich meczów)
-    if (b.smallPoints !== a.smallPoints) return b.smallPoints - a.smallPoints
-
-    // d) HCP DESC — wyższy HCP zajmuje wyższe miejsce
-    const aHcp = a.hcpAtStart ?? 0
-    const bHcp = b.hcpAtStart ?? 0
-    if (bHcp !== aHcp) return bHcp - aHcp
-
-    return 0
-  })
-
-  sorted.forEach((s, i) => {
+  ranked.forEach((s, i) => {
     s.position = s.finalPosition ?? i + 1
   })
 
-  // Re-sort by final position if any are set manually
-  sorted.sort((a, b) => a.position - b.position)
+  // Re-sort by final position if any are set manually (finalPosition override)
+  ranked.sort((a, b) => a.position - b.position)
 
-  return sorted
+  return ranked
+}
+
+// ─── Ranking helpers (hierarchical) ──────────────────────────────────
+
+/**
+ * Top-level: group by big points DESC, then resolve each tied group via
+ * Path I (2 players) or Path II (3+ players).
+ */
+function rankByBigPoints(
+  players: PlayerStanding[],
+  matches: MatchWithPlayers[],
+): PlayerStanding[] {
+  const byBig = bucketBy(players, (p) => p.bigPoints)
+  const keys = [...byBig.keys()].sort((a, b) => b - a)
+  const result: PlayerStanding[] = []
+  for (const k of keys) {
+    const group = byBig.get(k)!
+    if (group.length === 1) result.push(group[0])
+    else if (group.length === 2) result.push(...resolvePair(group[0], group[1], matches))
+    else result.push(...resolveMultiTied(group, matches))
+  }
+  return result
+}
+
+/**
+ * Path I — 2 graczy: H2H → m.pkt → HCP → losowanie (zachowanie stabilne).
+ */
+function resolvePair(
+  a: PlayerStanding,
+  b: PlayerStanding,
+  matches: MatchWithPlayers[],
+): [PlayerStanding, PlayerStanding] {
+  // 1) H2H
+  const h2h = getHeadToHead(a.playerId, b.playerId, matches)
+  if (h2h < 0) return [a, b]
+  if (h2h > 0) return [b, a]
+  // 2) Małe punkty DESC
+  if (a.smallPoints !== b.smallPoints) {
+    return a.smallPoints > b.smallPoints ? [a, b] : [b, a]
+  }
+  // 3) HCP DESC
+  const aHcp = a.hcpAtStart ?? 0
+  const bHcp = b.hcpAtStart ?? 0
+  if (aHcp !== bHcp) return aHcp > bHcp ? [a, b] : [b, a]
+  // 4) Losowanie — zachowaj kolejność wejściową
+  return [a, b]
+}
+
+/**
+ * Path II — 3+ graczy: mała tabelka → ...
+ *
+ * Po małej tabelce:
+ *   - 1 player: gotowe
+ *   - 2 players: powrót do Path I (H2H → m.pkt → HCP → losowanie)
+ *   - 3+ players: idziemy na m.pkt → (2 tied) H2H → HCP → losowanie / (3+ tied) HCP → losowanie
+ */
+function resolveMultiTied(
+  group: PlayerStanding[],
+  matches: MatchWithPlayers[],
+): PlayerStanding[] {
+  const tiedIds = new Set(group.map((p) => p.playerId))
+  const miniPts = computeMiniTable(tiedIds, matches)
+
+  const byMini = bucketBy(group, (p) => miniPts.get(p.playerId) ?? 0)
+  const keys = [...byMini.keys()].sort((a, b) => b - a)
+
+  const result: PlayerStanding[] = []
+  for (const k of keys) {
+    const sub = byMini.get(k)!
+    if (sub.length === 1) result.push(sub[0])
+    else if (sub.length === 2) result.push(...resolvePair(sub[0], sub[1], matches))
+    else result.push(...resolveMultiTiedAfterMini(sub, matches))
+  }
+  return result
+}
+
+/**
+ * 3+ graczy z identycznym wynikiem w małej tabelce → m.pkt rozstrzygają.
+ * Następnie: 2 tied po m.pkt → H2H → HCP → losowanie.
+ *            3+ tied po m.pkt → HCP → losowanie.
+ */
+function resolveMultiTiedAfterMini(
+  group: PlayerStanding[],
+  matches: MatchWithPlayers[],
+): PlayerStanding[] {
+  const bySmall = bucketBy(group, (p) => p.smallPoints)
+  const keys = [...bySmall.keys()].sort((a, b) => b - a)
+
+  const result: PlayerStanding[] = []
+  for (const k of keys) {
+    const sub = bySmall.get(k)!
+    if (sub.length === 1) {
+      result.push(sub[0])
+    } else if (sub.length === 2) {
+      // 2 tied po m.pkt: H2H → HCP → losowanie
+      const [a, b] = sub
+      const h2h = getHeadToHead(a.playerId, b.playerId, matches)
+      if (h2h < 0) {
+        result.push(a, b)
+      } else if (h2h > 0) {
+        result.push(b, a)
+      } else {
+        const aHcp = a.hcpAtStart ?? 0
+        const bHcp = b.hcpAtStart ?? 0
+        result.push(...(aHcp >= bHcp ? [a, b] : [b, a]))
+      }
+    } else {
+      // 3+ tied po m.pkt: HCP → losowanie
+      result.push(...[...sub].sort((a, b) => (b.hcpAtStart ?? 0) - (a.hcpAtStart ?? 0)))
+    }
+  }
+  return result
+}
+
+/** Bucket players by a key function (used for stable grouping). */
+function bucketBy<T, K>(arr: T[], keyFn: (item: T) => K): Map<K, T[]> {
+  const m = new Map<K, T[]>()
+  for (const item of arr) {
+    const k = keyFn(item)
+    const bucket = m.get(k) ?? []
+    bucket.push(item)
+    m.set(k, bucket)
+  }
+  return m
 }
 
 /**
@@ -171,7 +259,6 @@ function computeMiniTable(
     if (!match.played) continue
     if (!tiedPlayerIds.has(match.player1Id) || !tiedPlayerIds.has(match.player2Id)) continue
 
-    // Both players are in the tied group — count their big points
     miniPoints.set(match.player1Id, (miniPoints.get(match.player1Id) ?? 0) + Number(match.player1BigPoints))
     miniPoints.set(match.player2Id, (miniPoints.get(match.player2Id) ?? 0) + Number(match.player2BigPoints))
   }

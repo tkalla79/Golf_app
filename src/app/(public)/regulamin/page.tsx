@@ -131,13 +131,44 @@ export default function RegulaminPage() {
           </ul>
 
           <h3 className="regulamin-h3">4. Rozstrzyganie remisów w grupach</h3>
-          <p className="mb-3">Kolejność w grupie ustalana jest według:</p>
+          <p className="mb-3">
+            Gdy 2 lub więcej graczy ma identyczną liczbę <strong>dużych punktów</strong>,
+            kolejność ustalana jest następująco:
+          </p>
+
+          <h4 className="regulamin-h4">I. Dla 2 graczy</h4>
           <ol className="regulamin-ordered">
-            <li><strong>Wynik bezpośredniego meczu</strong> (dla 2 graczy).</li>
-            <li><strong>„Mała tabelka"</strong> — przy większej liczbie remisujących, uwzględniająca tylko mecze pomiędzy nimi.</li>
-            <li><strong>„Małe punkty"</strong> — sumujące wyniki rozegranych meczów gracza wg poniższej tabeli.</li>
-            <li><strong>Aktywny HCP</strong> z dnia rozpoczęcia rundy — gracz z wyższym HCP zajmuje wyższe miejsce.</li>
-            <li><strong>Losowanie</strong> przeprowadzone przez Zarząd Ligi (jeśli powyższe nie rozstrzyga).</li>
+            <li><strong>Wynik bezpośredniego meczu</strong> (H2H).</li>
+            <li>W razie remisu → <strong>„Małe punkty"</strong> (suma marginesów ze wszystkich meczów).</li>
+            <li>W razie remisu → <strong>Aktywny HCP</strong> — wyższy HCP zajmuje wyższe miejsce.</li>
+            <li>W razie remisu → <strong>Losowanie</strong> przez Zarząd Ligi.</li>
+          </ol>
+
+          <h4 className="regulamin-h4">II. Dla 3 i więcej graczy</h4>
+          <ol className="regulamin-ordered">
+            <li>
+              <strong>„Mała tabelka"</strong> — duże punkty TYLKO z meczów między
+              remisującymi graczami.
+            </li>
+            <li>
+              Jeśli po małej tabelce <strong>2 graczy</strong> pozostaje z identycznym
+              wynikiem — stosuje się sekwencję jak w pkt I powyżej
+              (H2H → małe punkty → HCP → losowanie).
+            </li>
+            <li>
+              Jeśli po małej tabelce <strong>3 i więcej graczy</strong> nadal remisuje:
+              <ul className="list-disc list-inside ml-4 mt-2 space-y-1">
+                <li><strong>„Małe punkty"</strong> rozstrzygają kolejność.</li>
+                <li>
+                  Jeśli po małych punktach <strong>2 graczy</strong> nadal remisuje:
+                  H2H → HCP → losowanie.
+                </li>
+                <li>
+                  Jeśli <strong>3+ graczy</strong> nadal remisuje po małych punktach:
+                  HCP → losowanie.
+                </li>
+              </ul>
+            </li>
           </ol>
 
           <h4 className="regulamin-h4">Tabela małych punktów</h4>
