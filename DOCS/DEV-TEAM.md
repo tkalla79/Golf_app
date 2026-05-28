@@ -4,7 +4,7 @@
 >
 > W solo / AI-assisted workflow te role to **kapelusze** które agent przyjmuje przy różnych typach pracy — nie etat-osoby. „Z perspektywy Senior Full-Stack Next.js zrób X" → konkretny styl pracy, dobór bibliotek, idiomów, pułapek do uniknięcia.
 >
-> Skala dopasowana do projektu: jedna instancja na DO droplet, Next.js 15 full-stack, Prisma + Postgres, ~50 zawodników, polska liga golfowa match play.
+> Skala dopasowana do projektu: jedna instancja na VPS (209.38.211.80, donpapagolf.pl), Next.js 16 full-stack, Prisma + MySQL, ~50 zawodników, polska liga golfowa match play.
 
 ## Zespół (12 osób)
 
@@ -24,20 +24,20 @@
 
 ### Engineering (3–6)
 
-#### 3. Senior Full-Stack — Next.js 15 App Router
+#### 3. Senior Full-Stack — Next.js 16 App Router
 - **Co robi:** UI public (`src/app/(public)/*`) i admin (`src/app/admin/*`), API routes (`src/app/api/*`), Server Components vs Client Components, Server Actions, `next-auth@5` flows, formularze z walidacją, Toast/Alert komponenty, owner `src/components/*`, `src/lib/*`.
 - **Kiedy aktywować:** nowy widok, nowy endpoint API, nowy formularz, dialog/modal, drill-down navigation, integracja `next-auth`, refactor komponentu współdzielonego.
 - **Z kim współpracuje:** DB Engineer (Prisma queries, schema constraints), UX Designer (mockup → impl), Security Engineer (auth guardy, walidacja input), QA (testowalność).
 - **Pułapki:** errors NA GÓRZE formularzy nie inline pod inputem (już wpadliśmy); brak hardkodowanych stringów EN — polska kopia w UI; XSS przy uploadach (zdjęcia Galerii Sław, dokumenty sezonu — już fixowane w `2f6a879`, `031e43e`); RSC default, `'use client'` tylko gdy potrzebny stan/event; `next-auth@5` używamy `auth()` zamiast `getServerSession`; brak `disabled` na `form.invalid` — walidacja w handlerze; double-submit guard (już fixowany).
 
-#### 4. Database Engineer — Prisma + Postgres
+#### 4. Database Engineer — Prisma + MySQL
 - **Co robi:** schema (`prisma/schema.prisma`) — modele Player, Season, Round, Group, GroupPlayer, Match, HallOfFameEntry, SeasonPhoto, SeasonDocument, AvailabilitySlot; migrations (`prisma db push` / `prisma migrate`), indeksy złożone, ON DELETE policies, Decimal(4,1) dla big points, seedy (`prisma/seed.ts`), importer historyczny (`scripts/historical-data/import-season.ts`), walidator (`scripts/historical-data/validate.ts`).
 - **Kiedy aktywować:** nowy model / pole, nowa migracja, slow query (N+1 z `include`), brakujący indeks, decyzja Decimal vs Float, ON DELETE CASCADE vs SET NULL, JSON shapes w bazie.
 - **Z kim współpracuje:** Full-Stack (Prisma client queries, transactions), PO/TL (schema review), Match-Play Rules Specialist (BigPoints, kody wynikowe).
 - **Pułapki:** Decimal(4,1) dla big points wymaga `0.5` jako string lub `Prisma.Decimal` — nie Number; timeout transakcji 300s dla importu historycznego (`c935a35`); fuzzy matching imion w importerze (`DIMINUTIVES` map: Jurek↔Jerzy, Remik↔Remigiusz, Rysiu↔Ryszard, Julka↔Julia, Zbyszek↔Zbigniew, Mirek↔Mirosław, Bartek↔Bartłomiej); timezone na `Match.scheduledDate` (już fixowane w `5579604`); `prisma db push` przed `prisma generate` w deploy flow.
 
 #### 5. Platform / DevOps Engineer
-- **Co robi:** Docker (`Dockerfile`, multi-stage builds), `docker-compose.yml` + `docker-compose.override.yml`, Caddy reverse-proxy + auto-SSL (`Caddyfile`), deploy na DO droplet 209.38.211.80, Brevo SMTP, secrets (`.env`, `.env.local`), backup Postgres, cron jobs (`src/app/api/cron/tee-reminders`), `.ssh/karolinkagolfpark` key.
+- **Co robi:** Docker (`Dockerfile`, multi-stage builds), `docker-compose.yml` + `docker-compose.override.yml`, Caddy reverse-proxy + auto-SSL (`Caddyfile`), deploy na VPS 209.38.211.80 (build lokalnie → `docker save`/`scp` bo serwer ma mało RAM, per `DEPLOY.md`), Brevo SMTP, secrets (`.env`), backup MySQL, cron jobs (`src/app/api/cron/reminders`), `.ssh/karolinkagolfpark` key.
 - **Kiedy aktywować:** nowy serwis w compose, zmiana w `Dockerfile` (multi-stage, layer order), nowy `ENV` variable, rotacja sekretu, restart strategy, deploy do prod, debug certyfikatu Caddy.
 - **Z kim współpracuje:** Security Engineer (sekrety management), DB Engineer (PG backup config), SRE/Operator (incident response, restart policy).
 - **Pułapki:** **NIGDY** nie commituje sekretów (`.env*` w `.gitignore`); multi-stage Dockerfile dla rozmiaru obrazu; healthcheck + restart policy w compose; **NIGDY** nie deployuje bez explicit user approval (per memory `feedback_deploy.md`); deploy flow: `git pull` + rebuild + `prisma db push` + restart; nie zgaduje wartości configu — pyta lub reuse'uje istniejące (per memory `feedback_no_guess_config.md`).
@@ -79,7 +79,7 @@
 ### Operations (11)
 
 #### 11. Production Operator / SRE (mała skala)
-- **Co robi:** runbook deploy (`DOCS/DEPLOY.md` analog — TODO), monitoring uptime droplet, backup Postgres (cron + scp), restart strategy, certyfikat Caddy (auto-renew), incident response (golf liga = uptime krytyczny w weekendy turniejowe), post-mortem po incydencie.
+- **Co robi:** runbook deploy (`DEPLOY.md`), monitoring uptime VPS, backup MySQL (cron + scp), restart strategy, certyfikat Caddy (auto-renew), incident response (golf liga = uptime krytyczny w weekendy turniejowe), post-mortem po incydencie.
 - **Kiedy aktywować:** alert (down detector), latency spike, deployment hotfix, capacity review przed nowym sezonem, weekend tournament prep.
 - **Z kim współpracuje:** Platform Engineer (deploy issues), DB Engineer (slow queries pod load, restore z backupu), Security (incident with security implications).
 - **Pułapki:** przed release ZAWSZE pełen rebuild + `prisma db push` + sprawdzenie `.env` parity między lokalnym a prod; post-mortem konkretny (timeline, contributory factors, action items z due date); backup verify (próbny restore raz na kwartał).
@@ -99,7 +99,7 @@
 - ❌ **DevRel** — zamknięty produkt, jedna liga
 - ❌ **User Researcher** — znamy persony osobiście (zawodnicy + admini)
 - ❌ **Technical Writer** — pokryte przez PO/TL (`PLAN.md`, `TODO.md`, `DEPLOY.md`)
-- ❌ **Cloud Adapter Specialist** — jeden cloud (DO droplet)
+- ❌ **Cloud Adapter Specialist** — jeden cloud (VPS)
 
 **Do rozważenia w przyszłości:**
 - ➕ **#13 Compliance / RODO Officer** — jeśli liga rośnie ponad 50 osób lub publikujemy więcej zdjęć / danych

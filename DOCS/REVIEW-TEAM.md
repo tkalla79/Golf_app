@@ -100,8 +100,8 @@ Smoke gates per release walidują, że review *zaszedł* (sprawdzenie obecności
 
 - ❌ **SRE / Reliability Engineer** osobny — skala nie wymaga, pokryte przez #10 Production Operator persona
 - ❌ **Threat Modeler / Abuse Case** — single-tenant, jeden model auth (admin + zawodnik) — pokryte przez #3 Security
-- ❌ **TimescaleDB Engineer** — zwykły Postgres, pokryte przez #9 Data Engineer
-- ❌ **Cloud Adapter Specialist** — jeden DO droplet, nie multi-cloud
+- ❌ **TimescaleDB Engineer** — zwykły MySQL, pokryte przez #9 Data Engineer
+- ❌ **Cloud Adapter Specialist** — jeden VPS, nie multi-cloud
 - ❌ **Schema Evolution Reviewer** — brak agenta/huba z osobnym wire protocol — pokryte przez #9 Data Engineer
 - ❌ **API Contract Reviewer / OpenAPI** — brak zewnętrznych konsumentów API (pluginów, klientów) — Next.js full-stack, FE i BE w tym samym repo
 - ❌ **Compliance / Data Retention Officer** — *na razie* pominięty; rozważyć dodanie jako #13 jeśli liga rośnie ponad 50 osób lub publikujemy więcej zdjęć / danych zawodników (RODO)

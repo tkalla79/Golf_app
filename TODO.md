@@ -12,7 +12,7 @@
 - `5210fee` fix(standings): przywrócona kolejność tie-breakerów zgodna z regulaminem IV.4
 - `0afe094` fix(standings): małe punkty PRZED małą tabelką jako tie-breaker
 
-**⚠️ STATUS NA PRODUKCJI:** zmiany od `5cec66e` (włącznie ze standings + zespołami) **NIE SĄ NA PRODUKCJI** — wymagają explicit user approval do deploya (per `feedback_deploy.md`).
+**✅ STATUS NA PRODUKCJI (2026-05-28):** `v0.2.0` (commit `c9b8017`) **WDROŻONE** na donpapagolf.pl. Migracja niepotrzebna (schema bez zmian od `c2cfec7`). Build lokalny `linux/amd64` → `docker save`/`scp` → `docker load` + `git pull` + `compose up -d`. Wszystkie strony 200, app `Ready in 480ms`.
 
 ### ✅ Co zostało zrobione w tej iteracji
 
