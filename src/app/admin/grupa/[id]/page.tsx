@@ -301,18 +301,18 @@ export default function AdminGroupPage({
                   <div className="ml-4 flex gap-2">
                     {!isLocked && (
                       <>
-                    <button
-                      onClick={() => openResultForm(match)}
-                      className="text-[var(--color-primary)] hover:text-[var(--color-accent)] text-xs font-semibold transition-colors"
-                    >
-                      Edytuj
-                    </button>
-                    <button
-                      onClick={() => handleClearResult(match.id)}
-                      className="text-[var(--color-danger)] hover:text-[var(--color-danger)]/70 text-xs font-semibold transition-colors"
-                    >
-                      Wyczyść
-                    </button>
+                        <button
+                          onClick={() => openResultForm(match)}
+                          className="text-[var(--color-primary)] hover:text-[var(--color-accent)] text-xs font-semibold transition-colors"
+                        >
+                          Edytuj
+                        </button>
+                        <button
+                          onClick={() => handleClearResult(match.id)}
+                          className="text-[var(--color-danger)] hover:text-[var(--color-danger)]/70 text-xs font-semibold transition-colors"
+                        >
+                          Wyczyść
+                        </button>
                       </>
                     )}
                   </div>
