@@ -93,6 +93,7 @@ export default async function ZawodnikPage({
         hcp={player.hcp ? Number(player.hcp) : null}
         email={player.email}
         phone={player.phone}
+        contactVisible={player.contactVisible}
         avatarUrl={player.avatarUrl}
         isLoggedIn={isLoggedIn}
         isAnyPlayerLoggedIn={!!playerSession}

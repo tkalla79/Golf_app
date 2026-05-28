@@ -23,11 +23,25 @@ export async function PATCH(
 
   const match = await prisma.match.findUnique({
     where: { id: matchId },
-    select: { id: true, player1Id: true, player2Id: true, played: true },
+    select: {
+      id: true,
+      player1Id: true,
+      player2Id: true,
+      played: true,
+      group: { select: { round: { select: { status: true } } } },
+    },
   })
 
   if (!match) {
     return NextResponse.json({ error: 'Mecz nie istnieje' }, { status: 404 })
+  }
+
+  // Block scheduling for COMPLETED rounds — data integrity guard
+  if (match.group.round.status === 'COMPLETED') {
+    return NextResponse.json(
+      { error: 'Runda jest zakończona — terminów nie można zmieniać' },
+      { status: 403 },
+    )
   }
 
   if (match.played) {

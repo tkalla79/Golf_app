@@ -45,11 +45,19 @@ export default async function GrupaPage({
         <h1 className="text-4xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           {group.name}
         </h1>
-        <div className="flex items-center gap-3 mt-2">
+        <div className="flex items-center gap-3 mt-2 flex-wrap">
           <span className="inline-block w-10 h-0.5 bg-[var(--color-accent)]"></span>
           <p className="text-[var(--color-text-body)]">
             {group.round.name} &middot; {group.round.season.name}
           </p>
+          {group.round.status === 'COMPLETED' && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--color-warning)]/15 border border-[var(--color-warning)]/40 text-xs font-semibold text-[var(--color-warning)]">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              Wyniki zatwierdzone
+            </span>
+          )}
         </div>
       </div>
 

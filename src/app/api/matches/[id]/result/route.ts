@@ -36,6 +36,14 @@ export async function POST(
     return NextResponse.json({ error: 'Mecz nie znaleziony' }, { status: 404 })
   }
 
+  // Block result edits for COMPLETED rounds — data integrity guard
+  if (match.group.round.status === 'COMPLETED') {
+    return NextResponse.json(
+      { error: 'Runda jest zakończona — wyniki są zablokowane przed zmianami' },
+      { status: 403 },
+    )
+  }
+
   const isPlayoff = match.group.round.type === 'PLAYOFF'
 
   // Block "A/S" (draw) result for playoff (sudden death resolves ties)
@@ -108,6 +116,14 @@ export async function DELETE(
     where: { id: matchId },
     include: { group: { include: { round: true } } },
   })
+
+  // Block delete for COMPLETED rounds — data integrity guard
+  if (match?.group.round.status === 'COMPLETED') {
+    return NextResponse.json(
+      { error: 'Runda jest zakończona — wyników nie można usunąć' },
+      { status: 403 },
+    )
+  }
 
   if (match?.group.round.type === 'PLAYOFF') {
     await cascadeDeleteDownstream(matchId)

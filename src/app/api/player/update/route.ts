@@ -23,6 +23,11 @@ export async function POST(request: NextRequest) {
     data.phone = body.phone?.trim() || null
   }
 
+  if ('contactVisible' in body) {
+    // Strict boolean validation — explicit opt-in (RODO)
+    data.contactVisible = body.contactVisible === true
+  }
+
   const player = await prisma.player.update({
     where: { id: session.playerId },
     data,

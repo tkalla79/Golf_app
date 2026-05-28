@@ -48,7 +48,7 @@ interface Standing {
 interface GroupData {
   id: number
   name: string
-  round: { name: string; type: string; holes: number; season: { name: string }; config?: Record<string, unknown> }
+  round: { name: string; type: string; status: string; holes: number; season: { name: string }; config?: Record<string, unknown> }
 }
 
 export default function AdminGroupPage({
@@ -134,6 +134,7 @@ export default function AdminGroupPage({
 
   const unplayedMatches = matches.filter((m) => !m.played)
   const playedMatches = matches.filter((m) => m.played)
+  const isLocked = group.round.status === 'COMPLETED'
 
   return (
     <div>
@@ -142,11 +143,19 @@ export default function AdminGroupPage({
         <h1 className="text-3xl font-bold text-[var(--color-primary)]" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
           {group.name}
         </h1>
-        <div className="flex items-center gap-3 mt-2">
+        <div className="flex items-center gap-3 mt-2 flex-wrap">
           <span className="inline-block w-10 h-0.5 bg-[var(--color-accent)]"></span>
           <p className="text-[var(--color-text-body)]">
             {group.round.name} &middot; {group.round.season.name}
           </p>
+          {group.round.status === 'COMPLETED' && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--color-warning)]/15 border border-[var(--color-warning)]/40 text-xs font-semibold text-[var(--color-warning)]">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              Runda zakończona — wyniki zablokowane
+            </span>
+          )}
         </div>
       </div>
 
@@ -229,30 +238,34 @@ export default function AdminGroupPage({
                           minute: '2-digit',
                         })}
                       </span>
-                      <button
-                        onClick={async () => {
-                          if (!confirm('Usunąć zaplanowany termin tego meczu?')) return
-                          await fetch(`/api/matches/${match.id}/schedule`, {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ scheduledDate: null }),
-                          })
-                          loadData()
-                        }}
-                        className="text-xs text-[var(--color-danger)] hover:underline font-medium"
-                      >
-                        Usuń termin
-                      </button>
+                      {!isLocked && (
+                        <button
+                          onClick={async () => {
+                            if (!confirm('Usunąć zaplanowany termin tego meczu?')) return
+                            await fetch(`/api/matches/${match.id}/schedule`, {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ scheduledDate: null }),
+                            })
+                            loadData()
+                          }}
+                          className="text-xs text-[var(--color-danger)] hover:underline font-medium"
+                        >
+                          Usuń termin
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
-                <button
-                  onClick={() => openResultForm(match)}
-                  className="ml-4 btn-primary text-xs uppercase tracking-wider flex-shrink-0"
-                  style={{ padding: '6px 16px' }}
-                >
-                  Wynik
-                </button>
+                {!isLocked && (
+                  <button
+                    onClick={() => openResultForm(match)}
+                    className="ml-4 btn-primary text-xs uppercase tracking-wider flex-shrink-0"
+                    style={{ padding: '6px 16px' }}
+                  >
+                    Wynik
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -286,6 +299,8 @@ export default function AdminGroupPage({
                     {match.player2.firstName} {match.player2.lastName}
                   </span>
                   <div className="ml-4 flex gap-2">
+                    {!isLocked && (
+                      <>
                     <button
                       onClick={() => openResultForm(match)}
                       className="text-[var(--color-primary)] hover:text-[var(--color-accent)] text-xs font-semibold transition-colors"
@@ -298,6 +313,8 @@ export default function AdminGroupPage({
                     >
                       Wyczyść
                     </button>
+                      </>
+                    )}
                   </div>
                 </div>
               )

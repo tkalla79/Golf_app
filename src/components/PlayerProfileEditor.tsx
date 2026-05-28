@@ -11,6 +11,7 @@ interface Props {
   hcp: number | null
   email: string | null
   phone: string | null
+  contactVisible: boolean
   avatarUrl: string | null
   isLoggedIn: boolean
   isAnyPlayerLoggedIn: boolean
@@ -26,6 +27,7 @@ export default function PlayerProfileEditor({
   hcp: initialHcp,
   email: initialEmail,
   phone: initialPhone,
+  contactVisible: initialContactVisible,
   avatarUrl: initialAvatar,
   isLoggedIn,
   isAnyPlayerLoggedIn,
@@ -35,6 +37,7 @@ export default function PlayerProfileEditor({
   const [hcp, setHcp] = useState(initialHcp !== null ? String(initialHcp) : '')
   const [email, setEmail] = useState(initialEmail || '')
   const [phone, setPhone] = useState(initialPhone || '')
+  const [contactVisible, setContactVisible] = useState(initialContactVisible)
   const [avatarUrl, setAvatarUrl] = useState(initialAvatar)
   const [avatarKey, setAvatarKey] = useState(0)
   const [editingHcp, setEditingHcp] = useState(false)
@@ -143,7 +146,7 @@ export default function PlayerProfileEditor({
     await fetch('/api/player/update', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, phone }),
+      body: JSON.stringify({ email, phone, contactVisible }),
     })
     setSaving(false)
     setEditingContact(false)
@@ -353,6 +356,33 @@ export default function PlayerProfileEditor({
                   )
                 )}
               </div>
+
+              {/* Contact-visibility opt-in (only in edit mode) */}
+              {isLoggedIn && editingContact && (
+                <label className="flex items-start gap-2 text-xs text-[var(--color-text-body)]/80 mt-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={contactVisible}
+                    onChange={(e) => setContactVisible(e.target.checked)}
+                    className="mt-0.5 cursor-pointer"
+                  />
+                  <span>
+                    Udostępniaj mój telefon i email innym zalogowanym zawodnikom
+                    {' '}
+                    <span className="text-[var(--color-text-body)]/50">
+                      (widoczne na liście „Zawodnicy")
+                    </span>
+                  </span>
+                </label>
+              )}
+              {isLoggedIn && !editingContact && contactVisible && (email || phone) && (
+                <p className="text-xs text-[var(--color-success)]/80 mt-2 flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Kontakt widoczny dla zalogowanych zawodników
+                </p>
+              )}
             </div>
           )}
 
