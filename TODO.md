@@ -1,6 +1,92 @@
 # Don Papa Match Play — Co zostało do zrobienia
 
-**Ostatnia aktualizacja:** 27 maja 2026 (zespoły DEV+REVIEW, sync standings ↔ regulamin, lint cleanup)
+**Ostatnia aktualizacja:** 28 maja 2026 (contactVisible opt-in + zabezpieczenie COMPLETED rund + Runda 2 ready)
+
+---
+
+## 🆕 2026-05-28 — contactVisible (RODO opt-in) + zabezpieczenie COMPLETED + Runda 2
+
+**Aktualny commit:** `5d4b5d3` (wypchnięty na main) — `feat: contactVisible (opt-in) + zabezpieczenie COMPLETED rund`
+
+### ✅ Co zostało zrobione w tej iteracji
+
+**Sekcja A — Flaga `contactVisible` (RODO opt-in):**
+- `Player.contactVisible: Boolean @default(false)` w `schema.prisma`
+- API `/api/player/update` waliduje i zapisuje pole (strict `typeof === 'boolean'`)
+- `PlayerProfileEditor.tsx` — checkbox w trybie edycji kontaktów + zielona plakietka „Kontakt widoczny" gdy włączone
+- `zawodnik/[slug]/page.tsx` przekazuje flagę do edytora
+
+**Sekcja B — Wyświetlanie kontaktów TYLKO na `/zawodnicy`:**
+- Pod nazwiskiem ikonki klikalne (`tel:` + `mailto:`)
+- Warunek: `viewerLoggedIn AND contactVisible AND (phone OR email)`
+- **Tabele grup (`/grupy`, `/grupa/[id]`) BEZ zmian** — czyste statystyki
+
+**Sekcja C — Zabezpieczenie zakończonych rund (data integrity):**
+- API `403 Forbidden` gdy `round.status === 'COMPLETED'`:
+  - `POST /api/matches/[id]/result` (zapis wyniku)
+  - `DELETE /api/matches/[id]/result` (wyczyść wynik)
+  - `PATCH /api/matches/[id]/schedule` (zmiana terminu)
+- Admin `/admin/grupa/[id]`: ukrywa przyciski **Wynik/Edytuj/Wyczyść/Usuń termin** + plakietka 🔒 **„Runda zakończona — wyniki zablokowane"**
+- Public `/grupa/[id]`: plakietka 🔒 **„Wyniki zatwierdzone"**
+
+**Weryfikacja lokalnie:** `npm run build` clean, `npm test` 9/9 zielone.
+
+### 🎯 PROPONOWANE GRUPY RUNDY 2 (testowo wygenerowane wg metodologii „zwycięzcy razem")
+
+Pobrane z produkcji 5×9=45 zawodników, algorytm `generateNextRoundGroups()`:
+
+| Grupa | Miejsca z R1 | Skład |
+|-------|--------------|-------|
+| **A** | #1 | Wiśniewski · Górski · Zieliński · Szot · Łowiński |
+| **B** | #2 | Łukasiuk · Szic · Michalak · Ptak · Glinka |
+| **C** | #3 | M.Ślusarczyk · Marciniak · Skucik · Śleziak · P.Ślusarczyk |
+| **D** | #4 | Kiowski · Stefanik · Klyk · W.Stelmach · Szwedowski |
+| **E** | #5 | Sienkiewicz · Michalewski · Staś · Weidinger · Tymich |
+| **F** | #6 | Kownacki · Krok · Wróbel · Możdżonek · Wingert |
+| **G** | #7 | Kozłowski · Sitko · Stadnicki · Lachowski · Stolarczyk |
+| **H** | #8 | Domagała · Len · Boruszek · M.Stelmach · Kucia |
+| **I** | #9 | Warnecki · Czudaj · Szemainda · Grek · Cieplik |
+
+**9 grup × 5 graczy = 45 zawodników, 10 meczów per grupa = 90 meczów total.**
+
+### 🚀 CO ZROBIĆ TERAZ — workflow admina (manualnie)
+
+```bash
+ssh -i .ssh/karolinkagolfpark root@209.38.211.80
+cd /root/Golf_app && git pull   # pobierze 5d4b5d3
+
+# Backup bazy PRZED jakąkolwiek akcją:
+docker compose --env-file .env exec db \
+  mysqldump -u root -p$DB_ROOT_PASSWORD donpapa \
+  | gzip > /root/backup-pre-r2-$(date +%F-%H%M).sql.gz
+
+# Schema migration (doda kolumnę contact_visible BOOLEAN DEFAULT 0):
+docker compose --env-file .env run --rm migrate
+# Rebuild app z najnowszymi zmianami:
+docker compose --env-file .env up -d --build app
+```
+
+Następnie w przeglądarce jako admin:
+
+1. **Ustaw status Rundy 1 → COMPLETED** w `/admin/sezon/[id]/` (od tego momentu wyniki R1 zablokowane, plakietki 🔒 się pojawią)
+2. **`/admin/generuj-rundy`** → wybierz Rundę 1 → klik **„Generuj grupy"**
+3. Sprawdź preview — powinien pokazać **9 grup A-I × 5 graczy** dokładnie jak w tabeli powyżej
+4. Klik **„Zatwierdź"** → R2 utworzona z `status: ACTIVE`, 90 meczów round-robin
+
+### 📞 Opt-in zawodników do udostępniania kontaktów
+
+Po deploy zawodnicy chętni do udostępnienia kontaktów:
+1. Logują się na `/auth/player` (magic link lub hasło)
+2. Wchodzą na swój profil `/zawodnik/[slug]`
+3. Klikają **„Edytuj"** w sekcji kontaktów
+4. Zaznaczają checkbox **„Udostępniaj mój telefon i email innym zalogowanym zawodnikom"**
+5. Zapisz → ich kontakty pojawią się na `/zawodnicy` dla innych zalogowanych
+
+### 🔮 Pomysły na przyszłość (poza scope)
+
+- **Bardziej restrykcyjna widoczność** — tylko gracze z aktywnego sezonu (query GroupPlayer + Round). Teraz dowolny zalogowany gracz może zobaczyć kontakty.
+- **Bulk email do graczy** z wypełnionym email/phone z prośbą o włączenie opt-in.
+- **Audyt zmian `contactVisible`** — log kto i kiedy włączył/wyłączył flagę.
 
 ---
 
