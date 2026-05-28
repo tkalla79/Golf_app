@@ -14,6 +14,10 @@
 
 **✅ STATUS NA PRODUKCJI (2026-05-28):** `v0.2.0` (commit `c9b8017`) **WDROŻONE** na donpapagolf.pl. Migracja niepotrzebna (schema bez zmian od `c2cfec7`). Build lokalny `linux/amd64` → `docker save`/`scp` → `docker load` + `git pull` + `compose up -d`. Wszystkie strony 200, app `Ready in 480ms`.
 
+**✅ DANE HISTORYCZNE ZAIMPORTOWANE (2026-05-28):** sezony 2023 (id=5, 27 grup, 250 meczów), 2024 (id=6, 36 grup, 349 meczów), 2025 (id=7, 25 grup, 365 meczów) — razem **88 grup, 964 mecze**, 0 błędów. Import przez kontener `migrate` (obraz `donpapa-migrate`, target builder) z zamontowanymi świeżymi skryptami z repo: `docker compose run --rm -v /root/Golf_app/scripts:/app/scripts --entrypoint sh migrate -c "npx tsx scripts/historical-data/import-season.ts <pliki>"` (3× per sezon, bo alpine nie ma basha dla `import-all.sh`). Zweryfikowane: `/poprzednie-sezony` renderuje 3 sezony, profil zawodnika ma career stats (Bilans/Historia sezonów/Małe punkty/Mecze).
+
+> ⚠️ **Import NIE jest idempotentny dla rund** — przy istniejącym sezonie `import-season.ts` DOPISUJE rundy (gracze są upsertowani, ale rundy/mecze nie). NIE uruchamiać ponownie bez uprzedniego usunięcia sezonów 2023-2025.
+
 ### ✅ Co zostało zrobione w tej iteracji
 
 - **Zespoły DEV+REVIEW powołane** (`DOCS/DEV-TEAM.md`, `DOCS/REVIEW-TEAM.md`) — 12 osób per zespół, wzorzec z adminbob (18-person tam, 12 tu — dopasowane do skali). Zasada: **review po każdej iteracji ZAWSZE**, format raport PASS/FAIL/N/A z dowodem
