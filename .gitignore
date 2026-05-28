@@ -8,3 +8,8 @@ node_modules/
 dist/
 
 /src/generated/prisma
+
+# Lokalne doki — nie wersjonowane, przenoszone ręcznie na nowy komputer
+CLAUDE.md
+DOCS/DEV-TEAM.md
+DOCS/REVIEW-TEAM.md
