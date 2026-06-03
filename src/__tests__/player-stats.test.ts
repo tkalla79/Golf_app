@@ -2,7 +2,10 @@ import { describe, it, expect } from 'vitest'
 import {
   evaluatePlayerInBracket,
   resolvePlayoffResultLabel,
+  pickBestFinish,
+  pickSeasonFinalPosition,
   type PlayoffMatchLike,
+  type RankedGroupPlayer,
 } from '@/lib/player-stats'
 
 // ─── Fixture helpers ────────────────────────────────────────────────────
@@ -193,5 +196,128 @@ describe('resolvePlayoffResultLabel — etykieta wyniku playoff per sezon', () =
     ]
     const desc = [...matches].sort((a, b) => (b.bracketRound ?? 0) - (a.bracketRound ?? 0))
     expect(resolvePlayoffResultLabel(5, desc)).toBe('1/16')
+  })
+})
+
+// ─── Tests: pickBestFinish (BUG #3 — "wszyscy mają najlepszą pozycję 1") ───
+
+function gp(
+  finalPosition: number | null,
+  roundType: 'ROUND_ROBIN' | 'PLAYOFF',
+  seasonId = 1,
+  seasonName = 'Sezon 2023',
+  year = 2023,
+): RankedGroupPlayer {
+  return { finalPosition, roundType, seasonId, seasonName, year }
+}
+
+describe('pickBestFinish — najlepsza pozycja w karierze (BUG #3 fix)', () => {
+  it('PLAYOFF priorytetem nad RR w tym samym sezonie', () => {
+    // RR: gracz wygrał swoją grupę (poz. 1). Playoff: skończył na poz. 10 (mistrz Drugiej Ligi).
+    // Bez fixa: bestFinish=1 (group). Z fixem: bestFinish=10 (playoff = canonical season rank).
+    const result = pickBestFinish([
+      gp(1, 'ROUND_ROBIN'),
+      gp(10, 'PLAYOFF'),
+    ])
+    expect(result?.position).toBe(10)
+  })
+
+  it('RR fallback gdy brak PLAYOFF w sezonie', () => {
+    // Aktywny sezon bez playoff jeszcze — bestFinish to pozycja w grupie.
+    const result = pickBestFinish([gp(2, 'ROUND_ROBIN')])
+    expect(result?.position).toBe(2)
+  })
+
+  it('Wybiera najniższą pozycję playoff między sezonami', () => {
+    const result = pickBestFinish([
+      gp(8, 'PLAYOFF', 1, 'Sezon 2023', 2023),
+      gp(3, 'PLAYOFF', 2, 'Sezon 2024', 2024),
+      gp(15, 'PLAYOFF', 3, 'Sezon 2025', 2025),
+    ])
+    expect(result).toEqual({ position: 3, seasonName: 'Sezon 2024', year: 2024 })
+  })
+
+  it('BUG #3 regression: 8 graczy wygrało grupy ale tylko jeden został mistrzem playoff', () => {
+    // Symulujemy 8 graczy każdy z `RR finalPosition=1` w swojej grupie + różne playoff position.
+    // Każdy gracz osobno: jego PLAYOFF position powinno wygrać z RR=1.
+    const winners = [
+      { player: 'A', rr: 1, playoff: 1 },
+      { player: 'B', rr: 1, playoff: 5 },
+      { player: 'C', rr: 1, playoff: 8 },
+      { player: 'D', rr: 1, playoff: 12 },
+    ]
+    for (const w of winners) {
+      const result = pickBestFinish([
+        gp(w.rr, 'ROUND_ROBIN'),
+        gp(w.playoff, 'PLAYOFF'),
+      ])
+      expect(result?.position).toBe(w.playoff)
+    }
+  })
+
+  it('Brak finalPosition → null', () => {
+    const result = pickBestFinish([gp(null, 'ROUND_ROBIN'), gp(null, 'PLAYOFF')])
+    expect(result).toBeNull()
+  })
+
+  it('Pusta lista → null', () => {
+    expect(pickBestFinish([])).toBeNull()
+  })
+
+  it('Wiele RR w jednym sezonie bez playoff → bierze najniższą pozycję w grupie', () => {
+    // 3 rundy RR — gracz zajął kolejno 3, 1, 2 w swoich grupach. bestFinish = 1.
+    const result = pickBestFinish([
+      gp(3, 'ROUND_ROBIN'),
+      gp(1, 'ROUND_ROBIN'),
+      gp(2, 'ROUND_ROBIN'),
+    ])
+    expect(result?.position).toBe(1)
+  })
+
+  it('Mieszane: jeden sezon z playoff, jeden bez', () => {
+    // Sezon 1 (2023): RR=1 + PLAYOFF=10 → 10
+    // Sezon 2 (2024): RR=4 (brak playoff) → 4
+    // Najlepszy: 4 (sezon 2024)
+    const result = pickBestFinish([
+      gp(1, 'ROUND_ROBIN', 1, 'S1', 2023),
+      gp(10, 'PLAYOFF', 1, 'S1', 2023),
+      gp(4, 'ROUND_ROBIN', 2, 'S2', 2024),
+    ])
+    expect(result).toEqual({ position: 4, seasonName: 'S2', year: 2024 })
+  })
+})
+
+// ─── Tests: pickSeasonFinalPosition ────────────────────────────────────
+
+describe('pickSeasonFinalPosition — pozycja w jednym sezonie (BUG #3)', () => {
+  it('PLAYOFF wygrywa z RR', () => {
+    expect(
+      pickSeasonFinalPosition([
+        { finalPosition: 1, roundType: 'ROUND_ROBIN' },
+        { finalPosition: 9, roundType: 'PLAYOFF' },
+      ]),
+    ).toBe(9)
+  })
+
+  it('Tylko RR (brak playoff) → najniższa pozycja w grupach', () => {
+    expect(
+      pickSeasonFinalPosition([
+        { finalPosition: 3, roundType: 'ROUND_ROBIN' },
+        { finalPosition: 2, roundType: 'ROUND_ROBIN' },
+      ]),
+    ).toBe(2)
+  })
+
+  it('Tylko PLAYOFF → ta pozycja', () => {
+    expect(
+      pickSeasonFinalPosition([{ finalPosition: 5, roundType: 'PLAYOFF' }]),
+    ).toBe(5)
+  })
+
+  it('Brak danych → null', () => {
+    expect(pickSeasonFinalPosition([])).toBeNull()
+    expect(
+      pickSeasonFinalPosition([{ finalPosition: null, roundType: 'PLAYOFF' }]),
+    ).toBeNull()
   })
 })

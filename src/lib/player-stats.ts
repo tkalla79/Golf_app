@@ -102,8 +102,103 @@ export interface SeasonHistoryRow {
 }
 
 // ---------------------------------------------------------------------------
-// Pure helpers (exported for unit testing — regression coverage for BUG #1, #2)
+// Pure helpers (exported for unit testing — regression coverage for BUG #1, #2, #3)
 // ---------------------------------------------------------------------------
+
+/**
+ * Minimal shape of a GroupPlayer-with-context needed for best-finish ranking.
+ * BUG #3: previous logic skipped PLAYOFF, so multi-group RR season → every
+ * group winner had bestFinish.position=1. Fix: prefer PLAYOFF position (true
+ * season-final rank 1..N) over RR group position.
+ */
+export interface RankedGroupPlayer {
+  finalPosition: number | null
+  roundType: 'ROUND_ROBIN' | 'PLAYOFF'
+  seasonId: number
+  seasonName: string
+  year: number
+}
+
+/**
+ * Pick the best season-final rank across a player's career.
+ *
+ * Per-season priority:
+ *   1) PLAYOFF finalPosition (canonical 1-N season rank from the playoff bracket)
+ *   2) ROUND_ROBIN finalPosition (group position) — used only when the season had no playoff
+ *
+ * Returns the lowest (best) position across all seasons.
+ */
+export function pickBestFinish(
+  groupPlayers: RankedGroupPlayer[],
+): { position: number; seasonName: string; year: number } | null {
+  // Step 1: per-season candidate (PLAYOFF beats RR).
+  type Candidate = { position: number; seasonName: string; year: number; source: 'PLAYOFF' | 'ROUND_ROBIN' }
+  const perSeason = new Map<number, Candidate>()
+
+  for (const gp of groupPlayers) {
+    if (gp.finalPosition === null) continue
+    const existing = perSeason.get(gp.seasonId)
+
+    if (gp.roundType === 'PLAYOFF') {
+      // Playoff trumps RR for the same season. Among multiple PLAYOFF entries
+      // (e.g. semis bracket vs main) keep the lowest position.
+      if (!existing || existing.source !== 'PLAYOFF' || gp.finalPosition < existing.position) {
+        perSeason.set(gp.seasonId, {
+          position: gp.finalPosition,
+          seasonName: gp.seasonName,
+          year: gp.year,
+          source: 'PLAYOFF',
+        })
+      }
+    } else if (gp.roundType === 'ROUND_ROBIN') {
+      // Use RR only if no PLAYOFF candidate yet.
+      if (!existing) {
+        perSeason.set(gp.seasonId, {
+          position: gp.finalPosition,
+          seasonName: gp.seasonName,
+          year: gp.year,
+          source: 'ROUND_ROBIN',
+        })
+      } else if (existing.source === 'ROUND_ROBIN' && gp.finalPosition < existing.position) {
+        // Multiple RR rounds in one season — keep best group position.
+        existing.position = gp.finalPosition
+      }
+    }
+  }
+
+  // Step 2: lowest position across seasons.
+  let best: { position: number; seasonName: string; year: number } | null = null
+  for (const candidate of perSeason.values()) {
+    if (!best || candidate.position < best.position) {
+      best = {
+        position: candidate.position,
+        seasonName: candidate.seasonName,
+        year: candidate.year,
+      }
+    }
+  }
+  return best
+}
+
+/**
+ * Pick the final position for ONE season — used in `getSeasonHistory`.
+ * Same priority as `pickBestFinish` (PLAYOFF over RR).
+ */
+export function pickSeasonFinalPosition(
+  groupPlayersForSeason: Array<{ finalPosition: number | null; roundType: 'ROUND_ROBIN' | 'PLAYOFF' }>,
+): number | null {
+  let playoffBest: number | null = null
+  let rrBest: number | null = null
+  for (const gp of groupPlayersForSeason) {
+    if (gp.finalPosition === null) continue
+    if (gp.roundType === 'PLAYOFF') {
+      if (playoffBest === null || gp.finalPosition < playoffBest) playoffBest = gp.finalPosition
+    } else if (gp.roundType === 'ROUND_ROBIN') {
+      if (rrBest === null || gp.finalPosition < rrBest) rrBest = gp.finalPosition
+    }
+  }
+  return playoffBest ?? rrBest
+}
 
 /**
  * Minimal shape of a playoff match needed by the bracket helpers.
@@ -480,20 +575,18 @@ export async function getCareerStats(playerId: number): Promise<CareerStats> {
     }
   }
 
-  // Best finish — minimum finalPosition across seasons (with known rank)
-  let bestFinish: CareerStats['bestFinish'] = null
-  for (const gp of groupPlayers) {
-    if (gp.finalPosition === null) continue
-    const season = gp.group.round.season
-    if (gp.group.round.type !== 'ROUND_ROBIN') continue // use RR standings, not playoff slots
-    if (!bestFinish || gp.finalPosition < bestFinish.position) {
-      bestFinish = {
-        position: gp.finalPosition,
-        seasonName: season.name,
-        year: season.year,
-      }
-    }
-  }
+  // Best finish across seasons — see `pickBestFinish` for prioritization.
+  // BUG #3 fix: previously skipped PLAYOFF and used only RR group position,
+  // so every group winner in a multi-group season got bestFinish=1.
+  const bestFinish: CareerStats['bestFinish'] = pickBestFinish(
+    groupPlayers.map((gp) => ({
+      finalPosition: gp.finalPosition,
+      roundType: gp.group.round.type as 'ROUND_ROBIN' | 'PLAYOFF',
+      seasonId: gp.group.round.season.id,
+      seasonName: gp.group.round.season.name,
+      year: gp.group.round.season.year,
+    })),
+  )
 
   const avgMargin = winMargins.length
     ? Math.round((winMargins.reduce((a, b) => a + b, 0) / winMargins.length) * 10) / 10
@@ -597,17 +690,11 @@ export async function getSeasonHistory(playerId: number): Promise<SeasonHistoryR
       playoffResult: null,
     }
 
-    // Round-robin final position: take the LOWEST finalPosition across RR rounds
-    if (gp.group.round.type === 'ROUND_ROBIN' && gp.finalPosition !== null) {
-      if (row.finalPosition === null || gp.finalPosition < row.finalPosition) {
-        row.finalPosition = gp.finalPosition
-      }
-    }
-
-    // Playoff bracket + result
+    // Playoff bracket name (for label resolution below)
     if (gp.group.round.type === 'PLAYOFF') {
       row.playoffBracket = gp.group.name
     }
+    // finalPosition resolved AFTER the loop (PLAYOFF priority over RR — see pickSeasonFinalPosition).
 
     // Tally matches
     for (const m of gp.group.matches) {
@@ -638,6 +725,18 @@ export async function getSeasonHistory(playerId: number): Promise<SeasonHistoryR
     }
 
     bySeason.set(season.id, row)
+  }
+
+  // BUG #3 fix: per-season finalPosition with PLAYOFF priority over RR group position.
+  // Previously RR-only — every group winner showed "1" regardless of playoff outcome.
+  for (const [seasonId, row] of bySeason.entries()) {
+    const gpsForSeason = gps
+      .filter((gp) => gp.group.round.season.id === seasonId)
+      .map((gp) => ({
+        finalPosition: gp.finalPosition,
+        roundType: gp.group.round.type as 'ROUND_ROBIN' | 'PLAYOFF',
+      }))
+    row.finalPosition = pickSeasonFinalPosition(gpsForSeason)
   }
 
   // Resolve playoffResult for each season with playoff
