@@ -1,6 +1,75 @@
 # Don Papa Match Play — Co zostało do zrobienia
 
-**Ostatnia aktualizacja:** 28 maja 2026 (contactVisible opt-in + zabezpieczenie COMPLETED rund + Runda 2 ready)
+**Ostatnia aktualizacja:** 3 czerwca 2026 (5 poprawek po feedbacku + BUG #3 bestFinish)
+
+---
+
+## 🆕 2026-06-03 — 5 poprawek po feedbacku + naprawa "wszyscy mają najlepszą pozycję 1"
+
+**Aktualne commity (wypchnięte na main):**
+- `31beec9` — fix: 5 poprawek po feedbacku (birdies sezon, cyfry grup, mobile modal, BUG #1, #2)
+- `e5fe833` — fix: BUG #3 — najlepsza pozycja brała tylko RR, nie playoff
+
+### ✅ Co zostało zrobione
+
+**Sekcja 1 — Kontakty `/zawodnicy`:** bez zmian w kodzie (commit `5d4b5d3` poprawny); weryfikacja deploy potrzebna.
+
+**Sekcja 2 — Birdies sezon-kumulatywne:** `computeStandings(players, matches, seasonBirdies?)`. W rundzie 2+ kolumna 🐦 = suma R1+R2+... Wpięte w `/grupy`, `/grupa/[id]`, `/api/groups/[id]/standings`.
+
+**Sekcja 3 — Cyfry zamiast liter w nazwach grup:** generatory tworzą "Grupa 1, 2, ..., 10" (UX mobile — literka J/I/L były mylące).
+
+**Sekcja 4 — Modal mobile fix:** `items-start sm:items-center` + `max-h-[calc(100vh-2rem)] overflow-y-auto`. W grupie 10 wszystkie pola scrollują się.
+
+**Sekcja 5 — Bugi statystyk historycznych:**
+- **BUG #1**: `resolvePlayoffResultLabel` z participant-check (nie myli meczu bez gracza za jego wynik)
+- **BUG #2**: `evaluatePlayerInBracket` per-bracket (mistrzowie Drugiej/Trzeciej Ligi też dostają `championships++`)
+- **BUG #3**: `pickBestFinish` / `pickSeasonFinalPosition` priorytetuje PLAYOFF nad RR (canonical season rank 1-N, nie group rank 1-5)
+
+**Testy: 39/39 zielone** (12 standings + 27 player-stats), build clean.
+
+### 🚀 Deploy (na produkcji)
+
+```bash
+ssh -i .ssh/karolinkagolfpark root@209.38.211.80
+cd /root/Golf_app && git pull
+# Migracja JUŻ NIE potrzebna (contact_visible z 5d4b5d3 powinien istnieć — sprawdź jeśli nie ma)
+docker compose --env-file .env up -d --build app
+```
+
+**Po deploy zweryfikuj:**
+- `/zawodnicy` po zalogowaniu → kontakty graczy z włączonym toggle
+- `/zawodnik/[slug]` mistrzów: Górski (2023 Pierwsza) → bestFinish 1, mistrzowie Drugiej Ligi → bestFinish 9, Trzeciej → 17
+- Statystyki historyczne pokazują różne pozycje (nie wszyscy "1.")
+- Po wygenerowaniu R2 → grupy nazwane cyframi, `/admin/grupa/10` modal scrolluje się na telefonie
+
+### 🔧 Odłożone — latent issues do dorobienia kiedyś
+
+**1. Spójność semantyki `finalPosition` w PLAYOFF groups (KRYTYCZNE przed pierwszym live playoffem)**
+
+Obecnie istnieje rozbieżność:
+- **Historyczne dane** (`scripts/historical-data/import-season.ts:411`): `finalPosition = finalRank.position` (1-24, prawdziwy ranking końcowy sezonu) ✅
+- **Live system** (`src/app/api/admin/playoff/create/route.ts:89`, `src/app/api/admin/simulate/route.ts:245`): `finalPosition = player.rank` (1-48, SEED przed playoff) ❌
+
+**Skutek:** Po zakończeniu live playoffu pole `finalPosition` zostanie SEED'em, nie końcowym wynikiem. `pickBestFinish` / `getSeasonHistory` pokażą ranking PRZED playoff zamiast po. Najgorsze: gracz który wygrał playoff jako seed #5 będzie miał "Najlepsza pozycja: 5", nie "1".
+
+**Do zrobienia (przed pierwszym zakończeniem live playoff):**
+- Endpoint `POST /api/admin/playoff/finalize` lub logika w `PATCH /api/rounds/[id]/status` (przejście na COMPLETED)
+- Iteruje brackets, oblicza final standing per playoff group (1-N gdzie N=8 per bracket lub 1-24 total), update'uje `GroupPlayer.finalPosition`
+- Test regresji: stworzyć playoff → odegrać → finalize → sprawdzić że `bestFinish` pokazuje końcowy wynik nie seed
+
+**Priorytet:** średni — nieuruchomi się dopóki nie skończycie pierwszego playoffu w aktywnym sezonie. Aktualne dane (2023-2025 historyczne) są poprawne.
+
+**2. Filtr DRAFT seasons w `getCareerStats`**
+
+`getSeasonHistory` ma `if (season.status === 'DRAFT') continue` (linia 675), ale `getCareerStats` NIE filtruje. Jeśli kiedyś będzie sezon w stanie DRAFT z PLAYOFF group (np. testowy), to wleci do statystyk kariery. Pre-existing — nie blocker.
+
+**Fix (1 linia):**
+```typescript
+const groupPlayers = (await fetchPlayerGroupPlayers(playerId))
+  .filter(gp => gp.group.round.season.status !== 'DRAFT')
+```
+
+**Priorytet:** niski — wymaga konkretnego scenariusza (DRAFT z playoff) który nie występuje.
 
 ---
 
