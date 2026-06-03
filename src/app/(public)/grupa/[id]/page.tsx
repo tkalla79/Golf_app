@@ -29,7 +29,19 @@ export default async function GrupaPage({
 
   if (!group) return notFound()
 
-  const standings = computeStandings(group.players, group.matches)
+  // Pre-compute season-cumulative birdies (R1 + R2 + ... for this season).
+  // This way the birdie column reflects player's full-season tally in round 2+.
+  const seasonMatches = await prisma.match.findMany({
+    where: { group: { round: { seasonId: group.round.seasonId } }, played: true },
+    select: { player1Id: true, player2Id: true, player1Birdies: true, player2Birdies: true },
+  })
+  const seasonBirdies = new Map<number, number>()
+  for (const m of seasonMatches) {
+    seasonBirdies.set(m.player1Id, (seasonBirdies.get(m.player1Id) ?? 0) + m.player1Birdies)
+    seasonBirdies.set(m.player2Id, (seasonBirdies.get(m.player2Id) ?? 0) + m.player2Birdies)
+  }
+
+  const standings = computeStandings(group.players, group.matches, seasonBirdies)
 
   return (
     <div>

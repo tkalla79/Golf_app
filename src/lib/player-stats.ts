@@ -102,6 +102,111 @@ export interface SeasonHistoryRow {
 }
 
 // ---------------------------------------------------------------------------
+// Pure helpers (exported for unit testing — regression coverage for BUG #1, #2)
+// ---------------------------------------------------------------------------
+
+/**
+ * Minimal shape of a playoff match needed by the bracket helpers.
+ * Keep narrow so test fixtures don't need full Prisma `Match` rows.
+ */
+export interface PlayoffMatchLike {
+  player1Id: number
+  player2Id: number
+  winnerId: number | null
+  played: boolean
+  bracketRound: number | null
+  bracketPosition: number | null
+}
+
+/**
+ * Evaluate a player's pedigree in a SINGLE bracket (e.g. Pierwsza Liga Playoff).
+ *
+ * Used by `getCareerStats`. Iterating per-bracket (BUG #2 fix) lets winners of
+ * secondary brackets (Druga/Trzecia Liga) count championships too.
+ *
+ * Returns 0/1 flags so caller can sum across brackets.
+ */
+export function evaluatePlayerInBracket(
+  playerId: number,
+  bracketMatches: PlayoffMatchLike[],
+): { championship: 0 | 1; finalist: 0 | 1; semifinalist: 0 | 1 } {
+  if (bracketMatches.length === 0) {
+    return { championship: 0, finalist: 0, semifinalist: 0 }
+  }
+  const maxBracketRound = Math.max(...bracketMatches.map((m) => m.bracketRound ?? 0))
+
+  const finalMatch = bracketMatches.find(
+    (m) => m.bracketRound === maxBracketRound && m.bracketPosition === 1,
+  )
+
+  let championship: 0 | 1 = 0
+  let finalist: 0 | 1 = 0
+  if (finalMatch?.played) {
+    if (finalMatch.winnerId === playerId) {
+      championship = 1
+    } else if (finalMatch.player1Id === playerId || finalMatch.player2Id === playerId) {
+      finalist = 1
+    }
+  }
+
+  const semiMatches = bracketMatches.filter(
+    (m) =>
+      m.bracketRound === maxBracketRound - 1 &&
+      (m.bracketPosition === 1 || m.bracketPosition === 2) &&
+      m.played &&
+      m.winnerId !== playerId &&
+      (m.player1Id === playerId || m.player2Id === playerId),
+  )
+  const semifinalist: 0 | 1 = semiMatches.length > 0 ? 1 : 0
+
+  return { championship, finalist, semifinalist }
+}
+
+/**
+ * Resolve playoff result LABEL for a single season's bracket appearance.
+ * Used by `getSeasonHistory`.
+ *
+ * Input: playoff matches for ONE bracket, ordered by bracketRound DESC.
+ *
+ * Returns: 'Mistrz' | 'Finalista' | 'Półfinał' | 'Ćwierćfinał' | '1/X' | null
+ *
+ * FIX (BUG #1): `.find()` for last-played must check participation; without
+ * the participant filter, a non-participated match could be returned.
+ */
+export function resolvePlayoffResultLabel(
+  playerId: number,
+  playoffMatchesDesc: PlayoffMatchLike[],
+): string | null {
+  if (playoffMatchesDesc.length === 0) return null
+
+  const maxRound = Math.max(...playoffMatchesDesc.map((m) => m.bracketRound ?? 0))
+
+  const finalMatch = playoffMatchesDesc.find(
+    (m) => m.bracketRound === maxRound && m.bracketPosition === 1,
+  )
+  if (
+    finalMatch?.played &&
+    (finalMatch.player1Id === playerId || finalMatch.player2Id === playerId)
+  ) {
+    return finalMatch.winnerId === playerId ? 'Mistrz' : 'Finalista'
+  }
+
+  const lastPlayed = playoffMatchesDesc.find(
+    (m) =>
+      m.played &&
+      (m.player1Id === playerId || m.player2Id === playerId) &&
+      m.winnerId !== null &&
+      m.winnerId !== playerId,
+  )
+  if (!lastPlayed) return null
+
+  const roundFromTop = maxRound - (lastPlayed.bracketRound ?? 0)
+  if (roundFromTop === 1) return 'Półfinał'
+  if (roundFromTop === 2) return 'Ćwierćfinał'
+  return `1/${2 ** (roundFromTop + 1)}`
+}
+
+// ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
 
@@ -341,52 +446,37 @@ export async function getCareerStats(playerId: number): Promise<CareerStats> {
   }
   playoffAppearances = playoffSeensSeasons.size
 
-  // Championships / finals / semifinals — scan playoff matches where player1Id or player2Id == playerId
-  // and group name suggests Pierwsza Liga Playoff (bracket "1-16").
-  // We identify the bracket by searching back in the groupPlayers array + matches.
-  // Approach: for each (seasonId, groupName==Pierwsza Liga) compute final result from bracket rounds.
+  // Championships / finals / semifinals — scan playoff matches where the player participated.
+  //
+  // FIX (BUG #2): Iterate ALL playoff brackets per season (Pierwsza/Druga/Trzecia Liga).
+  // Previous version filtered only "Pierwsza Liga" — so winners of secondary brackets
+  // (e.g. 2023 Druga Liga: 9-16, Trzecia Liga: 17-24) had championships=0 in career stats.
+  // Now every player who wins their bracket's final → championships++.
   for (const season of seasonsSet.values()) {
-    const seasonPlayoffMatches = matches.filter(
-      (m) => m.group.round.type === 'PLAYOFF' && m.group.round.season.id === season.seasonId,
-    )
-    if (seasonPlayoffMatches.length === 0) continue
-
-    // Max bracketRound where the player participated
-    const myPlayoffMatches = seasonPlayoffMatches.filter(
-      (m) => m.player1Id === playerId || m.player2Id === playerId,
+    const myPlayoffMatches = matches.filter(
+      (m) =>
+        m.group.round.type === 'PLAYOFF' &&
+        m.group.round.season.id === season.seasonId &&
+        (m.player1Id === playerId || m.player2Id === playerId),
     )
     if (myPlayoffMatches.length === 0) continue
-    const maxRound = Math.max(...myPlayoffMatches.map((m) => m.bracketRound ?? 0))
 
-    // Was the player in the top bracket (Pierwsza Liga)? Check group name.
-    const primaryLeagueMatches = myPlayoffMatches.filter(
-      (m) =>
-        m.group.name.toLowerCase().includes('pierwsza') ||
-        m.group.name === '1-16' ||
-        m.group.name.toLowerCase().includes('1-16'),
-    )
+    // Group player's playoff matches by bracket name (Pierwsza/Druga/Trzecia Liga, or any custom)
+    const byBracket = new Map<string, typeof myPlayoffMatches>()
+    for (const m of myPlayoffMatches) {
+      const key = m.group.name
+      const arr = byBracket.get(key) ?? []
+      arr.push(m)
+      byBracket.set(key, arr)
+    }
 
-    if (primaryLeagueMatches.length > 0) {
-      // Final = highest round, position 1 (the championship match)
-      const finalMatch = primaryLeagueMatches.find(
-        (m) => m.bracketRound === maxRound && m.bracketPosition === 1,
-      )
-      if (finalMatch && finalMatch.played) {
-        if (finalMatch.winnerId === playerId) championships++
-        else if (finalMatch.player1Id === playerId || finalMatch.player2Id === playerId) finalsAppearances++
-      }
-      // Semifinal = player lost in the round before the final (positions 1-2 are semifinals)
-      const semiMatches = primaryLeagueMatches.filter(
-        (m) =>
-          m.bracketRound === maxRound - 1 &&
-          (m.bracketPosition === 1 || m.bracketPosition === 2) &&
-          m.played &&
-          (m.player1Id === playerId || m.player2Id === playerId) &&
-          m.winnerId !== playerId,
-      )
-      if (semiMatches.length > 0) {
-        semifinalAppearances++
-      }
+    // For each bracket the player participated in: check championship/finalist/semifinalist
+    // Pure logic lives in `evaluatePlayerInBracket` — kept testable in isolation.
+    for (const bracketMatches of byBracket.values()) {
+      const pedigree = evaluatePlayerInBracket(playerId, bracketMatches)
+      championships += pedigree.championship
+      finalsAppearances += pedigree.finalist
+      semifinalAppearances += pedigree.semifinalist
     }
   }
 
@@ -566,21 +656,8 @@ export async function getSeasonHistory(playerId: number): Promise<SeasonHistoryR
     })
     if (playoffMatches.length === 0) continue
 
-    const maxRound = Math.max(...playoffMatches.map((m) => m.bracketRound ?? 0))
-    // Championship match = highest round, position 1
-    const finalMatch = playoffMatches.find((m) => m.bracketRound === maxRound && m.bracketPosition === 1)
-    if (finalMatch?.played && (finalMatch.player1Id === playerId || finalMatch.player2Id === playerId)) {
-      if (finalMatch.winnerId === playerId) row.playoffResult = 'Mistrz'
-      else row.playoffResult = 'Finalista'
-    } else {
-      // Find last played round
-      const lastPlayed = playoffMatches.find((m) => m.played && m.winnerId && m.winnerId !== playerId)
-      if (lastPlayed) {
-        const roundFromTop = maxRound - (lastPlayed.bracketRound ?? 0)
-        row.playoffResult =
-          roundFromTop === 1 ? 'Półfinał' : roundFromTop === 2 ? 'Ćwierćfinał' : `1/${2 ** (roundFromTop + 1)}`
-      }
-    }
+    // Pure label-resolution lives in `resolvePlayoffResultLabel` (BUG #1 fix + tests).
+    row.playoffResult = resolvePlayoffResultLabel(playerId, playoffMatches)
   }
 
   return Array.from(bySeason.values()).sort((a, b) => b.year - a.year)

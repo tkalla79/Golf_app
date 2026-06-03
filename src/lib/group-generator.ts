@@ -35,8 +35,8 @@ export async function generateNextRoundGroups(roundId: number) {
     players: Array<{ playerId: number; firstName: string; lastName: string; hcp: number | null }>
   }> = []
 
-  const groupLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-
+  // Group names use numbers (Grupa 1, 2, ..., 9, 10, ...) for round 2+
+  // — letters used to be A/B/C/... but caused mobile UX issues with 'J' (group 10)
   for (let pos = 0; pos < maxPositions; pos++) {
     const playersAtPosition = groupStandings
       .map((g) => g.standings[pos])
@@ -44,7 +44,7 @@ export async function generateNextRoundGroups(roundId: number) {
 
     if (playersAtPosition.length > 0) {
       newGroups.push({
-        name: `Grupa ${groupLetters[pos] || pos + 1}`,
+        name: `Grupa ${pos + 1}`,
         players: playersAtPosition.map((p) => ({
           playerId: p.playerId,
           firstName: p.firstName,

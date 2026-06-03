@@ -252,6 +252,49 @@ describe('computeStandings — hierarchiczne tie-breakery (regulamin IV.4)', () 
     expect(result.map((p) => p.lastName)).toEqual(['WysokiHCP', 'SredniHCP', 'NiskiHCP'])
   })
 
+  // ─── SEKCJA 2: Birdies sezon-kumulatywne ─────────────────────────
+
+  it('birdies (per-runda): bez seasonBirdies — sumuje tylko z meczów grupy', () => {
+    const gps = [
+      makeGroupPlayer({ id: 1, lastName: 'PtakA' }),
+      makeGroupPlayer({ id: 2, lastName: 'PtakB' }),
+    ]
+    const m = makeMatch({ p1Id: 1, p2Id: 2, winnerId: 1, p1Big: 3, p1Small: 3 })
+    // wbij birdies w match — handled przez obejście (bo makeMatch ma 0)
+    ;(m as unknown as { player1Birdies: number; player2Birdies: number }).player1Birdies = 2
+    ;(m as unknown as { player1Birdies: number; player2Birdies: number }).player2Birdies = 1
+
+    const result = computeStandings(gps, [m])
+    expect(result.find((p) => p.lastName === 'PtakA')!.birdies).toBe(2)
+    expect(result.find((p) => p.lastName === 'PtakB')!.birdies).toBe(1)
+  })
+
+  it('birdies (sezon-cumulative): seasonBirdies nadpisuje sumę z grupy', () => {
+    // Runda 2: w grupowych meczach gracz strzelił 0, ale w R1 strzelił 5 — pokazujemy 5.
+    const gps = [
+      makeGroupPlayer({ id: 1, lastName: 'RoundOneHero' }),
+      makeGroupPlayer({ id: 2, lastName: 'Zero' }),
+    ]
+    const m = makeMatch({ p1Id: 1, p2Id: 2, winnerId: 1, p1Big: 3, p1Small: 3 })
+    ;(m as unknown as { player1Birdies: number; player2Birdies: number }).player1Birdies = 0
+    ;(m as unknown as { player1Birdies: number; player2Birdies: number }).player2Birdies = 0
+
+    const seasonBirdies = new Map<number, number>()
+    seasonBirdies.set(1, 5) // R1 + R2 łącznie = 5
+    seasonBirdies.set(2, 1)
+
+    const result = computeStandings(gps, [m], seasonBirdies)
+    expect(result.find((p) => p.lastName === 'RoundOneHero')!.birdies).toBe(5)
+    expect(result.find((p) => p.lastName === 'Zero')!.birdies).toBe(1)
+  })
+
+  it('birdies (sezon-cumulative): brak entry w mapie → 0', () => {
+    const gps = [makeGroupPlayer({ id: 1, lastName: 'NoBirdies' })]
+    const seasonBirdies = new Map<number, number>() // pusta
+    const result = computeStandings(gps, [], seasonBirdies)
+    expect(result[0].birdies).toBe(0)
+  })
+
   it('finalPosition (manualne nadpisanie) ma priorytet nad obliczonym sortowaniem', () => {
     const gps = [
       { ...makeGroupPlayer({ id: 1, lastName: 'Pierwszy' }), finalPosition: 2 } as unknown as GroupPlayer & { player: Player },

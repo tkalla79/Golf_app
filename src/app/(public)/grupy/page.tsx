@@ -72,6 +72,18 @@ export default async function GrupyPage({
 
   const allRounds = season?.rounds ?? []
 
+  // Pre-compute season-cumulative birdies (across all rounds) for this season.
+  // Mini-standings in round 2+ will show full-season birdie totals.
+  const seasonMatchesForBirdies = await prisma.match.findMany({
+    where: { group: { round: { seasonId: selectedSeasonId } }, played: true },
+    select: { player1Id: true, player2Id: true, player1Birdies: true, player2Birdies: true },
+  })
+  const seasonBirdies = new Map<number, number>()
+  for (const m of seasonMatchesForBirdies) {
+    seasonBirdies.set(m.player1Id, (seasonBirdies.get(m.player1Id) ?? 0) + m.player1Birdies)
+    seasonBirdies.set(m.player2Id, (seasonBirdies.get(m.player2Id) ?? 0) + m.player2Birdies)
+  }
+
   // Upcoming scheduled matches for the active season
   const scheduledMatches = activeSeason?.id === selectedSeasonId
     ? await prisma.match.findMany({
@@ -215,7 +227,7 @@ export default async function GrupyPage({
       {/* Groups grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {selectedRound.groups.map((group) => {
-          const standings = computeStandings(group.players, group.matches)
+          const standings = computeStandings(group.players, group.matches, seasonBirdies)
           const playedCount = group.matches.filter((m) => m.played).length
           const totalMatches = group.matches.length
 

@@ -52,7 +52,14 @@ type GroupPlayerWithPlayer = GroupPlayer & {
  */
 export function computeStandings(
   groupPlayers: GroupPlayerWithPlayer[],
-  matches: MatchWithPlayers[]
+  matches: MatchWithPlayers[],
+  /**
+   * Optional map of playerId → season-cumulative birdie count.
+   * When provided, the `birdies` field in the result reflects season totals
+   * (R1 + R2 + ...) instead of just current round. Used in rounds 2+ so the
+   * birdie column shows player's full-season tally.
+   */
+  seasonBirdies?: Map<number, number>,
 ): PlayerStanding[] {
   const standings: Map<number, PlayerStanding> = new Map()
 
@@ -88,8 +95,12 @@ export function computeStandings(
     p2.bigPoints += Number(match.player2BigPoints)
     p1.smallPoints += match.player1SmallPoints
     p2.smallPoints += match.player2SmallPoints
-    p1.birdies += match.player1Birdies
-    p2.birdies += match.player2Birdies
+    // Birdies: only accumulate per-round if seasonBirdies map is NOT provided.
+    // Otherwise we overwrite below with season-cumulative totals.
+    if (!seasonBirdies) {
+      p1.birdies += match.player1Birdies
+      p2.birdies += match.player2Birdies
+    }
 
     if (match.winnerId === match.player1Id) {
       p1.won++
@@ -100,6 +111,13 @@ export function computeStandings(
     } else {
       p1.drawn++
       p2.drawn++
+    }
+  }
+
+  // Overwrite birdies with season-cumulative totals when provided (Sekcja 2 / round 2+)
+  if (seasonBirdies) {
+    for (const standing of standings.values()) {
+      standing.birdies = seasonBirdies.get(standing.playerId) ?? 0
     }
   }
 

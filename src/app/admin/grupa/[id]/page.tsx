@@ -325,8 +325,8 @@ export default function AdminGroupPage({
 
       {/* Result entry modal */}
       {editingMatch && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="card p-8 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/60 flex items-start sm:items-center justify-center z-50 p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="card p-6 sm:p-8 w-full max-w-md my-4 sm:my-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
             <h3 className="text-xl font-bold text-[var(--color-primary)] mb-1" style={{ fontFamily: 'var(--font-raleway), Raleway, sans-serif' }}>
               Wprowadź wynik
             </h3>
