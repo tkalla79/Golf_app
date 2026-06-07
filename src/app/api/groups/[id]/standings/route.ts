@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { computeStandings } from '@/lib/standings'
+import { getSeasonBirdies } from '@/lib/season-birdies'
 
 export async function GET(
   request: NextRequest,
@@ -21,17 +22,7 @@ export async function GET(
     return NextResponse.json({ error: 'Nie znaleziono' }, { status: 404 })
   }
 
-  // Season-cumulative birdies (Sekcja 2): players see total birdies across all rounds.
-  const seasonMatches = await prisma.match.findMany({
-    where: { group: { round: { seasonId: group.round.seasonId } }, played: true },
-    select: { player1Id: true, player2Id: true, player1Birdies: true, player2Birdies: true },
-  })
-  const seasonBirdies = new Map<number, number>()
-  for (const m of seasonMatches) {
-    seasonBirdies.set(m.player1Id, (seasonBirdies.get(m.player1Id) ?? 0) + m.player1Birdies)
-    seasonBirdies.set(m.player2Id, (seasonBirdies.get(m.player2Id) ?? 0) + m.player2Birdies)
-  }
-
+  const seasonBirdies = await getSeasonBirdies(group.round.seasonId)
   const standings = computeStandings(group.players, group.matches, seasonBirdies)
 
   return NextResponse.json(standings)

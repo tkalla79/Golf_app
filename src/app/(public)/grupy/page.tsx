@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { computeStandings } from '@/lib/standings'
+import { getSeasonBirdies } from '@/lib/season-birdies'
 import Link from 'next/link'
 import { PL } from '@/constants/pl'
 import SeasonSelector from '@/components/SeasonSelector'
@@ -72,17 +73,7 @@ export default async function GrupyPage({
 
   const allRounds = season?.rounds ?? []
 
-  // Pre-compute season-cumulative birdies (across all rounds) for this season.
-  // Mini-standings in round 2+ will show full-season birdie totals.
-  const seasonMatchesForBirdies = await prisma.match.findMany({
-    where: { group: { round: { seasonId: selectedSeasonId } }, played: true },
-    select: { player1Id: true, player2Id: true, player1Birdies: true, player2Birdies: true },
-  })
-  const seasonBirdies = new Map<number, number>()
-  for (const m of seasonMatchesForBirdies) {
-    seasonBirdies.set(m.player1Id, (seasonBirdies.get(m.player1Id) ?? 0) + m.player1Birdies)
-    seasonBirdies.set(m.player2Id, (seasonBirdies.get(m.player2Id) ?? 0) + m.player2Birdies)
-  }
+  const seasonBirdies = await getSeasonBirdies(selectedSeasonId)
 
   // Upcoming scheduled matches for the active season
   const scheduledMatches = activeSeason?.id === selectedSeasonId

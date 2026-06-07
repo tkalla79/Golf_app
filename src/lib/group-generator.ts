@@ -60,11 +60,13 @@ export async function generateNextRoundGroups(roundId: number) {
 
 /**
  * Generate groups for rounds 3+ using promotion/relegation:
- * - Positions 1-2: promote one group up (stay if already in A)
+ * - Positions 1-2: promote one group up (stay if already top)
  * - Position 3: stays in same group
- * - Positions 4-5: relegate one group down (stay if already in last group)
+ * - Positions 4-5: relegate one group down (stay if already bottom)
  *
- * Groups must be named "Grupa A", "Grupa B", etc. for this to work.
+ * Group ordering follows `sortOrder` (index in ASC-sorted array), not name —
+ * top group has lowest index. New groups are named "Grupa 1, 2, …" (matches
+ * `generateNextRoundGroups`; numeric names avoid mobile UX confusion at J=10).
  */
 export async function generatePromotionRelegation(roundId: number) {
   const round = await prisma.round.findUnique({
@@ -83,7 +85,6 @@ export async function generatePromotionRelegation(roundId: number) {
 
   if (!round) throw new Error('Runda nie znaleziona')
 
-  const groupLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
   const numGroups = round.groups.length
 
   // Compute standings for each group, indexed by sortOrder
@@ -125,7 +126,7 @@ export async function generatePromotionRelegation(roundId: number) {
   // Build result array with balance warnings
   const targetSize = Math.round(groupStandings.reduce((sum, g) => sum + g.standings.length, 0) / numGroups)
   const newGroups = newGroupPlayers.map((players, i) => ({
-    name: `Grupa ${groupLetters[i] || i + 1}`,
+    name: `Grupa ${i + 1}`,
     players,
     warning: players.length !== targetSize
       ? `Nierówna liczba graczy (${players.length} zamiast ${targetSize}) - sprawdź i skoryguj ręcznie`
