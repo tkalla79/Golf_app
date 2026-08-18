@@ -1,6 +1,39 @@
 # Don Papa Match Play — Co zostało do zrobienia
 
-**Ostatnia aktualizacja:** 3 czerwca 2026 (5 poprawek po feedbacku + BUG #3 bestFinish)
+**Ostatnia aktualizacja:** 18 sierpnia 2026 (seeding playoff 2026)
+
+---
+
+## 🆕 2026-08-18 — Seeding fazy playoff 2026 (do wdrożenia)
+
+**Kontekst:** Faza zasadnicza zakończona (Runda 4, 10 grup × 5 graczy = 50 zawodników). Trzeba rozstawić 48 do 3 drabinek playoff. Deadline R1: **06.09.2026** (Regulamin §IV.2).
+
+**⚠️ WAŻNE:** `computeGlobalRanking` w [src/lib/playoff.ts](src/lib/playoff.ts) daje INNY ranking niż uzgodniony z Zarządem — sortuje BP→SP→HCP zamiast używać hierarchii grup Runda 4 (Grupa 1 = najsilniejsza … Grupa 10 = najsłabsza) z interleavingiem między sąsiednimi grupami. **NIE naciskaj "Utwórz playoff" w panelu** `/admin/playoff` — utworzy złe pary (np. R. Warnecki wyszedłby #1 zamiast #39). Użyj skryptu.
+
+**Gotowe:**
+- ✅ Skrypt seedujący: [scripts/seed-playoff-2026.ts](scripts/seed-playoff-2026.ts) — hardkodowany `RANK_MATRIX`, nie używa `computeGlobalRanking`
+- ✅ Instrukcja + macierz seedingu + Metoda B (backup przez API): [DOCS/playoff-2026-seeding.md](DOCS/playoff-2026-seeding.md)
+- ✅ Zweryfikowany ranking 1-48 i 24 pary R1 (sanity check przez sumy seeds per drabinka: 17 / 49 / 81)
+- ✅ 11 walidacji przed zapisem (m.in. `roundNumber === 4`, wszystkie mecze zagrane, `finalPosition = {1..5}`, unikalny `sortOrder`, race-check w transakcji)
+
+**Pozostało (1 krok — na produkcji):**
+
+```bash
+ssh -i .ssh/karolinkagolfpark root@209.38.211.80
+cd /root/Golf_app && git pull
+docker compose --env-file .env up -d --build app
+
+# Preview (nic nie zapisuje — wypisze ranking 1-48 + 24 pary):
+docker compose --env-file .env run --rm app npx tsx scripts/seed-playoff-2026.ts --dry-run
+
+# Realny zapis po weryfikacji outputu:
+docker compose --env-file .env run --rm app npx tsx scripts/seed-playoff-2026.ts
+```
+
+Flaga `--force` nadpisuje istniejącą rundę playoff (cascade delete — nie używać gdy są rozegrane mecze).
+
+**Po sezonie 2026 — do rozważenia:**
+- [ ] Przepisać `computeGlobalRanking` na logikę hierarchii grup + interleaving, żeby panel `/admin/playoff` produkował poprawne pary automatycznie. Wtedy `seed-playoff-2026.ts` można wyrzucić.
 
 ---
 
