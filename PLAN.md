@@ -21,7 +21,7 @@ Aplikacja webowa do zarządzania rozgrywkami ligowymi "Don Papa Match Play" w Ka
 | **Auth admin** | NextAuth.js v5 (Credentials provider) |
 | **Auth gracz** | Magic link via email (Brevo SMTP) + JWT cookie |
 | **Baza** | MySQL 8 |
-| **Deploy** | Docker (build lokalnie) + Caddy (SSL) na Scaleway VPS |
+| **Deploy** | Docker (build lokalnie) + Caddy (SSL) na DigitalOcean Droplet |
 | **Branding** | Kolory Karolinki (#134a56, #d5b665), fonty Raleway + Lato |
 
 ---
