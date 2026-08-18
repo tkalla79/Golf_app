@@ -8,6 +8,37 @@
 - **SSH key:** `.ssh/karolinkagolfpark` (w katalogu projektu, ten sam co do GitHub)
 - **Repo:** git@github.com:tkalla79/Golf_app.git
 
+### ⚠️ Klucz SSH nie jest w repo
+
+`.gitignore` wyklucza katalog `.ssh/`, więc klucz **nie przychodzi ze świeżym klonem**. Na nowej maszynie polecenia z tego dokumentu wywalą się na `Identity file .ssh/karolinkagolfpark not accessible: No such file or directory`.
+
+Skopiuj klucz bezpośrednio z maszyny, która go ma (AirDrop, `scp` po LAN, pendrive) — nigdy przez czat, e-mail czy repo. Potem:
+
+```bash
+chmod 600 .ssh/karolinkagolfpark
+```
+
+Wygodniej raz dodać wpis do `~/.ssh/config` i używać `ssh donpapa`:
+
+```
+Host donpapa
+    HostName 209.38.211.80
+    User root
+    IdentityFile ~/.ssh/karolinkagolfpark
+```
+
+### Diagnostyka: `Operation timed out` na porcie 22
+
+Timeout (a nie `Permission denied` ani `Connection refused`) oznacza, że pakiety są dropowane przez firewall — to **nie** problem klucza. Sprawdzone 18.08.2026: port 443 i 80 otwarte, port 22 filtrowany.
+
+Kolejność sprawdzania:
+
+1. Panel DigitalOcean → Networking → Firewalls — czy reguła inbound dopuszcza port 22 i czy nie jest zawężona do starego IP (`curl -s https://ifconfig.me` pokaże obecne)
+2. Konsola recovery DO (Droplet → Access → Launch Droplet Console) działa **bez SSH**. Tam: `ufw status`, `fail2ban-client status sshd`, `systemctl status sshd`
+3. Ban od fail2ban: `fail2ban-client set sshd unbanip <IP>`
+
+Aplikacja i panel admina działają po HTTPS niezależnie od SSH, więc operacje przez UI (`/admin`) są dostępne cały czas.
+
 ## Szybki deploy (po zmianach w kodzie)
 
 **UWAGA: Serwer ma za mało RAM na budowanie obrazów. Budujemy lokalnie i wrzucamy gotowe.**

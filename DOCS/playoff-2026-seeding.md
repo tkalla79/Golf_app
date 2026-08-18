@@ -1,26 +1,44 @@
-# Playoff 2026 — seeding, skrypt, instrukcja manualna
+# Playoff 2026 — seeding i rozstawienie
 
-**Data:** 2026-08-18  •  **Status:** przygotowane, gotowe do deployu na produkcji
+**Zatwierdzone:** 18 sierpnia 2026 przez Zarząd Ligi  •  **Deadline Rundy 1:** 06.09.2026 (Regulamin §IV.2)
 
 ## Kontekst
 
-Faza zasadnicza sezonu 2026 się zakończyła. Wynik: 10 grup po 5 zawodników (Runda 4).
-Trzeba rozstawić 48 z 50 zawodników do 3 drabinek playoff (`1-16`, `17-32`, `33-48`).
+Po fazie zasadniczej (Runda 4, **10 grup × 5 zawodników = 50**) rozstawiamy 48 zawodników do 3 drabinek playoff. Dwóch ostatnich z najsłabszej grupy nie awansuje.
 
-Regulamin §IV mówi:
-- Drabinka 1-16: 18 dołków, "Pierwsza Liga Playoff"
-- Drabinka 17-32: 9 lub 18 dołków (uzgodnienie graczy), "Druga Liga Playoff"
-- Drabinka 33-48: 9 dołków, "Trzecia Liga Playoff"
-- Pairing R1 w każdej drabince: `1v16 | 8v9 | 4v13 | 5v12 | 2v15 | 7v10 | 3v14 | 6v11` (te same seedy przesunięte o 16 dla drabinek 2 i 3)
-- Deadline R1: **06.09.2026**
+| Drabinka | Dołki | Nazwa w systemie |
+|---|---|---|
+| 1–16 | 18 | Pierwsza Liga Playoff |
+| 17–32 | 9 lub 18 (uzgodnienie graczy) | Druga Liga Playoff |
+| 33–48 | 9 | Trzecia Liga Playoff |
 
-## ⚠️ Ranking Tomka vs `computeGlobalRanking`
+Pairing Rundy 1 w każdej drabince (Regulamin §IV.1): `1v16 | 8v9 | 4v13 | 5v12` (górna połowa) oraz `2v15 | 7v10 | 3v14 | 6v11` (dolna). Dla drabinek 2 i 3 te same wzory przesunięte o 16 i 32.
 
-**Uwaga krytyczna:** funkcja `computeGlobalRanking` w [src/lib/playoff.ts](src/lib/playoff.ts:190) sortuje ranking przez `positionInGroup → BP desc → SP desc → HCP desc`. To daje INNY ranking niż uzgodniony z Tomkiem.
+Każda drabinka to 4 rundy × 8 meczów = 32 mecze. Każdy zawodnik gra dokładnie 4 mecze i kończy z definitywnym miejscem — przegrani spadają do drabinek o niższe lokaty, nikt nie odpada. Mapa przepływu jest w `MATCH_FEEDS` ([src/lib/playoff.ts](../src/lib/playoff.ts)), a `autoAdvancePlayoff` tworzy mecze kolejnej rundy automatycznie po zapisaniu wyniku.
 
-Przykład: Robert Warnecki miał 12 BP i +25 SP w Grupie 9. Wg `computeGlobalRanking` byłby **#1**. Wg rankingu Tomka jest **#39** (bo wygrał Grupę 9, a Grupa 9 to strefa 3. drabinki).
+## Reguła rozstawienia
 
-**Ranking Tomka** opiera się na **hierarchii grup Runda 4** (G1 = najsilniejsza, G10 = najsłabsza) z interleavingiem między sąsiednimi grupami:
+Kolejność seedów to **projekcja systemu awansów i spadków o jedną rundę w przód**.
+
+Reguła awansów/spadków z fazy grupowej (`generatePromotionRelegation` w [src/lib/group-generator.ts](../src/lib/group-generator.ts)): pozycje 1–2 awansują o grupę wyżej, pozycja 3 zostaje, pozycje 4–5 spadają o grupę niżej. Gdyby po Rundzie 4 rozegrać jeszcze jedną rundę, grupy wyglądałyby tak — i to wyznacza seedy:
+
+| Wirtualna grupa | Skład (w kolejności) | Seedy |
+|---|---|---|
+| 1 | G1p1, G1p2, G1p3, **G2p1, G2p2** | 1–5 |
+| 2 | **G1p4, G1p5**, G2p3, **G3p1, G3p2** | 6–10 |
+| 3 | **G2p4, G2p5**, G3p3, **G4p1, G4p2** | 11–15 |
+| 4 | **G3p4, G3p5**, G4p3, **G5p1, G5p2** | 16–20 |
+| … | … | … |
+| 10 | **G9p4, G9p5**, G10p3, *(G10p4, G10p5)* | 46–48, *49–50* |
+
+Kolejność wewnątrz wirtualnej grupy: **spadkowicze z góry → ten kto został → awansujący z dołu**.
+
+Konsekwencje, które mogą zaskoczyć:
+
+- **Zwycięzca słabszej grupy nie przeskakuje hierarchii.** Robert Warnecki wygrał Grupę 9 z najlepszym bilansem w całej lidze (12 pkt, +25 małych) i ma seed **39**, bo Grupa 9 leży w strefie trzeciej drabinki.
+- **4. i 5. miejsce Grupy 1 (seedy 6, 7) są wyżej niż 3. miejsce Grupy 2 (seed 8)** — ale niżej niż 1–2 miejsce Grupy 2 (seedy 4, 5).
+
+Ta sama macierz zapisana per grupa i pozycja:
 
 |          | pos1 | pos2 | pos3 | pos4 | pos5 |
 |----------|------|------|------|------|------|
@@ -35,145 +53,66 @@ Przykład: Robert Warnecki miał 12 BP i +25 SP w Grupie 9. Wg `computeGlobalRan
 | Grupa 9  |  39  |  40  |  43  |  46  |  47  |
 | Grupa 10 |  44  |  45  |  48  |  ×   |  ×   |
 
-Wzór interleavingu:
-- G1 pos 1-3 → seeds 1-3 (start)
-- dla każdej pary (Gn, Gn+1):
-  - G(n+1) pos 1,2 wchodzą MIĘDZY pos 3 a pos 4,5 Gn
-  - Potem G(n) pos 4,5
-  - Potem G(n+1) pos 3
-- G10 pos 4,5 → poza playoff (2 z 50)
+## Gdzie to jest w kodzie
 
-**Konsekwencja:** ⚠️ **NIE naciskaj przycisku "Utwórz playoff"** w panelu `/admin/playoff` — użyje `computeGlobalRanking` i utworzy ZŁE pary. Użyj skryptu poniżej.
+| Element | Miejsce |
+|---|---|
+| Algorytm kolejności | `buildPlayoffSeedOrder` w [src/lib/playoff.ts](../src/lib/playoff.ts) — funkcja czysta, bez bazy |
+| Ranking z bazy | `computeGlobalRanking` w tym samym pliku — liczy tabele grup i podaje je do `buildPlayoffSeedOrder` |
+| Kontrakt (testy) | [src/__tests__/playoff-seeding.test.ts](../src/__tests__/playoff-seeding.test.ts) — asertuje wszystkie 48 seedów i 24 pary R1 |
+| Panel admina | `/admin/playoff` → przycisk „Utwórz playoff" (API [create/route.ts](../src/app/api/admin/playoff/create/route.ts)) |
+| Skrypt CLI | [scripts/seed-playoff-2026.ts](../scripts/seed-playoff-2026.ts) |
 
-## Metoda A — Skrypt na produkcji (rekomendowana)
+**Panel i skrypt używają tej samej funkcji**, więc dają identyczne pary. Testy blokują kolejność — jeśli ktoś zmieni logikę seedowania, `npm test` padnie.
 
-Skrypt: [scripts/seed-playoff-2026.ts](../scripts/seed-playoff-2026.ts). Hardcoded ma `RANK_MATRIX` (macierz powyżej), więc nie polega na `computeGlobalRanking`. Czyta ostatnią rundę ROUND_ROBIN z bazy i mapuje `(groupIndex, positionInGroup) → seed 1-48`.
+> **Historyczne:** do 18.08.2026 `computeGlobalRanking` sortowało przez duże punkty → małe punkty → HCP, co dawało inny ranking (Warnecki wychodził #1 zamiast #39). Panel admina tworzył wtedy złe pary. Naprawione — panelu można używać normalnie.
 
-### Kroki
+## Warunki, które muszą być spełnione przed seedingiem
+
+Skrypt sprawdza je wszystkie i odmawia zapisu, jeśli którykolwiek nie jest spełniony:
+
+1. Sezon 2026 ze statusem `ACTIVE`
+2. Ostatnia runda `ROUND_ROBIN` ma `roundNumber === 4` i status `COMPLETED` lub `ACTIVE`
+3. **Wszystkie mecze fazy zasadniczej rozegrane** — bez tego tabele nie są ostateczne
+4. Dokładnie 10 grup, `sortOrder` unikalny (wyznacza hierarchię: sortOrder 0 = Grupa 1 = najsilniejsza)
+5. Każda grupa ma 5 zawodników
+6. `computeGlobalRanking` zwraca 50 zawodników, z tego 48 z seedami 1–48
+7. **Cross-check:** ranking z funkcji zgadza się z zatwierdzoną macierzą `RANK_MATRIX` w skrypcie (50/50 pozycji)
+8. Nie istnieje jeszcze runda `PLAYOFF` w sezonie (chyba że `--force`)
+9. Powtórzony test punktu 8 wewnątrz transakcji — chroni przed race condition z panelem admina
+
+## Metoda A — panel admina (najprostsza, bez SSH)
+
+1. Zaloguj się na https://donpapagolf.pl/admin
+2. Wejdź na `/admin/playoff`
+3. Sprawdź wyświetlony podział na drabinki — powinien odpowiadać macierzy powyżej
+4. Klik **„Utwórz playoff"**
+5. Zweryfikuj pary na `/playoff`
+
+Panel po naprawie z 18.08.2026 używa poprawnej reguły, więc nie trzeba niczego nadpisywać.
+
+## Metoda B — skrypt CLI (wymaga SSH)
+
+Daje pełny podgląd rankingu i par przed zapisem oraz cross-check z zatwierdzoną macierzą.
 
 ```bash
-# 1) SSH na serwer
-ssh -i .ssh/karolinkagolfpark root@209.38.211.80
-cd /root/Golf_app
-
-# 2) Pull kodu (skrypt + docs + TODO w tym commicie)
-git pull
-
-# 3) Rebuild obrazu (żeby kontener miał nowy plik seed-playoff-2026.ts)
+ssh donpapa                     # patrz DEPLOY.md — konfiguracja klucza i diagnostyka portu 22
+cd /root/Golf_app && git pull
 docker compose --env-file .env up -d --build app
 
-# 4) DRY-RUN — wypisze ranking 1-48 i 24 pary, nic nie zapisze
+# Podgląd — wypisuje ranking 1-48 i 24 pary, nic nie zapisuje:
 docker compose --env-file .env run --rm app \
   npx tsx scripts/seed-playoff-2026.ts --dry-run
 
-# 5) Zweryfikuj wypisany ranking z zawodnikami (imiona muszą się zgadzać)
-#    Sprawdź czy 24 pary są takie jak w tym docsie
-
-# 6) REALNY zapis (utworzy 1 rundę PLAYOFF + 3 grupy + 48 GroupPlayer + 24 Match)
+# Zapis po weryfikacji outputu:
 docker compose --env-file .env run --rm app \
   npx tsx scripts/seed-playoff-2026.ts
 ```
 
-Po realnym zapisie sprawdź w przeglądarce:
-- https://donpapagolf.pl/playoff — widok publiczny
-- https://donpapagolf.pl/admin/playoff — widok admina (wymaga logowania)
+Flaga `--force` usuwa istniejącą rundę playoff i tworzy ją od nowa. Kasuje **wszystkie mecze playoff** (cascade delete) — nie używać, gdy są już rozegrane wyniki.
 
-### Awaryjnie: nadpisanie istniejącej rundy playoff
+## ⚠️ Do zrobienia przed końcem playoff (31.10.2026)
 
-Jeśli utworzyłeś playoff wcześniej (np. przypadkowo w panelu przez `computeGlobalRanking`), skasuj i uruchom seed od nowa:
+`finalPosition` na `GroupPlayer` w grupach playoff przechowuje **seed** (1–48), nie końcowe miejsce. Po zakończeniu drabinek statystyki kariery i Galeria Sław pokażą seedy zamiast wyników — gracz, który wygra playoff jako seed #5, będzie miał „Najlepsza pozycja: 5".
 
-```bash
-docker compose --env-file .env run --rm app \
-  npx tsx scripts/seed-playoff-2026.ts --force
-```
-
-⚠️ `--force` **kasuje istniejącą rundę PLAYOFF** wraz ze wszystkimi grupami i meczami (cascade delete). Nie używaj jeśli są już rozegrane mecze!
-
-## Metoda B — Manualne wprowadzenie przez API (backup)
-
-Jeśli skrypt nie działa (np. z powodów sieciowych albo problemów z tsx), można wywołać istniejące API `/api/admin/playoff/create` z `overrides` (mapa `rank → playerId`). Każdy override "przesuwa" gracza na docelową pozycję poprzez swap w rankingu.
-
-⚠️ Wymaga zalogowania jako admin i znalezienia `playerId` każdego z 48 zawodników w bazie (`SELECT id, first_name, last_name FROM players WHERE active=1 AND is_historical=0`).
-
-Kroki:
-
-1. Zaloguj się do `/admin` (codelabs / hardbeans / k2biznes)
-2. Otwórz DevTools → Console w przeglądarce, mając otwarte `/admin/playoff`
-3. Skopiuj `playerId` dla każdego z 48 zawodników z tabeli `players`
-4. Odpal w Console:
-
-```javascript
-const overrides = {
-  1: /* Kacper Glinka playerId */,
-  2: /* Sebastian Szot playerId */,
-  3: /* Remigiusz Wiśniewski playerId */,
-  4: /* Michał Łowiński playerId */,
-  5: /* Tomek Śleziak playerId */,
-  6: /* Janusz Zieliński playerId */,
-  7: /* Jerzy Górski playerId */,
-  8: /* Jakub Michalak playerId */,
-  9: /* Fabio Szic playerId */,
-  10: /* Dominik Weidinger playerId */,
-  11: /* Krzysztof Łukasiuk playerId */,
-  12: /* Grzegorz Ptak playerId */,
-  13: /* Maciej Ślusarczyk playerId */,
-  14: /* Maciej Skucik playerId */,
-  15: /* Krzysztof Wingert playerId */,
-  16: /* Artur Kiowski playerId */,
-  17: /* Marek Klyk playerId */,
-  18: /* Wojciech Szwedowski playerId */,
-  19: /* Jakub Krok playerId */,
-  20: /* Zbigniew Marciniak playerId */,
-  21: /* Jacek Wróbel playerId */,
-  22: /* Paweł Ślusarczyk playerId */,
-  23: /* Jacek Stadnicki playerId */,
-  24: /* Wojciech Stelmach playerId */,
-  25: /* Sylwester Sienkiewicz playerId */,
-  26: /* Wojciech Stefanik playerId */,
-  27: /* Roman Staś playerId */,
-  28: /* Grzegorz Możdżonek playerId */,
-  29: /* Radosław Grek playerId */,
-  30: /* Rafał Stolarczyk playerId */,
-  31: /* Marcin Kucia playerId */,
-  32: /* Ryszard Michalewski playerId */,
-  33: /* Krzysztof Kozłowski playerId */,
-  34: /* Tomasz Len playerId */,
-  35: /* Łukasz Cieplik playerId */,
-  36: /* Mirosław Domagała playerId */,
-  37: /* Mateusz Tymich playerId */,
-  38: /* Ludwik Kownacki playerId */,
-  39: /* Robert Warnecki playerId */,
-  40: /* Aleksander Sitko playerId */,
-  41: /* Mariusz Boruszek playerId */,
-  42: /* Łukasz Lachowski playerId */,
-  43: /* Tomasz Tarkowski playerId */,
-  44: /* Marcin Szemainda playerId */,
-  45: /* Marek Turski playerId */,
-  46: /* Bartłomiej Czarnotta playerId */,
-  47: /* Piotr Glinka playerId */,
-  48: /* Grzegorz Czudaj playerId */,
-}
-
-const seasonRes = await fetch('/api/seasons/current')
-const season = await seasonRes.json()
-
-const res = await fetch('/api/admin/playoff/create', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ seasonId: season.id, overrides }),
-})
-console.log(await res.json())
-```
-
-To wywoła istniejące API, które (a) pobiera ranking z `computeGlobalRanking`, (b) wykonuje 48 swapów aby ustawić Twoich zawodników na docelowych pozycjach, (c) tworzy rundę + 3 grupy + 24 mecze R1.
-
-## Referencje
-
-- Regulamin ligi 2026 (§IV): [DOCS/Regulamin Rozgrywek Ligi Don Papa Match Play 2026.docx](Regulamin%20Rozgrywek%20Ligi%20Don%20Papa%20Match%20Play%202026.docx)
-- Kod playoff: [src/lib/playoff.ts](../src/lib/playoff.ts) — `BRACKET_SEEDS`, `MATCH_FEEDS`, `autoAdvancePlayoff`, `computeGlobalRanking`
-- Admin panel: [src/app/admin/playoff/page.tsx](../src/app/admin/playoff/page.tsx)
-- API create: [src/app/api/admin/playoff/create/route.ts](../src/app/api/admin/playoff/create/route.ts)
-
-## Do rozważenia po sezonie 2026
-
-`computeGlobalRanking` produkuje INNY ranking niż Tomek faktycznie stosuje. To potencjalna **luka techniczna** w kodzie — jeśli w Ligi 2027+ format seedingu zostanie ten sam (hierarchia grup + interleaving), warto przepisać `computeGlobalRanking` na tę logikę, żeby panel `/admin/playoff` "z automatu" produkował poprawne pary. Wtedy ten skrypt seedowy stanie się zbędny.
+Szczegóły i plan naprawy: TODO.md, sekcja *„Odłożone — latent issues"*, punkt 1. Potrzebny endpoint `finalize`, który po zamknięciu drabinek przepisze `finalPosition` na faktyczne lokaty. Uwaga przy implementacji: `buildBracketSlots` czyta to samo pole jako seed do wyświetlenia drabinki ([playoff.ts](../src/lib/playoff.ts)), więc nie można go po prostu nadpisać bez zmiany widoku.

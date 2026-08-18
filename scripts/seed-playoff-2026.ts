@@ -3,10 +3,14 @@
  * Seed Playoff 2026 — tworzy rundę PLAYOFF z 3 drabinkami (1-16, 17-32, 33-48)
  * w aktywnym sezonie 2026 na podstawie wyników fazy zasadniczej (10 grup × 5 graczy).
  *
- * Ranking 1-48 używa HIERARCHII GRUP Runda 4 z interleavingiem między sąsiednimi
- * grupami (schemat Tomka — patrz DOCS/playoff-2026-seeding.md). Skrypt CELOWO
- * NIE używa `computeGlobalRanking` z src/lib/playoff.ts, bo ta funkcja sortuje
- * przez BP→SP→HCP i daje INNE pary niż uzgodnione (np. R. Warnecki na #1 zamiast #39).
+ * Ranking liczy `computeGlobalRanking` z src/lib/playoff.ts — projekcja systemu
+ * awansów i spadków o rundę w przód (`buildPlayoffSeedOrder`). Ta sama funkcja
+ * napędza panel /admin/playoff, więc skrypt i przycisk w UI dają IDENTYCZNE pary.
+ * Kolejność zatwierdzona przez Zarząd jest zablokowana testem
+ * src/__tests__/playoff-seeding.test.ts.
+ *
+ * Skrypt dodatkowo weryfikuje ranking względem macierzy RANK_MATRIX (zapis
+ * zatwierdzonej kolejności) i odmawia zapisu przy jakiejkolwiek rozbieżności.
  *
  * Odpalanie na produkcji:
  *   ssh -i .ssh/karolinkagolfpark root@209.38.211.80
@@ -28,20 +32,20 @@ import {
   BRACKET_NAMES,
   BRACKET_HOLES,
   BRACKET_DISPLAY_NAMES,
+  computeGlobalRanking,
 } from '../src/lib/playoff'
 
 const prisma = new PrismaClient()
 
 /**
- * Ranking Tomka: RANK_MATRIX[groupIndex 0-9][positionInGroup 0-4] = globalSeed (1-48) lub null (poza playoff).
+ * Zatwierdzona przez Zarząd kolejność seedów dla Rundy 4 2026, jako macierz
+ * RANK_MATRIX[groupIndex 0-9][positionInGroup 0-4] = globalSeed (1-48) lub null (poza playoff).
  *
- * Wzór interleavingu (opisany szczegółowo w DOCS/playoff-2026-seeding.md):
- *   - G1 pos 1-3 → seeds 1-3
- *   - dla każdej pary sąsiednich grup (Gn, Gn+1):
- *       G(n+1) pos 1,2 → wchodzą MIĘDZY pos 3 a pos 4,5 Gn
- *       G(n) pos 4,5 → po nich
- *       G(n+1) pos 3 → po pos 4,5 Gn
- *   - G10 pos 4,5 → poza playoff (2 miejsca z 50 → 48)
+ * Służy TYLKO do weryfikacji — ranking wyznacza `computeGlobalRanking`. Jeśli funkcja
+ * i macierz się rozjadą, skrypt przerywa pracę zamiast zapisać złe pary.
+ *
+ * Kolejność wynika z projekcji awansów i spadków (patrz buildPlayoffSeedOrder):
+ * awansujący z grupy niżej → spadkowicze z grupy wyżej → ten kto został.
  */
 const RANK_MATRIX: (number | null)[][] = [
   //  pos1  pos2  pos3  pos4  pos5
@@ -165,63 +169,78 @@ async function main() {
     )
   }
 
-  // 4. Budowa rankingu 1-48 wg RANK_MATRIX
-  const seedToPlayer = new Map<number, RankedPlayer>()
-  const outsidePlayoff: string[] = []
-
-  for (let gIdx = 0; gIdx < 10; gIdx++) {
-    const group = lastRR.groups[gIdx]
+  // Walidacja obsady: 10 grup × 5 zawodników
+  for (const group of lastRR.groups) {
     if (group.players.length !== 5) {
       throw new Error(
-        `Grupa "${group.name}" (gIdx=${gIdx}) ma ${group.players.length} graczy, oczekuję 5. ` +
+        `Grupa "${group.name}" ma ${group.players.length} graczy, oczekuję 5. ` +
         `Zweryfikuj obsadę rundy przed seedingiem.`
       )
     }
-    // Walidacja: finalPosition musi być zbiorem {1,2,3,4,5} w każdej grupie.
-    // Bez tego duplikaty (np. 1,2,3,3,4) dają nieokreśloną kolejność w sort ASC
-    // i cichy zły mapping do RANK_MATRIX.
-    const positions = group.players.map((gp) => gp.finalPosition)
-    const expectedPositions = new Set([1, 2, 3, 4, 5])
-    const actualPositions = new Set(positions)
-    if (
-      positions.some((p) => p === null || p === undefined) ||
-      actualPositions.size !== 5 ||
-      ![...expectedPositions].every((p) => actualPositions.has(p))
-    ) {
-      throw new Error(
-        `Grupa "${group.name}": finalPosition graczy = [${positions.join(', ')}]. ` +
-        `Oczekuję dokładnie {1,2,3,4,5} (unikalne, żadnych null). Sprawdź stan rundy w bazie.`
-      )
+  }
+
+  // 4. Ranking — ta sama funkcja, której używa panel /admin/playoff
+  const ranking = await computeGlobalRanking(season.id)
+
+  if (ranking.length !== 50) {
+    throw new Error(`computeGlobalRanking zwróciło ${ranking.length} zawodników, oczekuję 50 (10 grup × 5).`)
+  }
+
+  const seedToPlayer = new Map<number, RankedPlayer>()
+  const outsidePlayoff: string[] = []
+
+  for (const p of ranking) {
+    const label = `${p.firstName} ${p.lastName}`
+    if (p.rank > 48) {
+      outsidePlayoff.push(`${label} (${p.groupName} pos${p.positionInGroup}, ranking ${p.rank})`)
+      continue
     }
-    for (let pos = 0; pos < 5; pos++) {
-      const gp = group.players[pos]
-      const seed = RANK_MATRIX[gIdx][pos]
-      const label = `${gp.player.firstName} ${gp.player.lastName}`
-      if (seed === null) {
-        outsidePlayoff.push(`${label} (${group.name} pos${pos + 1})`)
-        continue
-      }
-      if (seedToPlayer.has(seed)) {
-        const existing = seedToPlayer.get(seed)!
-        throw new Error(
-          `Duplikat seed ${seed} — konflikt: "${existing.firstName} ${existing.lastName}" vs "${label}"`
-        )
-      }
-      seedToPlayer.set(seed, {
-        seed,
-        playerId: gp.playerId,
-        firstName: gp.player.firstName,
-        lastName: gp.player.lastName,
-        hcpAtStart: gp.hcpAtStart !== null ? Number(gp.hcpAtStart) : null,
-        groupName: group.name,
-        positionInGroup: pos + 1,
-      })
-    }
+    seedToPlayer.set(p.rank, {
+      seed: p.rank,
+      playerId: p.playerId,
+      firstName: p.firstName,
+      lastName: p.lastName,
+      hcpAtStart: p.hcpAtStart !== null ? Number(p.hcpAtStart) : null,
+      groupName: p.groupName,
+      positionInGroup: p.positionInGroup,
+    })
   }
 
   if (seedToPlayer.size !== 48) {
-    throw new Error(`Oczekuję 48 graczy w rankingu, mam ${seedToPlayer.size}. Sprawdź RANK_MATRIX.`)
+    throw new Error(`Zmapowano ${seedToPlayer.size} seedów, oczekuję 48.`)
   }
+
+  // 5. CROSS-CHECK: ranking z funkcji vs zatwierdzona macierz RANK_MATRIX.
+  //    Jeśli ktoś zmieni logikę seedowania, skrypt przerwie zamiast zapisać złe pary.
+  const mismatches: string[] = []
+  for (let gIdx = 0; gIdx < 10; gIdx++) {
+    const group = lastRR.groups[gIdx]
+    for (let pos = 0; pos < 5; pos++) {
+      const gp = group.players[pos]
+      const expectedSeed = RANK_MATRIX[gIdx][pos]
+      const actual = ranking.find((r) => r.playerId === gp.playerId)
+      if (!actual) {
+        mismatches.push(`${gp.player.firstName} ${gp.player.lastName} — brak w rankingu`)
+        continue
+      }
+      const actualSeed = actual.rank <= 48 ? actual.rank : null
+      if (actualSeed !== expectedSeed) {
+        mismatches.push(
+          `${gp.player.firstName} ${gp.player.lastName} (${group.name} pos${pos + 1}): ` +
+          `oczekiwany seed ${expectedSeed ?? 'poza playoff'}, otrzymany ${actualSeed ?? `poza playoff (${actual.rank})`}`
+        )
+      }
+    }
+  }
+  if (mismatches.length > 0) {
+    throw new Error(
+      `Ranking z computeGlobalRanking NIE zgadza się z zatwierdzoną macierzą RANK_MATRIX ` +
+      `(${mismatches.length} rozbieżności):\n  - ${mismatches.join('\n  - ')}\n\n` +
+      `Nic nie zapisano. Sprawdź buildPlayoffSeedOrder w src/lib/playoff.ts ` +
+      `oraz kolejność/obsadę grup w bazie.`
+    )
+  }
+  console.log(`  ✓ Cross-check OK — ranking zgodny z zatwierdzoną macierzą (50/50 pozycji)`)
 
   // 5. Podgląd rankingu
   console.log('\n=== Ranking 1-48 (do playoff) ===')

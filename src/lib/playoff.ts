@@ -209,8 +209,71 @@ export interface RankedPlayer {
 }
 
 /**
+ * Ustala kolejność seedów playoff jako PROJEKCJĘ SYSTEMU AWANSÓW I SPADKÓW
+ * o jedną rundę w przód.
+ *
+ * Reguła awansów/spadków (patrz `generatePromotionRelegation` w group-generator.ts):
+ * pozycje 1-2 awansują o grupę wyżej, pozycja 3 zostaje, pozycje 4-5 spadają o grupę niżej.
+ * Gdyby po fazie zasadniczej rozegrać jeszcze jedną rundę, grupy wyglądałyby tak:
+ *
+ *   Wirtualna Grupa 1: G1p1, G1p2, G1p3, G2p1, G2p2        → seedy 1-5
+ *   Wirtualna Grupa 2: G1p4, G1p5, G2p3, G3p1, G3p2        → seedy 6-10
+ *   Wirtualna Grupa 3: G2p4, G2p5, G3p3, G4p1, G4p2        → seedy 11-15
+ *   …
+ *   Wirtualna Grupa 10: G9p4, G9p5, G10p3, (G10p4, G10p5)  → seedy 46-50
+ *
+ * Kolejność wewnątrz wirtualnej grupy: spadkowicze z góry → ten kto został →
+ * awansujący z dołu. Stąd np. 4. miejsce Grupy 1 (seed 6) jest WYŻEJ niż 3. miejsce
+ * Grupy 2 (seed 8), ale NIŻEJ niż 1-2 miejsce Grupy 2 (seedy 4-5).
+ *
+ * Zwraca WSZYSTKICH zawodników w kolejności seedowania — obsada drabinek bierze
+ * pierwszych 48 (`ranking.slice(0, 16)` / `slice(16, 32)` / `slice(32, 48)`),
+ * reszta zostaje poza playoff.
+ *
+ * @param groupsInStrengthOrder grupy od najsilniejszej (Grupa 1) do najsłabszej,
+ *        każda z zawodnikami już uszeregowanymi wg pozycji w grupie (1, 2, 3, …)
+ */
+export function buildPlayoffSeedOrder<T>(groupsInStrengthOrder: T[][]): T[] {
+  const groupCount = groupsInStrengthOrder.length
+  if (groupCount === 0) return []
+
+  const out: T[] = []
+  const emitted = new Set<T>()
+
+  const at = (g: number, p: number): T | undefined => groupsInStrengthOrder[g]?.[p]
+  const push = (entry: T | undefined) => {
+    if (entry === undefined || emitted.has(entry)) return
+    out.push(entry)
+    emitted.add(entry)
+  }
+
+  // Czoło — pierwsza trójka najsilniejszej grupy (nie ma nikogo nad nią, kto by spadł)
+  push(at(0, 0)); push(at(0, 1)); push(at(0, 2))
+
+  // Cykl po sąsiednich parach grup
+  for (let g = 0; g < groupCount - 1; g++) {
+    push(at(g + 1, 0)); push(at(g + 1, 1)) // awansujący z grupy niżej
+    push(at(g, 3)); push(at(g, 4))         // spadkowicze z grupy wyżej
+    push(at(g + 1, 2))                     // ten kto został w grupie niżej
+  }
+
+  // Ogon — 4-5 miejsce najsłabszej grupy (spadać nie ma gdzie, zostają na dnie)
+  push(at(groupCount - 1, 3)); push(at(groupCount - 1, 4))
+
+  // Bezpiecznik: grupy większe niż 5 osób (np. runda wstępna 5×10). Reguła awansów
+  // definiuje tylko pozycje 1-5, więc pozostałych dopisujemy grupami, żeby nikt
+  // nie wypadł z rankingu po cichu. Przy docelowym 10×5 ta pętla nic nie dodaje.
+  for (const group of groupsInStrengthOrder) {
+    for (const entry of group) push(entry)
+  }
+
+  return out
+}
+
+/**
  * Compute global ranking from the last completed ROUND_ROBIN round.
- * Sort: position in group → BP desc → SP desc → HCP desc (higher HCP = higher rank).
+ * Kolejność wyznacza `buildPlayoffSeedOrder` (projekcja awansów i spadków).
+ * Grupy muszą być posortowane po `sortOrder` rosnąco — sortOrder 0 = Grupa 1 = najsilniejsza.
  */
 export async function computeGlobalRanking(seasonId: number): Promise<RankedPlayer[]> {
   const lastRound = await prisma.round.findFirst({
@@ -233,38 +296,26 @@ export async function computeGlobalRanking(seasonId: number): Promise<RankedPlay
 
   if (!lastRound) return []
 
-  const allPlayers: RankedPlayer[] = []
+  // Grupy w kolejności siły (sortOrder asc), zawodnicy w każdej wg pozycji w grupie
+  const groupsInStrengthOrder: RankedPlayer[][] = lastRound.groups.map((group) =>
+    computeStandings(group.players, group.matches).map((s) => ({
+      rank: 0,
+      playerId: s.playerId,
+      firstName: s.firstName,
+      lastName: s.lastName,
+      slug: s.slug,
+      bigPoints: s.bigPoints,
+      smallPoints: s.smallPoints,
+      hcpAtStart: s.hcpAtStart,
+      groupName: group.name,
+      positionInGroup: s.position,
+    }))
+  )
 
-  for (const group of lastRound.groups) {
-    const standings = computeStandings(group.players, group.matches)
-    for (const s of standings) {
-      allPlayers.push({
-        rank: 0,
-        playerId: s.playerId,
-        firstName: s.firstName,
-        lastName: s.lastName,
-        slug: s.slug,
-        bigPoints: s.bigPoints,
-        smallPoints: s.smallPoints,
-        hcpAtStart: s.hcpAtStart,
-        groupName: group.name,
-        positionInGroup: s.position,
-      })
-    }
-  }
+  const ordered = buildPlayoffSeedOrder(groupsInStrengthOrder)
+  ordered.forEach((p, i) => { p.rank = i + 1 })
 
-  allPlayers.sort((a, b) => {
-    if (a.positionInGroup !== b.positionInGroup) return a.positionInGroup - b.positionInGroup
-    if (b.bigPoints !== a.bigPoints) return b.bigPoints - a.bigPoints
-    if (b.smallPoints !== a.smallPoints) return b.smallPoints - a.smallPoints
-    const aHcp = a.hcpAtStart ?? 0
-    const bHcp = b.hcpAtStart ?? 0
-    return bHcp - aHcp
-  })
-
-  allPlayers.forEach((p, i) => { p.rank = i + 1 })
-
-  return allPlayers
+  return ordered
 }
 
 // ═══ BUILD BRACKET VIEW ═══

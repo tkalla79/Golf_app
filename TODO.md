@@ -4,36 +4,65 @@
 
 ---
 
-## 🆕 2026-08-18 — Seeding fazy playoff 2026 (do wdrożenia)
+## 🆕 2026-08-18 — Seeding playoff 2026 + naprawa `computeGlobalRanking`
 
-**Kontekst:** Faza zasadnicza zakończona (Runda 4, 10 grup × 5 graczy = 50 zawodników). Trzeba rozstawić 48 do 3 drabinek playoff. Deadline R1: **06.09.2026** (Regulamin §IV.2).
+**Kontekst:** Faza zasadnicza to Runda 4 (10 grup × 5 = 50 zawodników). Do 3 drabinek playoff wchodzi 48. Deadline R1: **06.09.2026** (Regulamin §IV.2).
 
-**⚠️ WAŻNE:** `computeGlobalRanking` w [src/lib/playoff.ts](src/lib/playoff.ts) daje INNY ranking niż uzgodniony z Zarządem — sortuje BP→SP→HCP zamiast używać hierarchii grup Runda 4 (Grupa 1 = najsilniejsza … Grupa 10 = najsłabsza) z interleavingiem między sąsiednimi grupami. **NIE naciskaj "Utwórz playoff" w panelu** `/admin/playoff` — utworzy złe pary (np. R. Warnecki wyszedłby #1 zamiast #39). Użyj skryptu.
+### ✅ Naprawiony `computeGlobalRanking` — panel admina działa poprawnie
 
-**Gotowe:**
-- ✅ Skrypt seedujący: [scripts/seed-playoff-2026.ts](scripts/seed-playoff-2026.ts) — hardkodowany `RANK_MATRIX`, nie używa `computeGlobalRanking`
-- ✅ Instrukcja + macierz seedingu + Metoda B (backup przez API): [DOCS/playoff-2026-seeding.md](DOCS/playoff-2026-seeding.md)
-- ✅ Zweryfikowany ranking 1-48 i 24 pary R1 (sanity check przez sumy seeds per drabinka: 17 / 49 / 81)
-- ✅ 11 walidacji przed zapisem (m.in. `roundNumber === 4`, wszystkie mecze zagrane, `finalPosition = {1..5}`, unikalny `sortOrder`, race-check w transakcji)
+Funkcja sortowała przez duże punkty → małe punkty → HCP, co dawało ranking niezgodny z zatwierdzonym przez Zarząd (Warnecki wychodził #1 zamiast #39, bo wygrał Grupę 9 z najlepszym bilansem w lidze). Przycisk „Utwórz playoff" tworzył złe pary.
 
-**Pozostało (1 krok — na produkcji):**
+Prawidłowa reguła to **projekcja systemu awansów i spadków o rundę w przód**: awansujący z grupy niżej → spadkowicze z grupy wyżej → ten kto został. Zaimplementowana jako czysta funkcja `buildPlayoffSeedOrder` — generalizuje się na dowolną liczbę grup, nie ma hardkodowanej tabeli.
+
+- `buildPlayoffSeedOrder` + przepisane `computeGlobalRanking` → [src/lib/playoff.ts](src/lib/playoff.ts)
+- Kontrakt: [src/__tests__/playoff-seeding.test.ts](src/__tests__/playoff-seeding.test.ts) — 13 testów asertujących wszystkie 48 seedów i 24 pary R1
+- **Testy: 52/52 zielone** (12 standings + 27 player-stats + 13 playoff-seeding), `tsc --noEmit` czysty
+- Pełny opis reguły z tabelą: [DOCS/playoff-2026-seeding.md](DOCS/playoff-2026-seeding.md)
+
+Panel `/admin/playoff` i skrypt CLI używają teraz **tej samej funkcji** — identyczne pary. Skrypt dodatkowo cross-checkuje ranking względem zatwierdzonej macierzy i przerywa przy jakiejkolwiek rozbieżności.
+
+### ⛔ BLOCKER: 3 mecze fazy zasadniczej bez wyniku
+
+Sprawdzone na produkcji 18.08.2026 — termin fazy grupowej minął 16.08 (Regulamin §II.1):
+
+| Grupa | Mecz |
+|---|---|
+| 5 | Roman Staś 🆚 Wojciech Stefanik |
+| 10 | Marek Turski 🆚 Grzegorz Czudaj |
+| 10 | Grzegorz Czudaj 🆚 Maciej Plewka |
+
+Skrypt **odmówi zapisu** dopóki są niezagrane mecze (walidacja `unplayedCount > 0`).
+
+**Skład 48 jest matematycznie zamknięty** — Czudaj ma minimum 8 pkt (6 + dwa razy min. 1), a Stelmach jest zablokowany na 6 i Plewka ma maksimum 6. Czyli Czudaj wchodzi, Stelmach i Plewka są poza playoff bez względu na wyniki.
+
+**Ale 5 seedów się waha:**
+- seedy 26 ↔ 27 (Staś / Stefanik) → pary 2. drabinki `23 vs 26` i `22 vs 27`
+- seedy 44, 45, 48 (Szemainda / Turski / Czudaj) → pary 3. drabinki `33 vs 48`, `36 vs 45`, `37 vs 44`
+
+Pozostałe 43 seedy i cała pierwsza drabinka są pewne.
+
+**Decyzja Zarządu — trzy drogi (Regulamin §III.2):**
+1. Spisać jako nierozegrane → *„0 pkt dla obu graczy"* → tabele zostają jak dziś → zatwierdzone pary są poprawne, można seedować od razu
+2. Dogrywka po terminie → przeliczyć 5 seedów
+3. Walkowery → zależnie od tego, kto je dostanie
+
+### 🚀 Po rozstrzygnięciu meczów
+
+Najprościej przez panel: `/admin/playoff` → sprawdź podział → **„Utwórz playoff"** → zweryfikuj na `/playoff`.
+
+Alternatywnie skrypt (pełny podgląd + cross-check, wymaga SSH — patrz [DEPLOY.md](DEPLOY.md)):
 
 ```bash
-ssh -i .ssh/karolinkagolfpark root@209.38.211.80
+ssh donpapa
 cd /root/Golf_app && git pull
 docker compose --env-file .env up -d --build app
-
-# Preview (nic nie zapisuje — wypisze ranking 1-48 + 24 pary):
 docker compose --env-file .env run --rm app npx tsx scripts/seed-playoff-2026.ts --dry-run
-
-# Realny zapis po weryfikacji outputu:
 docker compose --env-file .env run --rm app npx tsx scripts/seed-playoff-2026.ts
 ```
 
-Flaga `--force` nadpisuje istniejącą rundę playoff (cascade delete — nie używać gdy są rozegrane mecze).
+### 📝 Przy okazji
 
-**Po sezonie 2026 — do rozważenia:**
-- [ ] Przepisać `computeGlobalRanking` na logikę hierarchii grup + interleaving, żeby panel `/admin/playoff` produkował poprawne pary automatycznie. Wtedy `seed-playoff-2026.ts` można wyrzucić.
+- **DEPLOY.md**: dopisana sekcja o kluczu SSH (gitignorowany, nie przychodzi z klonem — trzeba skopiować per maszyna) + diagnostyka `Operation timed out` na porcie 22. Stan 18.08.2026: porty 80/443 otwarte, **22 filtrowany** — panel admina po HTTPS działa niezależnie.
 
 ---
 
