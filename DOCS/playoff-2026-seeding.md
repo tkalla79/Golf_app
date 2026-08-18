@@ -73,7 +73,7 @@ Skrypt sprawdza je wszystkie i odmawia zapisu, jeśli którykolwiek nie jest spe
 
 1. Sezon 2026 ze statusem `ACTIVE`
 2. Ostatnia runda `ROUND_ROBIN` ma `roundNumber === 4` i status `COMPLETED` lub `ACTIVE`
-3. **Wszystkie mecze fazy zasadniczej rozegrane** — bez tego tabele nie są ostateczne
+3. **Wyniki kompletne albo faza grupowa formalnie zamknięta.** Mecze bez wyniku same z siebie nie są błędem — Regulamin §III.2 mówi *„Nierozegrany mecz: 0 pkt dla obu graczy"*, a `computeStandings` je pomija, więc tabele są policzone poprawnie. Ryzyko jest inne: przy rundzie `ACTIVE` wynik może jeszcze dojść i przesunąć seedy **po** utworzeniu drabinek. Dlatego mecze bez wyniku są dopuszczalne tylko przy statusie rundy `COMPLETED` (co blokuje też zapis wyników — API 403). Sezon 2026: trzy zaległe mecze spisane jako nierozegrane decyzją Zarządu z 18.08.2026, więc Rundę 4 należy ustawić na `COMPLETED` przed seedingiem
 4. Dokładnie 10 grup, `sortOrder` unikalny (wyznacza hierarchię: sortOrder 0 = Grupa 1 = najsilniejsza)
 5. Każda grupa ma 5 zawodników
 6. `computeGlobalRanking` zwraca 50 zawodników, z tego 48 z seedami 1–48
@@ -83,13 +83,14 @@ Skrypt sprawdza je wszystkie i odmawia zapisu, jeśli którykolwiek nie jest spe
 
 ## Metoda A — panel admina (najprostsza, bez SSH)
 
-1. Zaloguj się na https://donpapagolf.pl/admin
-2. Wejdź na `/admin/playoff`
-3. Sprawdź wyświetlony podział na drabinki — powinien odpowiadać macierzy powyżej
-4. Klik **„Utwórz playoff"**
-5. Zweryfikuj pary na `/playoff`
+1. Ustaw ostatnią rundę fazy grupowej na **COMPLETED** w `/admin/sezon/[id]` (punkt 3 warunków wyżej)
+2. Zaloguj się na https://donpapagolf.pl/admin
+3. Wejdź na `/admin/playoff` — nagłówek **„Podgląd rozstawienia"**
+4. Sprawdź wyświetlony podział na drabinki — powinien odpowiadać macierzy powyżej
+5. Na dole strony (pod trzema kartami, 24 wiersze meczów): **„Zatwierdź i utwórz mecze"**
+6. Zweryfikuj pary na `/playoff`
 
-Panel po naprawie z 18.08.2026 używa poprawnej reguły, więc nie trzeba niczego nadpisywać.
+Panel po naprawie z 18.08.2026 używa poprawnej reguły, więc nie trzeba niczego nadpisywać. Uwaga: panel **nie waliduje** kompletności wyników ani statusu rundy — o punkt 1 trzeba zadbać samemu (skrypt CLI to wymusza).
 
 ## Metoda B — skrypt CLI (wymaga SSH)
 

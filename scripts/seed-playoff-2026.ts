@@ -104,7 +104,14 @@ async function main() {
             orderBy: { finalPosition: 'asc' },
             include: { player: true },
           },
-          matches: { select: { id: true, played: true } },
+          matches: {
+            select: {
+              id: true,
+              played: true,
+              player1: { select: { firstName: true, lastName: true } },
+              player2: { select: { firstName: true, lastName: true } },
+            },
+          },
         },
       },
     },
@@ -122,20 +129,45 @@ async function main() {
     )
   }
 
-  // Walidacja: wszystkie mecze fazy zasadniczej muszą być zagrane.
-  // Bez tego finalPosition może być ustawione ale wyniki niepełne — złe pary R1.
-  const unplayedCount = lastRR.groups.reduce(
-    (sum, g) => sum + g.matches.filter((m) => !m.played).length,
-    0,
+  // Walidacja kompletności wyników.
+  //
+  // Niezagrane mecze same z siebie nie są błędem — Regulamin §III.2 mówi
+  // „Nierozegrany mecz: 0 pkt dla obu graczy", a `computeStandings` pomija je
+  // (`if (!match.played) continue`), więc tabele są policzone poprawnie.
+  //
+  // Ryzyko jest inne: jeśli runda wciąż trwa (ACTIVE), wyniki mogą jeszcze
+  // dojść i przesunąć seedy. Dlatego niezagrane mecze dopuszczamy tylko wtedy,
+  // gdy Zarząd formalnie zamknął fazę grupową, ustawiając rundę na COMPLETED
+  // (to blokuje też wprowadzanie wyników — API zwraca 403).
+  const unplayedMatches = lastRR.groups.flatMap((g) =>
+    g.matches.filter((m) => !m.played).map((m) => ({ group: g.name, match: m }))
   )
   const totalMatches = lastRR.groups.reduce((sum, g) => sum + g.matches.length, 0)
-  if (unplayedCount > 0) {
+
+  if (unplayedMatches.length === 0) {
+    console.log(`  ✓ Wszystkie ${totalMatches} meczów fazy zasadniczej zagrane`)
+  } else if (lastRR.status === 'COMPLETED') {
+    console.log(
+      `  ⚠️  ${unplayedMatches.length}/${totalMatches} meczów bez wyniku, ale runda ma status ` +
+      `COMPLETED — traktuję je jako nierozegrane (0 pkt dla obu, Regulamin §III.2):`
+    )
+    for (const { group, match } of unplayedMatches) {
+      console.log(`       • ${group}: ${match.player1.firstName} ${match.player1.lastName} vs ${match.player2.firstName} ${match.player2.lastName}`)
+    }
+  } else {
     throw new Error(
-      `Runda "${lastRR.name}" ma ${unplayedCount}/${totalMatches} niezagranych meczów. ` +
-      `Zakończ wszystkie mecze przed seedingiem playoff.`
+      `Runda "${lastRR.name}" ma ${unplayedMatches.length}/${totalMatches} meczów bez wyniku, ` +
+      `a jej status to ${lastRR.status}. Dopóki runda jest ACTIVE, wyniki mogą jeszcze dojść ` +
+      `i zmienić rozstawienie.\n\n` +
+      `Jeśli Zarząd zdecydował spisać je jako nierozegrane (0 pkt dla obu, Regulamin §III.2), ` +
+      `ustaw rundę na COMPLETED w /admin/sezon/[id] — to zamknie fazę grupową i zablokuje ` +
+      `wprowadzanie wyników. Potem uruchom skrypt ponownie.\n\n` +
+      `Mecze bez wyniku:\n  - ` +
+      unplayedMatches
+        .map(({ group, match }) => `${group}: ${match.player1.firstName} ${match.player1.lastName} vs ${match.player2.firstName} ${match.player2.lastName}`)
+        .join('\n  - ')
     )
   }
-  console.log(`  ✓ Wszystkie ${totalMatches} meczów fazy zasadniczej zagrane`)
 
   console.log(`\nOstatnia runda RR: "${lastRR.name}" (roundNumber=${lastRR.roundNumber})`)
   console.log(`Znaleziono ${lastRR.groups.length} grup:`)

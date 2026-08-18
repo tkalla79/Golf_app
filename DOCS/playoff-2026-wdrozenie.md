@@ -8,11 +8,9 @@
 
 Funkcja wyznaczająca rozstawienie playoff liczyła je źle — sortowała po punktach zamiast po hierarchii grup. Poprawka jest na `main`, ale produkcja chodzi na starym obrazie, więc przycisk „Zatwierdź i utwórz mecze" w `/admin/playoff` nadal utworzyłby **złe pary**.
 
-## ⛔ NAJPIERW: warunek wstępny
+## ⛔ NAJPIERW: zamknij fazę grupową
 
-**Nie wdrażaj i nie twórz playoff, dopóki wszystkie mecze fazy zasadniczej nie mają wyników.**
-
-Stan na 18.08.2026 — trzy mecze bez wyniku (termin fazy grupowej minął 16.08):
+Trzy mecze Rundy 4 nie zostały rozegrane w terminie (termin minął 16.08.2026):
 
 | Grupa | Mecz |
 |---|---|
@@ -20,11 +18,17 @@ Stan na 18.08.2026 — trzy mecze bez wyniku (termin fazy grupowej minął 16.08
 | 10 | Marek Turski 🆚 Grzegorz Czudaj |
 | 10 | Grzegorz Czudaj 🆚 Maciej Plewka |
 
-Dlaczego to blokuje: skład 48 zawodników jest już przesądzony, ale **5 seedów wciąż się waha** — 26/27 (Staś, Stefanik) oraz 44/45/48 (Szemainda, Turski, Czudaj). To zmienia 5 par pierwszej rundy w drabinkach 2 i 3. Pierwsza drabinka i pozostałe 43 seedy są pewne.
+**Decyzja Zarządu Ligi (18.08.2026): spisane jako nierozegrane.** Zgodnie z Regulaminem §III.2 — *„Nierozegrany mecz: 0 pkt dla obu graczy"*. Nie trzeba nic zmieniać w bazie: `computeStandings` pomija mecze bez wyniku (`if (!match.played) continue`), więc tabele są już policzone prawidłowo. Rozstawienie odpowiada tabelom widocznym dziś na `/grupy`.
 
-Zarząd Ligi decyduje, którą drogą (Regulamin §III.2): dograć zaległe mecze, przyznać walkowery, albo spisać jako nierozegrane (0 pkt dla obu graczy). W trzecim wariancie tabele zostają takie, jak są teraz.
+### Wymagany krok: Runda 4 → COMPLETED
 
-Sam deploy kodu można zrobić wcześniej — to bezpieczne. Blokada dotyczy **tworzenia playoff**.
+Zanim utworzysz playoff, ustaw Rundę 4 na **COMPLETED** w `/admin/sezon/[id]`.
+
+Po co: to formalnie zamyka fazę grupową i blokuje wprowadzanie wyników (API zwraca 403 na próbę zapisu). Dopóki runda ma status `ACTIVE`, ktoś mógłby jeszcze wpisać wynik zaległego meczu i przesunąć rozstawienie już po utworzeniu drabinek.
+
+Skrypt CLI wymusza to wprost — przy statusie `ACTIVE` i meczach bez wyniku odmawia zapisu i wypisuje instrukcję. Panel admina takiej walidacji nie ma, więc **ustaw COMPLETED ręcznie przed kliknięciem przycisku**.
+
+Sam deploy kodu można zrobić w dowolnym momencie — jest bezpieczny i niezależny od tego kroku.
 
 ## Co zmienia commit `21a4239`
 
@@ -89,9 +93,12 @@ Pełna lista wszystkich 24 par jest w testach (`src/__tests__/playoff-seeding.te
 
 ## Utworzenie playoff
 
-Dopiero **po** rozstrzygnięciu trzech zaległych meczów i po weryfikacji powyżej:
+Kolejność ma znaczenie:
 
-`/admin/playoff` → sprawdź pary → **„Zatwierdź i utwórz mecze"** → zweryfikuj na `/playoff`
+1. **Runda 4 → COMPLETED** w `/admin/sezon/[id]` (patrz sekcja na początku — zamyka fazę grupową)
+2. Deploy i weryfikacja jak wyżej (seed 1 = Glinka, seed 39 = Warnecki)
+3. `/admin/playoff` → sprawdź pary → **„Zatwierdź i utwórz mecze"**
+4. Zweryfikuj wynik na `/playoff`
 
 Powstanie jedna runda `PLAYOFF` (roundNumber 99), 3 grupy-drabinki, 48 przypisań zawodników i 24 mecze pierwszej rundy. Kolejne rundy tworzą się automatycznie (`autoAdvancePlayoff`) po wprowadzaniu wyników — dla zwycięzców i przegranych, bo nikt nie odpada.
 

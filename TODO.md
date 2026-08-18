@@ -21,9 +21,9 @@ Prawidłowa reguła to **projekcja systemu awansów i spadków o rundę w przód
 
 Panel `/admin/playoff` i skrypt CLI używają teraz **tej samej funkcji** — identyczne pary. Skrypt dodatkowo cross-checkuje ranking względem zatwierdzonej macierzy i przerywa przy jakiejkolwiek rozbieżności.
 
-### ⛔ BLOCKER: 3 mecze fazy zasadniczej bez wyniku
+### ✅ 3 zaległe mecze — rozstrzygnięte jako nierozegrane
 
-Sprawdzone na produkcji 18.08.2026 — termin fazy grupowej minął 16.08 (Regulamin §II.1):
+Trzy mecze Rundy 4 nie zostały rozegrane w terminie (minął 16.08.2026):
 
 | Grupa | Mecz |
 |---|---|
@@ -31,34 +31,23 @@ Sprawdzone na produkcji 18.08.2026 — termin fazy grupowej minął 16.08 (Regul
 | 10 | Marek Turski 🆚 Grzegorz Czudaj |
 | 10 | Grzegorz Czudaj 🆚 Maciej Plewka |
 
-Skrypt **odmówi zapisu** dopóki są niezagrane mecze (walidacja `unplayedCount > 0`).
+**Decyzja Zarządu (18.08.2026): spisane jako nierozegrane** — Regulamin §III.2, *„0 pkt dla obu graczy"*.
 
-**Skład 48 jest matematycznie zamknięty** — Czudaj ma minimum 8 pkt (6 + dwa razy min. 1), a Stelmach jest zablokowany na 6 i Plewka ma maksimum 6. Czyli Czudaj wchodzi, Stelmach i Plewka są poza playoff bez względu na wyniki.
+Nie wymaga zmian w bazie: `computeStandings` pomija mecze bez wyniku (`if (!match.played) continue`), więc tabele są już poprawne. Rozstawienie odpowiada tabelom na `/grupy`. Skład 48 zawodników był i tak matematycznie zamknięty (Czudaj miał minimum 8 pkt, Stelmach zablokowany na 6, Plewka maksimum 6) — poza playoff zostają **Marcin Stelmach** i **Maciej Plewka**.
 
-**Ale 5 seedów się waha:**
-- seedy 26 ↔ 27 (Staś / Stefanik) → pary 2. drabinki `23 vs 26` i `22 vs 27`
-- seedy 44, 45, 48 (Szemainda / Turski / Czudaj) → pary 3. drabinki `33 vs 48`, `36 vs 45`, `37 vs 44`
+**Wymagany krok przed utworzeniem playoff: Runda 4 → COMPLETED** w `/admin/sezon/[id]`. Formalnie zamyka fazę grupową i blokuje wpisywanie wyników (API 403). Bez tego ktoś mógłby wpisać wynik zaległego meczu po utworzeniu drabinek i rozjechać rozstawienie.
 
-Pozostałe 43 seedy i cała pierwsza drabinka są pewne.
+Skrypt CLI wymusza to wprost — przy `ACTIVE` i meczach bez wyniku odmawia zapisu z instrukcją. Panel takiej walidacji nie ma, więc status trzeba ustawić ręcznie.
 
-**Decyzja Zarządu — trzy drogi (Regulamin §III.2):**
-1. Spisać jako nierozegrane → *„0 pkt dla obu graczy"* → tabele zostają jak dziś → zatwierdzone pary są poprawne, można seedować od razu
-2. Dogrywka po terminie → przeliczyć 5 seedów
-3. Walkowery → zależnie od tego, kto je dostanie
+### 🚀 Kolejność wdrożenia
 
-### 🚀 Po rozstrzygnięciu meczów
+Przekazane do osoby z dostępem do produkcji — instrukcja: [DOCS/playoff-2026-wdrozenie.md](DOCS/playoff-2026-wdrozenie.md)
 
-Najprościej przez panel: `/admin/playoff` → sprawdź podział → **„Utwórz playoff"** → zweryfikuj na `/playoff`.
-
-Alternatywnie skrypt (pełny podgląd + cross-check, wymaga SSH — patrz [DEPLOY.md](DEPLOY.md)):
-
-```bash
-ssh donpapa
-cd /root/Golf_app && git pull
-docker compose --env-file .env up -d --build app
-docker compose --env-file .env run --rm app npx tsx scripts/seed-playoff-2026.ts --dry-run
-docker compose --env-file .env run --rm app npx tsx scripts/seed-playoff-2026.ts
-```
+1. Deploy commita `21a4239` (procedura w [DEPLOY.md](DEPLOY.md), migracja NIE potrzebna)
+2. Weryfikacja na `/admin/playoff`: seed 1 = Kacper Glinka, seed 39 = Robert Warnecki (rozróżnia starą i nową logikę)
+3. Runda 4 → COMPLETED w `/admin/sezon/[id]`
+4. `/admin/playoff` → **„Zatwierdź i utwórz mecze"**
+5. Weryfikacja na `/playoff`
 
 ### 📝 Przy okazji
 
