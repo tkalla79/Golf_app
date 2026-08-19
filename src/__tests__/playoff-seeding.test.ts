@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { buildPlayoffSeedOrder, BRACKET_SEEDS, BRACKET_NAMES } from '@/lib/playoff'
+import {
+  buildPlayoffSeedOrder,
+  BRACKET_SEEDS,
+  BRACKET_NAMES,
+  BRACKET_HOLES,
+  BRACKET_HOLES_OPTIONS,
+  BRACKET_DISPLAY_NAMES,
+  bracketKeyFromGroupName,
+} from '@/lib/playoff'
 
 /**
  * Kontrakt seedowania playoff.
@@ -192,6 +200,37 @@ describe('BRACKET_SEEDS — pary Rundy 1', () => {
       ['Łukasz Cieplik', 'Bartłomiej Czarnotta'],
       ['Ludwik Kownacki', 'Tomasz Tarkowski'],
     ])
+  })
+})
+
+describe('Długość meczów w drabinkach — ustalenie Zarządu z 19.08.2026', () => {
+  it('Pierwsza i Druga Liga grają 18 dołków, Trzecia domyślnie 9', () => {
+    expect(BRACKET_HOLES['1-16']).toBe(18)
+    expect(BRACKET_HOLES['17-32']).toBe(18)
+    expect(BRACKET_HOLES['33-48']).toBe(9)
+  })
+
+  it('tylko Trzecia Liga ma wybór długości', () => {
+    expect(BRACKET_HOLES_OPTIONS['1-16']).toEqual([18])
+    expect(BRACKET_HOLES_OPTIONS['17-32']).toEqual([18])
+    expect(BRACKET_HOLES_OPTIONS['33-48']).toEqual([9, 18])
+  })
+
+  it('domyślna długość każdej drabinki jest jedną z dopuszczalnych', () => {
+    for (const name of BRACKET_NAMES) {
+      expect(BRACKET_HOLES_OPTIONS[name]).toContain(BRACKET_HOLES[name])
+    }
+  })
+
+  it('bracketKeyFromGroupName odwraca nazwy wyświetlane', () => {
+    for (const name of BRACKET_NAMES) {
+      expect(bracketKeyFromGroupName(BRACKET_DISPLAY_NAMES[name])).toBe(name)
+    }
+  })
+
+  it('bracketKeyFromGroupName zwraca null dla grup fazy zasadniczej', () => {
+    expect(bracketKeyFromGroupName('Grupa 7')).toBeNull()
+    expect(bracketKeyFromGroupName('')).toBeNull()
   })
 })
 

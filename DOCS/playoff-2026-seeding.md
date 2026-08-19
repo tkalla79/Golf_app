@@ -9,10 +9,12 @@ Po fazie zasadniczej (Runda 4, **10 grup × 5 zawodników = 50**) rozstawiamy 48
 | Drabinka | Dołki | Nazwa w systemie |
 |---|---|---|
 | 1–16 | 18 | Pierwsza Liga Playoff |
-| 17–32 | 9 lub 18 (uzgodnienie graczy) — ⚠️ kod ma na sztywno **9** | Druga Liga Playoff |
-| 33–48 | 9 | Trzecia Liga Playoff |
+| 17–32 | 18 | Druga Liga Playoff |
+| 33–48 | 9 lub 18 — uzgodnienie graczy przed meczem | Trzecia Liga Playoff |
 
-> ⚠️ **Do rozstrzygnięcia:** `BRACKET_HOLES['17-32']` w [src/lib/playoff.ts](../src/lib/playoff.ts) ma wartość `9`, więc panel podsunie 9-dołkowy zestaw kodów wyniku dla całej Drugiej Ligi. Jeśli gracze mają faktycznie wybierać 9 albo 18 per mecz, panel potrzebuje przełącznika — `POST /api/matches/[id]/result` już przyjmuje `holes` w body, więc brakuje tylko UI. Decyzja Zarządu/Tomka.
+> **Ustalenie Zarządu Ligi z 19.08.2026.** Odbiega od zapisu w `DOCS/Regulamin … 2026.docx` §I.1, który mówi „17–32: 9 lub 18 do wyboru graczy" i „33–48: 9 dołków". Obowiązuje ustalenie Zarządu (Regulamin §VI.1 — *„Wszelkie spory oraz kwestie nieujęte w regulaminie rozstrzyga Zarząd Ligi"*). **Dokument regulaminu czeka na aktualizację** — do zrobienia przed publikacją drabinek zawodnikom.
+
+Domyślne długości są w `BRACKET_HOLES`, dopuszczalne warianty w `BRACKET_HOLES_OPTIONS` ([src/lib/playoff.ts](../src/lib/playoff.ts)) — zablokowane testami. Dla Trzeciej Ligi panel wyników pokazuje przełącznik **9 / 18 dołków**; zmiana przestawia zestaw kodów wyniku, bo 18 dołków dopuszcza dodatkowo `6&5`…`10&8`. Wybór zapisuje się na `Match.holes`, więc jest per mecz, nie per drabinka.
 
 Pairing Rundy 1 w każdej drabince (Regulamin §IV.1): `1v16 | 8v9 | 4v13 | 5v12` (górna połowa) oraz `2v15 | 7v10 | 3v14 | 6v11` (dolna). Dla drabinek 2 i 3 te same wzory przesunięte o 16 i 32.
 

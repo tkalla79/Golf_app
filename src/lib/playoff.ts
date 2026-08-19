@@ -33,10 +33,36 @@ export const BRACKET_DISPLAY_NAMES: Record<string, string> = {
   '33-48': 'Trzecia Liga Playoff',
 }
 
+/**
+ * Domyślna długość meczu per drabinka. Ustalenie Zarządu Ligi z 19.08.2026:
+ * Pierwsza i Druga Liga grają 18 dołków, Trzecia ma wybór 9 albo 18.
+ *
+ * ⚠️ Odstępstwo od zapisu w `DOCS/Regulamin … 2026.docx` §I.1, który mówi
+ * „17–32: 9 lub 18 do wyboru" i „33–48: 9 dołków". Obowiązuje ustalenie Zarządu
+ * (Regulamin §VI.1 — Zarząd rozstrzyga kwestie sporne); dokument regulaminu
+ * czeka na aktualizację.
+ */
 export const BRACKET_HOLES: Record<string, number> = {
   '1-16': 18,
-  '17-32': 9,
+  '17-32': 18,
   '33-48': 9,
+}
+
+/**
+ * Długości dopuszczalne w danej drabince. Więcej niż jedna wartość oznacza,
+ * że gracze uzgadniają długość meczu — panel wyników pokazuje wtedy przełącznik,
+ * a `Match.holes` może odbiegać od domyślnej z `BRACKET_HOLES`.
+ */
+export const BRACKET_HOLES_OPTIONS: Record<string, number[]> = {
+  '1-16': [18],
+  '17-32': [18],
+  '33-48': [9, 18],
+}
+
+/** Odwrotność BRACKET_DISPLAY_NAMES: "Trzecia Liga Playoff" → "33-48". */
+export function bracketKeyFromGroupName(groupName: string): string | null {
+  const entry = Object.entries(BRACKET_DISPLAY_NAMES).find(([, display]) => display === groupName)
+  return entry ? entry[0] : null
 }
 
 export const ROUND_NAMES: Record<number, string> = {

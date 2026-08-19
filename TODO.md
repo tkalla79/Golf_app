@@ -63,7 +63,19 @@ Nie zmienione świadomie:
 - `Round.dateStart`/`dateEnd` dla playoffu ustawia tylko skrypt (daty 2026-specific) — panel zostawia `null`. Kosmetyka, nie zgaduję dat w generycznym API.
 - Guard roli na `/api/admin/*` — `model Admin` nie ma pola roli, `auth()` == admin. N/A do czasu wprowadzenia ról.
 
-**Do rozstrzygnięcia z Zarządem:** Druga Liga Playoff — `BRACKET_HOLES['17-32']` ma na sztywno `9`, a `DOCS/playoff-2026-seeding.md` mówi „9 lub 18 (uzgodnienie graczy)". Jeśli wybór jest per mecz, panel potrzebuje przełącznika (`POST /api/matches/[id]/result` już przyjmuje `holes`).
+### ✅ Długość meczów w drabinkach — rozstrzygnięte (19.08.2026)
+
+**Ustalenie Zarządu:** Pierwsza i Druga Liga grają **18 dołków**, Trzecia ma **wybór 9 albo 18** (uzgodnienie graczy przed meczem).
+
+To odstępstwo od zapisu w regulaminie §I.1 („17–32: 9 lub 18 do wyboru", „33–48: 9 dołków") — obowiązuje ustalenie Zarządu na mocy §VI.1.
+
+- `BRACKET_HOLES['17-32']`: `9` → `18`
+- Nowe `BRACKET_HOLES_OPTIONS` — dopuszczalne warianty per drabinka
+- Nowy helper `bracketKeyFromGroupName` (odwrotność `BRACKET_DISPLAY_NAMES`)
+- Panel wyników `admin/grupa/[id]`: przełącznik **9 / 18 dołków** dla drabinek z wyborem; przestawia zestaw kodów wyniku (18 dołków dopuszcza `6&5`…`10&8`), zapis na `Match.holes` per mecz
+- 5 nowych testów blokujących te stałe — **57/57 zielone**
+
+- [ ] **Zaktualizować `DOCS/Regulamin Rozgrywek Ligi Don Papa Match Play 2026.docx`** §I.1 pod ustalenie Zarządu — przed publikacją drabinek zawodnikom, żeby dokument i system mówiły to samo
 
 ### 📝 Przy okazji
 

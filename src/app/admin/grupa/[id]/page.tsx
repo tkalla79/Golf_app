@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { PL } from '@/constants/pl'
 import { RESULT_CODES, RESULT_CODES_18 } from '@/lib/scoring'
+import { BRACKET_HOLES_OPTIONS, bracketKeyFromGroupName } from '@/lib/playoff'
 import { use } from 'react'
 
 interface Player {
@@ -68,6 +69,9 @@ export default function AdminGroupPage({
     isWalkover: false,
     player1Birdies: '0',
     player2Birdies: '0',
+    // Długość meczu. Trzecia Liga Playoff ma wybór 9/18 (ustalenie Zarządu z 19.08.2026),
+    // więc operator może ją zmienić — pole leci do POST /api/matches/[id]/result.
+    holes: 9,
   })
 
   const loadData = useCallback(async () => {
@@ -99,6 +103,9 @@ export default function AdminGroupPage({
 
   const openResultForm = (match: Match) => {
     setEditingMatch(match)
+    // Match.holes jest ustawiane per drabinka przy tworzeniu playoff; dla rund
+    // grupowych jest null, więc fallback na długość rundy.
+    const holes = match.holes ?? group?.round.holes ?? 9
     if (match.played) {
       setResultForm({
         winnerId: match.winnerId ? String(match.winnerId) : '',
@@ -106,9 +113,10 @@ export default function AdminGroupPage({
         isWalkover: match.isWalkover,
         player1Birdies: String(match.player1Birdies ?? 0),
         player2Birdies: String(match.player2Birdies ?? 0),
+        holes,
       })
     } else {
-      setResultForm({ winnerId: '', resultCode: '1Up', isWalkover: false, player1Birdies: '0', player2Birdies: '0' })
+      setResultForm({ winnerId: '', resultCode: '1Up', isWalkover: false, player1Birdies: '0', player2Birdies: '0', holes })
     }
   }
 
@@ -136,6 +144,11 @@ export default function AdminGroupPage({
   const unplayedMatches = matches.filter((m) => !m.played)
   const playedMatches = matches.filter((m) => m.played)
   const isLocked = group.round.status === 'COMPLETED'
+
+  // Dopuszczalne długości meczu w tej drabince. Pusta lista dla rund grupowych
+  // (nazwa grupy nie odpowiada żadnej drabince) — przełącznik się wtedy nie pokazuje.
+  const bracketKey = bracketKeyFromGroupName(group.name)
+  const holesOptions = bracketKey ? BRACKET_HOLES_OPTIONS[bracketKey] ?? [] : []
 
   return (
     <div>
@@ -408,6 +421,34 @@ export default function AdminGroupPage({
                 </div>
               </div>
 
+              {/* Długość meczu — tylko gdy drabinka dopuszcza wybór (Trzecia Liga: 9 lub 18).
+                  Zmiana przestawia zestaw kodów wyniku, bo 18 dołków dopuszcza 6&5…10&8. */}
+              {group?.round.type === 'PLAYOFF' && holesOptions.length > 1 && !resultForm.isWalkover && (
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--color-text-body)]/60 mb-3">
+                    Długość meczu
+                  </label>
+                  <div className="flex gap-2">
+                    {holesOptions.map((h) => (
+                      <button
+                        key={h}
+                        onClick={() => setResultForm({ ...resultForm, holes: h, resultCode: '1Up' })}
+                        className={`flex-1 py-2 px-3 rounded-lg border font-bold text-sm transition-colors ${
+                          resultForm.holes === h
+                            ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
+                            : 'border-[var(--color-border)] text-[var(--color-text-dark)] hover:border-[var(--color-primary)]'
+                        }`}
+                      >
+                        {h} dołków
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-[var(--color-text-body)]/50 italic mt-2">
+                    Trzecia Liga: długość uzgadniają gracze przed meczem.
+                  </p>
+                </div>
+              )}
+
               {/* Result code */}
               {resultForm.winnerId && !resultForm.isWalkover && (
                 <div>
@@ -415,10 +456,9 @@ export default function AdminGroupPage({
                     Wynik
                   </label>
                   <div className="grid grid-cols-3 gap-2">
-                    {/* Zestaw kodów wg dołków TEGO meczu — drabinki playoff mają różną
-                        długość (18 / 9 / 9), a Round.holes jest jedno na całą rundę.
-                        Fallback na Round.holes dla rund grupowych, gdzie Match.holes jest null. */}
-                    {((editingMatch.holes ?? group?.round.holes) === 18
+                    {/* Zestaw kodów wg długości wybranej w formularzu (domyślnie z Match.holes,
+                        bo Round.holes jest jedno na całą rundę PLAYOFF, a drabinki grają 18/18/9). */}
+                    {(resultForm.holes === 18
                       ? RESULT_CODES_18
                       : RESULT_CODES
                     ).filter((c) => c !== 'A/S').map((code) => (
