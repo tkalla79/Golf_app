@@ -40,6 +40,8 @@ function AdminNavInner({ children }: { children: React.ReactNode }) {
     { href: '/admin/zawodnicy', label: 'Zawodnicy' },
     { href: '/admin/sezon', label: 'Sezon' },
     { href: '/admin/generuj-rundy', label: 'Generuj rundy' },
+    // Playoff idzie po fazie grupowej — kolejność menu odzwierciedla przebieg sezonu.
+    { href: '/admin/playoff', label: 'Playoff' },
     { href: '/admin/uzytkownicy', label: 'Administratorzy' },
     { href: '/admin/symulacja', label: 'Symulacja' },
     { href: '/admin/galeria-slaw', label: 'Galeria Sław' },

@@ -24,7 +24,14 @@ export default function AdminPlayoffPage() {
   useEffect(() => {
     let cancelled = false
     void (async () => {
-      const res = await fetch('/api/admin/playoff/ranking')
+      let res: Response
+      try {
+        res = await fetch('/api/admin/playoff/ranking')
+      } catch {
+        // Sieć padła — bez tego strona wisiałaby na „Ładowanie…" bez komunikatu.
+        if (!cancelled) { setError('Brak połączenia z serwerem. Odśwież stronę.'); setLoading(false) }
+        return
+      }
       if (cancelled) return
 
       if (res.status === 409) {
@@ -48,17 +55,25 @@ export default function AdminPlayoffPage() {
         return
       }
 
-      if (res.ok) {
-        const data = await res.json()
-        if (cancelled) return
+      // Błąd serwera (500) zwraca stronę HTML, nie JSON — res.json() rzuciłby wtedy
+      // wyjątek, setLoading(false) nigdy by się nie wykonał i strona zostałaby
+      // na „Ładowanie…" bez żadnej wskazówki, co się stało.
+      let data: { ranking?: RankedPlayer[]; brackets?: Record<string, RankedPlayer[]>; seasonId?: number; error?: string } | null = null
+      try {
+        data = await res.json()
+      } catch {
+        data = null
+      }
+      if (cancelled) return
+
+      if (res.ok && data?.ranking && data?.brackets) {
         setRanking(data.ranking)
         setBrackets(data.brackets)
-        setSeasonId(data.seasonId)
+        setSeasonId(data.seasonId ?? null)
       } else {
-        const data = await res.json()
-        if (!cancelled) setError(data.error)
+        setError(data?.error ?? `Serwer zwrócił błąd ${res.status}. Sprawdź logi aplikacji.`)
       }
-      if (!cancelled) setLoading(false)
+      setLoading(false)
     })()
     return () => { cancelled = true }
   }, [])
