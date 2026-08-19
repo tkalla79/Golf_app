@@ -37,10 +37,8 @@ export const BRACKET_DISPLAY_NAMES: Record<string, string> = {
  * Domyślna długość meczu per drabinka. Ustalenie Zarządu Ligi z 19.08.2026:
  * Pierwsza i Druga Liga grają 18 dołków, Trzecia ma wybór 9 albo 18.
  *
- * ⚠️ Odstępstwo od zapisu w `DOCS/Regulamin … 2026.docx` §I.1, który mówi
- * „17–32: 9 lub 18 do wyboru" i „33–48: 9 dołków". Obowiązuje ustalenie Zarządu
- * (Regulamin §VI.1 — Zarząd rozstrzyga kwestie sporne); dokument regulaminu
- * czeka na aktualizację.
+ * Zgodne z `DOCS/Regulamin … 2026.docx` §I.1 i §IV.1 — dokument zaktualizowany
+ * 19.08.2026 pod to ustalenie (wcześniej mówił „17–32: 9 lub 18" i „33–48: 9").
  */
 export const BRACKET_HOLES: Record<string, number> = {
   '1-16': 18,

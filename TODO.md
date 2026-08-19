@@ -67,7 +67,7 @@ Nie zmienione świadomie:
 
 **Ustalenie Zarządu:** Pierwsza i Druga Liga grają **18 dołków**, Trzecia ma **wybór 9 albo 18** (uzgodnienie graczy przed meczem).
 
-To odstępstwo od zapisu w regulaminie §I.1 („17–32: 9 lub 18 do wyboru", „33–48: 9 dołków") — obowiązuje ustalenie Zarządu na mocy §VI.1.
+Regulamin zaktualizowany tego samego dnia (§I.1 i §IV.1) — wcześniej mówił „17–32: 9 lub 18 do wyboru" i „33–48: 9 dołków". Dokument, kod i testy są teraz zgodne.
 
 - `BRACKET_HOLES['17-32']`: `9` → `18`
 - Nowe `BRACKET_HOLES_OPTIONS` — dopuszczalne warianty per drabinka
@@ -75,7 +75,9 @@ To odstępstwo od zapisu w regulaminie §I.1 („17–32: 9 lub 18 do wyboru", �
 - Panel wyników `admin/grupa/[id]`: przełącznik **9 / 18 dołków** dla drabinek z wyborem; przestawia zestaw kodów wyniku (18 dołków dopuszcza `6&5`…`10&8`), zapis na `Match.holes` per mecz
 - 5 nowych testów blokujących te stałe — **57/57 zielone**
 
-- [ ] **Zaktualizować `DOCS/Regulamin Rozgrywek Ligi Don Papa Match Play 2026.docx`** §I.1 pod ustalenie Zarządu — przed publikacją drabinek zawodnikom, żeby dokument i system mówiły to samo
+- [x] ~~Zaktualizować regulamin §I.1~~ — zrobione 19.08.2026 (edycja punktowa `word/document.xml`, formatowanie zachowane, render sprawdzony)
+
+**Zauważone przy okazji:** §IV.1 regulaminu wypisuje rozstawienie tylko dla drabinek **1–16 i 17–32** — Trzeciej Ligi (33–48) w ogóle tam nie ma, mimo że §I.1 i §V ją wymieniają, a kod ma dla niej `BRACKET_SEEDS` (`33v48 | 40v41 | 36v45 | 37v44` górna, `34v47 | 39v42 | 35v46 | 38v43` dolna). Luka zastana, nie dopisywałem jej samowolnie — decyzja Zarządu, czy uzupełnić dokument.
 
 ### 📝 Przy okazji
 
