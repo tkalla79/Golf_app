@@ -4,6 +4,18 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { computeGlobalRanking, BRACKET_SEEDS, BRACKET_NAMES, BRACKET_HOLES, BRACKET_DISPLAY_NAMES, autoAdvancePlayoff } from '@/lib/playoff'
 
+/**
+ * Polska odmiana rzeczownika „mecz": 1 mecz, 2-4 mecze, 5+ meczów.
+ * Wyjątek na 12-14 (dwanaście meczów, nie „dwanaście mecze").
+ */
+function pluralMecz(n: number): string {
+  if (n === 1) return 'mecz'
+  const last = n % 10
+  const lastTwo = n % 100
+  if (last >= 2 && last <= 4 && !(lastTwo >= 12 && lastTwo <= 14)) return 'mecze'
+  return 'meczów'
+}
+
 export async function POST(request: NextRequest) {
   const session = await auth()
   if (!session) {
@@ -61,12 +73,14 @@ export async function POST(request: NextRequest) {
   )
 
   if (unplayed.length > 0 && lastRR.status !== 'COMPLETED') {
+    // Lista meczów wchodzi do stringa `error`, bo panel renderuje tylko to pole
+    // (src/app/admin/playoff/page.tsx) — osobna tablica byłaby niewidoczna dla operatora.
     return NextResponse.json({
       error:
-        `Runda "${lastRR.name}" ma ${unplayed.length} ${unplayed.length === 1 ? 'mecz' : 'meczów'} bez wyniku, ` +
+        `Runda "${lastRR.name}" ma ${unplayed.length} ${pluralMecz(unplayed.length)} bez wyniku, ` +
         `a jej status to ${lastRR.status}. Dopóki runda jest ACTIVE, wynik może jeszcze dojść i zmienić rozstawienie. ` +
         `Jeśli Zarząd spisał te mecze jako nierozegrane (0 pkt dla obu, Regulamin §III.2), ustaw rundę na COMPLETED ` +
-        `w panelu sezonu i spróbuj ponownie.`,
+        `w panelu sezonu i spróbuj ponownie. Mecze bez wyniku: ${unplayed.join('; ')}.`,
       unplayedMatches: unplayed,
     }, { status: 400 })
   }
