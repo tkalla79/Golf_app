@@ -532,6 +532,10 @@ export async function autoAdvancePlayoff(matchId: number): Promise<void> {
         player2Id: resolvedP2,
         bracketRound: nextRound,
         bracketPosition: nextPos,
+        // Długość meczu jest cechą drabinki, nie rundy — dziedziczymy z meczu-rodzica.
+        // Round.holes jest jedno na całą rundę PLAYOFF, a drabinki grają 18 / 9 / 9,
+        // więc bez tego panel podsuwałby 9-dołkowe kody wyników w drabince 1-16.
+        holes: match.holes,
       },
     })
   }

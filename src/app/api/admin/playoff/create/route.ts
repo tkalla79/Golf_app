@@ -24,6 +24,53 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Playoff już istnieje' }, { status: 409 })
   }
 
+  // Faza grupowa musi być formalnie zamknięta, zanim powstaną drabinki.
+  //
+  // Mecze bez wyniku same z siebie nie są błędem — Regulamin §III.2 („Nierozegrany mecz:
+  // 0 pkt dla obu graczy"), a `computeStandings` je pomija, więc tabele są policzone
+  // poprawnie. Ryzyko jest inne: przy rundzie ACTIVE wynik może jeszcze dojść i przesunąć
+  // seedy JUŻ PO utworzeniu par. Dlatego mecze bez wyniku dopuszczamy tylko przy COMPLETED
+  // (ten status blokuje też zapis wyników — API zwraca 403).
+  //
+  // Ta sama reguła co w scripts/seed-playoff-2026.ts — panel nie może być słabszy od CLI.
+  const lastRR = await prisma.round.findFirst({
+    where: { seasonId, type: 'ROUND_ROBIN', status: { in: ['COMPLETED', 'ACTIVE'] } },
+    orderBy: { roundNumber: 'desc' },
+    include: {
+      groups: {
+        orderBy: { sortOrder: 'asc' },
+        include: {
+          matches: {
+            where: { played: false },
+            select: {
+              player1: { select: { firstName: true, lastName: true } },
+              player2: { select: { firstName: true, lastName: true } },
+            },
+          },
+        },
+      },
+    },
+  })
+
+  if (!lastRR) {
+    return NextResponse.json({ error: 'Brak rundy grupowej w sezonie — nie ma z czego rozstawić playoff.' }, { status: 400 })
+  }
+
+  const unplayed = lastRR.groups.flatMap((g) =>
+    g.matches.map((m) => `${g.name}: ${m.player1.firstName} ${m.player1.lastName} vs ${m.player2.firstName} ${m.player2.lastName}`)
+  )
+
+  if (unplayed.length > 0 && lastRR.status !== 'COMPLETED') {
+    return NextResponse.json({
+      error:
+        `Runda "${lastRR.name}" ma ${unplayed.length} ${unplayed.length === 1 ? 'mecz' : 'meczów'} bez wyniku, ` +
+        `a jej status to ${lastRR.status}. Dopóki runda jest ACTIVE, wynik może jeszcze dojść i zmienić rozstawienie. ` +
+        `Jeśli Zarząd spisał te mecze jako nierozegrane (0 pkt dla obu, Regulamin §III.2), ustaw rundę na COMPLETED ` +
+        `w panelu sezonu i spróbuj ponownie.`,
+      unplayedMatches: unplayed,
+    }, { status: 400 })
+  }
+
   // Get ranking
   const ranking = await computeGlobalRanking(seasonId)
   if (ranking.length < 16) {
@@ -67,6 +114,7 @@ export async function POST(request: NextRequest) {
   for (let bracketIdx = 0; bracketIdx < BRACKET_NAMES.length; bracketIdx++) {
     const bracketName = BRACKET_NAMES[bracketIdx]
     const seeds = BRACKET_SEEDS[bracketName]
+    const holes = BRACKET_HOLES[bracketName]
     const bracketPlayers = ranking.slice(bracketIdx * 16, (bracketIdx + 1) * 16)
 
     // Create group (bracket)
@@ -105,6 +153,7 @@ export async function POST(request: NextRequest) {
             player2Id: p2.playerId,
             bracketRound: 1,
             bracketPosition: i + 1,
+            holes,
           },
         })
       } else if (p1 && !p2) {
@@ -116,6 +165,7 @@ export async function POST(request: NextRequest) {
             player2Id: p1.playerId, // placeholder — self-match for BYE
             bracketRound: 1,
             bracketPosition: i + 1,
+            holes,
             played: true,
             winnerId: p1.playerId,
             resultCode: 'BYE',

@@ -1,6 +1,6 @@
 # Playoff 2026 — seeding i rozstawienie
 
-**Zatwierdzone:** 18 sierpnia 2026 przez Zarząd Ligi  •  **Deadline Rundy 1:** 06.09.2026 (Regulamin §IV.2)
+**Zatwierdzone:** 18 sierpnia 2026 przez Zarząd Ligi  •  **Deadline Rundy 1:** 06.09.2026 (Regulamin §IV.2)  •  **Ostatnia aktualizacja:** 2026-08-19
 
 ## Kontekst
 
@@ -9,8 +9,10 @@ Po fazie zasadniczej (Runda 4, **10 grup × 5 zawodników = 50**) rozstawiamy 48
 | Drabinka | Dołki | Nazwa w systemie |
 |---|---|---|
 | 1–16 | 18 | Pierwsza Liga Playoff |
-| 17–32 | 9 lub 18 (uzgodnienie graczy) | Druga Liga Playoff |
+| 17–32 | 9 lub 18 (uzgodnienie graczy) — ⚠️ kod ma na sztywno **9** | Druga Liga Playoff |
 | 33–48 | 9 | Trzecia Liga Playoff |
+
+> ⚠️ **Do rozstrzygnięcia:** `BRACKET_HOLES['17-32']` w [src/lib/playoff.ts](../src/lib/playoff.ts) ma wartość `9`, więc panel podsunie 9-dołkowy zestaw kodów wyniku dla całej Drugiej Ligi. Jeśli gracze mają faktycznie wybierać 9 albo 18 per mecz, panel potrzebuje przełącznika — `POST /api/matches/[id]/result` już przyjmuje `holes` w body, więc brakuje tylko UI. Decyzja Zarządu/Tomka.
 
 Pairing Rundy 1 w każdej drabince (Regulamin §IV.1): `1v16 | 8v9 | 4v13 | 5v12` (górna połowa) oraz `2v15 | 7v10 | 3v14 | 6v11` (dolna). Dla drabinek 2 i 3 te same wzory przesunięte o 16 i 32.
 
@@ -90,23 +92,27 @@ Skrypt sprawdza je wszystkie i odmawia zapisu, jeśli którykolwiek nie jest spe
 5. Na dole strony (pod trzema kartami, 24 wiersze meczów): **„Zatwierdź i utwórz mecze"**
 6. Zweryfikuj pary na `/playoff`
 
-Panel po naprawie z 18.08.2026 używa poprawnej reguły, więc nie trzeba niczego nadpisywać. Uwaga: panel **nie waliduje** kompletności wyników ani statusu rundy — o punkt 1 trzeba zadbać samemu (skrypt CLI to wymusza).
+Panel po naprawie z 18.08.2026 używa poprawnej reguły, więc nie trzeba niczego nadpisywać. Od 19.08.2026 panel **waliduje też status rundy** — przy meczach bez wyniku i rundzie `ACTIVE` odmawia utworzenia drabinek (HTTP 400) i wypisuje listę zaległych meczów. Nadal nie robi cross-checku z macierzą — to ma tylko skrypt CLI.
 
 ## Metoda B — skrypt CLI (wymaga SSH)
 
 Daje pełny podgląd rankingu i par przed zapisem oraz cross-check z zatwierdzoną macierzą.
 
+> **Uwaga na obraz.** Serwis `app` to stage `runner` z `Dockerfile` (Next standalone) — nie ma w nim `scripts/`, `src/` ani `tsx`. Skrypt odpalamy w serwisie `migrate` (stage `builder`, pełne źródła + devDependencies). Obrazy budujemy **lokalnie** i wgrywamy przez `docker save`/`scp` — serwer ma za mało RAM, więc żadnego `--build` na produkcji ([DEPLOY.md](../DEPLOY.md)).
+
 ```bash
+# Najpierw lokalnie: build + save + scp + load wg DEPLOY.md (dotyczy obu obrazów,
+# także donpapa-migrate:latest — bez niego serwis `migrate` chodzi na starym kodzie)
+
 ssh donpapa                     # patrz DEPLOY.md — konfiguracja klucza i diagnostyka portu 22
-cd /root/Golf_app && git pull
-docker compose --env-file .env up -d --build app
+cd /root/Golf_app && git pull --ff-only
 
 # Podgląd — wypisuje ranking 1-48 i 24 pary, nic nie zapisuje:
-docker compose --env-file .env run --rm app \
+docker compose --env-file .env run --rm migrate \
   npx tsx scripts/seed-playoff-2026.ts --dry-run
 
 # Zapis po weryfikacji outputu:
-docker compose --env-file .env run --rm app \
+docker compose --env-file .env run --rm migrate \
   npx tsx scripts/seed-playoff-2026.ts
 ```
 

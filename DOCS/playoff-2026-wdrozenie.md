@@ -1,8 +1,9 @@
 # Playoff 2026 — przekazanie do wdrożenia
 
 **Dla:** osoby z dostępem do produkcji
-**Commit do wdrożenia:** `21a4239` (na `main`)
+**Commit do wdrożenia:** aktualny `main` (poprawki po code review z 19.08.2026 — patrz sekcja „Co zmienia")
 **Deadline Rundy 1 playoff:** 06.09.2026 (Regulamin §IV.2)
+**Ostatnia aktualizacja:** 2026-08-19
 
 ## O co chodzi w dwóch zdaniach
 
@@ -26,11 +27,11 @@ Zanim utworzysz playoff, ustaw Rundę 4 na **COMPLETED** w `/admin/sezon/[id]`.
 
 Po co: to formalnie zamyka fazę grupową i blokuje wprowadzanie wyników (API zwraca 403 na próbę zapisu). Dopóki runda ma status `ACTIVE`, ktoś mógłby jeszcze wpisać wynik zaległego meczu i przesunąć rozstawienie już po utworzeniu drabinek.
 
-Skrypt CLI wymusza to wprost — przy statusie `ACTIVE` i meczach bez wyniku odmawia zapisu i wypisuje instrukcję. Panel admina takiej walidacji nie ma, więc **ustaw COMPLETED ręcznie przed kliknięciem przycisku**.
+Wymuszają to teraz obie ścieżki: skrypt CLI odmawia zapisu, a panel (`POST /api/admin/playoff/create`) zwraca HTTP 400 z listą zaległych meczów. Mimo to **ustaw COMPLETED świadomie**, a nie dlatego że coś się nie klika — to decyzja Zarządu o spisaniu meczów jako nierozegranych.
 
 Sam deploy kodu można zrobić w dowolnym momencie — jest bezpieczny i niezależny od tego kroku.
 
-## Co zmienia commit `21a4239`
+## Co zmienia ten pakiet
 
 Reguła rozstawienia to **projekcja systemu awansów i spadków o jedną rundę w przód**: pozycje 1–2 w grupie awansują wyżej, 3 zostaje, 4–5 spadają niżej. Kolejność seedów odpowiada składowi hipotetycznych grup kolejnej rundy, a w obrębie każdej: spadkowicze z góry → ten kto został → awansujący z dołu.
 
@@ -47,16 +48,26 @@ Pliki:
 | `DEPLOY.md` | Notka o kluczu SSH + diagnostyka portu 22 |
 | `TODO.md` | Status i blocker |
 
+### Poprawki po code review (19.08.2026)
+
+| Plik | Co się zmieniło |
+|---|---|
+| `src/app/admin/grupa/[id]/page.tsx` | Zestaw kodów wyniku wg dołków **meczu**, nie rundy — bez tego 18-dołkowa Pierwsza Liga dostawała 9-dołkowy zestaw (brak `6&5`…`10&8`) |
+| `src/lib/playoff.ts` | `autoAdvancePlayoff` dziedziczy `holes` z meczu-rodzica (R2–R4 miały `null`) |
+| `src/app/api/admin/playoff/create/route.ts` | Ustawia `Match.holes` per drabinka + waliduje status rundy tak jak skrypt CLI (HTTP 400 z listą zaległych meczów) |
+| `scripts/seed-playoff-2026.ts` | Cross-check indeksuje macierz przez `positionInGroup` zamiast przez kolejność wierszy z bazy (`finalPosition` jest dla rund RR zawsze `NULL` → sortowanie nieokreślone → fałszywe rozbieżności); dołożona asercja tożsamości grup; poprawione komendy uruchomieniowe |
+| `DOCS/playoff-2026-seeding.md` | Komendy CLI celują w serwis `migrate`, nie `app`; bez `--build` na serwerze |
+
 Migracja bazy **nie jest potrzebna** — schema bez zmian.
 
-Stan przed wypchnięciem: `npm test` 52/52 zielone, `npx tsc --noEmit` czysty, `npx eslint` czysty, `npx next build` przechodzi.
+Stan przed wypchnięciem: `npm test` 52/52 zielone, `npx tsc --noEmit` czysty, `npx next build` przechodzi. `npx eslint .` zgłasza 10 błędów `react/no-unescaped-entities` — wszystkie **zastane**, w `regulamin/page.tsx` i `PlayerProfileEditor.tsx`, żaden w plikach tego pakietu.
 
 ## Deploy
 
 Standardowa procedura z [DEPLOY.md](../DEPLOY.md) — obraz budujemy lokalnie, bo serwer ma za mało RAM. Nic niestandardowego, żadnych migracji ani zmian w `.env`.
 
 ```bash
-git checkout main && git pull    # powinno dać 21a4239 lub nowszy
+git checkout main && git pull --ff-only
 npm ci
 npm test                          # kontrola: 52/52
 ```
@@ -95,8 +106,8 @@ Pełna lista wszystkich 24 par jest w testach (`src/__tests__/playoff-seeding.te
 
 Kolejność ma znaczenie:
 
-1. **Runda 4 → COMPLETED** w `/admin/sezon/[id]` (patrz sekcja na początku — zamyka fazę grupową)
-2. Deploy i weryfikacja jak wyżej (seed 1 = Glinka, seed 39 = Warnecki)
+1. Deploy i weryfikacja jak wyżej (seed 1 = Glinka, seed 39 = Warnecki) — bezpieczny w dowolnym momencie
+2. **Runda 4 → COMPLETED** w `/admin/sezon/[id]` (patrz sekcja na początku — zamyka fazę grupową)
 3. `/admin/playoff` → sprawdź pary → **„Zatwierdź i utwórz mecze"**
 4. Zweryfikuj wynik na `/playoff`
 

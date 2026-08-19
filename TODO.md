@@ -1,6 +1,6 @@
 # Don Papa Match Play — Co zostało do zrobienia
 
-**Ostatnia aktualizacja:** 18 sierpnia 2026 (seeding playoff 2026)
+**Ostatnia aktualizacja:** 19 sierpnia 2026 (poprawki po code review seedingu playoff)
 
 ---
 
@@ -37,17 +37,33 @@ Nie wymaga zmian w bazie: `computeStandings` pomija mecze bez wyniku (`if (!matc
 
 **Wymagany krok przed utworzeniem playoff: Runda 4 → COMPLETED** w `/admin/sezon/[id]`. Formalnie zamyka fazę grupową i blokuje wpisywanie wyników (API 403). Bez tego ktoś mógłby wpisać wynik zaległego meczu po utworzeniu drabinek i rozjechać rozstawienie.
 
-Skrypt CLI wymusza to wprost — przy `ACTIVE` i meczach bez wyniku odmawia zapisu z instrukcją. Panel takiej walidacji nie ma, więc status trzeba ustawić ręcznie.
+Wymuszają to obie ścieżki: skrypt CLI odmawia zapisu, panel (`POST /api/admin/playoff/create`) zwraca HTTP 400 z listą zaległych meczów (dołożone 19.08.2026 po code review).
 
 ### 🚀 Kolejność wdrożenia
 
 Przekazane do osoby z dostępem do produkcji — instrukcja: [DOCS/playoff-2026-wdrozenie.md](DOCS/playoff-2026-wdrozenie.md)
 
-1. Deploy commita `21a4239` (procedura w [DEPLOY.md](DEPLOY.md), migracja NIE potrzebna)
+1. Deploy aktualnego `main` (procedura w [DEPLOY.md](DEPLOY.md), migracja NIE potrzebna). **Wgraj oba obrazy** — `donpapa-app` i `donpapa-migrate` — bo skrypt CLI chodzi w tym drugim
 2. Weryfikacja na `/admin/playoff`: seed 1 = Kacper Glinka, seed 39 = Robert Warnecki (rozróżnia starą i nową logikę)
 3. Runda 4 → COMPLETED w `/admin/sezon/[id]`
 4. `/admin/playoff` → **„Zatwierdź i utwórz mecze"**
 5. Weryfikacja na `/playoff`
+
+### 🔧 Poprawki po code review (19.08.2026)
+
+Recenzja pakietu seedingowego (commity `ef768ef`…`0d3b0dd`). Reguła rozstawienia okazała się poprawna — 1–50 zgadza się z macierzą zatwierdzoną przez Zarząd. Blokery były w warstwie operacyjnej:
+
+1. **Kody wyniku 18-dołkowe niedostępne w panelu.** `Round.holes` jest jedno na całą rundę PLAYOFF (default `9`), a drabinki grają 18 / 9 / 9. Panel wyników (`admin/grupa/[id]`) czytał `round.holes === 18`, więc Pierwsza Liga nigdy nie dostawała `RESULT_CODES_18` (`6&5`…`10&8`). Teraz czyta `Match.holes` z fallbackiem na rundę; `playoff/create` ustawia je per drabinka, a `autoAdvancePlayoff` dziedziczy do R2–R4.
+2. **Cross-check w skrypcie zawsze padał fałszywym alarmem.** Macierz była indeksowana kolejnością wierszy z `orderBy: { finalPosition: 'asc' }`, a `finalPosition` dla rund `ROUND_ROBIN` jest **zawsze NULL** (ustawiają je tylko `playoff/create`, `simulate` i importer historyczny) — czyli sortowanie po samych NULL-ach. Teraz indeksuje `positionInGroup` z `computeGlobalRanking`.
+3. **Cross-check nie sprawdzał tożsamości grup** — `sortOrder` i macierz indeksowały tę samą kolejność, więc przestawienie grup przeszłoby po cichu. Dołożona asercja `Grupa 1`…`Grupa 10`.
+4. **Komendy CLI celowały w serwis `app`**, czyli obraz stage `runner` — bez `scripts/`, `src/` i `tsx`. Poprawione na serwis `migrate` (stage `builder`). Usunięte `--build` na serwerze (DEPLOY.md: za mało RAM).
+5. **Panel dostał walidację statusu rundy** — dotąd całą siatkę bezpieczeństwa miał tylko skrypt CLI, a dokumenty kierowały operatora do panelu.
+
+Nie zmienione świadomie:
+- `Round.dateStart`/`dateEnd` dla playoffu ustawia tylko skrypt (daty 2026-specific) — panel zostawia `null`. Kosmetyka, nie zgaduję dat w generycznym API.
+- Guard roli na `/api/admin/*` — `model Admin` nie ma pola roli, `auth()` == admin. N/A do czasu wprowadzenia ról.
+
+**Do rozstrzygnięcia z Zarządem:** Druga Liga Playoff — `BRACKET_HOLES['17-32']` ma na sztywno `9`, a `DOCS/playoff-2026-seeding.md` mówi „9 lub 18 (uzgodnienie graczy)". Jeśli wybór jest per mecz, panel potrzebuje przełącznika (`POST /api/matches/[id]/result` już przyjmuje `holes`).
 
 ### 📝 Przy okazji
 

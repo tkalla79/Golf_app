@@ -12,18 +12,25 @@
  * Skrypt dodatkowo weryfikuje ranking względem macierzy RANK_MATRIX (zapis
  * zatwierdzonej kolejności) i odmawia zapisu przy jakiejkolwiek rozbieżności.
  *
- * Odpalanie na produkcji:
+ * Odpalanie na produkcji — patrz DEPLOY.md.
+ *
+ * WAŻNE: serwis `app` to obraz stage `runner` (Next standalone) — nie ma w nim ani
+ * katalogu `scripts/`, ani `src/`, ani `tsx`. Skrypt uruchamiamy w obrazie `builder`
+ * (serwis `migrate`), który ma pełne źródła i devDependencies. Obrazy budujemy LOKALNIE
+ * i wgrywamy — serwer ma za mało RAM, więc żadnego `--build` na produkcji.
+ *
+ *   # 0. Lokalnie: zbuduj i wgraj obrazy wg DEPLOY.md (docker build → docker save → scp → docker load)
  *   ssh -i .ssh/karolinkagolfpark root@209.38.211.80
- *   cd /root/Golf_app && git pull && docker compose --env-file .env up -d --build app
+ *   cd /root/Golf_app && git pull --ff-only
  *
- *   # 1. Preview:
- *   docker compose --env-file .env run --rm app npx tsx scripts/seed-playoff-2026.ts --dry-run
+ *   # 1. Preview (nic nie zapisuje):
+ *   docker compose --env-file .env run --rm migrate npx tsx scripts/seed-playoff-2026.ts --dry-run
  *
- *   # 2. Realny zapis (po weryfikacji):
- *   docker compose --env-file .env run --rm app npx tsx scripts/seed-playoff-2026.ts
+ *   # 2. Realny zapis (po weryfikacji outputu):
+ *   docker compose --env-file .env run --rm migrate npx tsx scripts/seed-playoff-2026.ts
  *
- *   # 3. Nadpisanie istniejącej rundy playoff (kasuje ją!):
- *   docker compose --env-file .env run --rm app npx tsx scripts/seed-playoff-2026.ts --force
+ *   # 3. Nadpisanie istniejącej rundy playoff (kasuje wszystkie mecze playoff!):
+ *   docker compose --env-file .env run --rm migrate npx tsx scripts/seed-playoff-2026.ts --force
  */
 
 import { PrismaClient } from '@prisma/client'
@@ -100,10 +107,9 @@ async function main() {
       groups: {
         orderBy: { sortOrder: 'asc' },
         include: {
-          players: {
-            orderBy: { finalPosition: 'asc' },
-            include: { player: true },
-          },
+          // Tylko do policzenia obsady (5 graczy/grupę). Kolejność NIEISTOTNA — pozycje
+          // w grupie liczy computeStandings, nie kolejność wierszy z bazy (patrz cross-check).
+          players: { select: { playerId: true } },
           matches: {
             select: {
               id: true,
@@ -190,6 +196,23 @@ async function main() {
     )
   }
 
+  // Walidacja tożsamości grup: sortOrder wyznacza hierarchię, ale nic nie gwarantuje,
+  // że sortOrder 0 to naprawdę Grupa 1. Bez tego checku cross-check niżej byłby
+  // tautologiczny — RANK_MATRIX i computeGlobalRanking indeksują tę samą (potencjalnie
+  // przestawioną) kolejność, więc zamiana grup przeszłaby po cichu i zaseedowała zły playoff.
+  const groupNameMismatches = lastRR.groups
+    .map((g, i) => ({ expected: `Grupa ${i + 1}`, actual: g.name, sortOrder: g.sortOrder }))
+    .filter((x) => x.actual !== x.expected)
+  if (groupNameMismatches.length > 0) {
+    throw new Error(
+      `Kolejność grup wg sortOrder nie odpowiada numeracji Grupa 1-10 ` +
+      `(RANK_MATRIX zakłada: sortOrder rosnąco = Grupa 1 najsilniejsza):\n  - ` +
+      groupNameMismatches
+        .map((x) => `sortOrder=${x.sortOrder} to "${x.actual}", oczekuję "${x.expected}"`)
+        .join('\n  - ')
+    )
+  }
+
   // 3. Sprawdź istniejącą rundę playoff
   const existingPlayoff = await prisma.round.findFirst({
     where: { seasonId: season.id, type: 'PLAYOFF' },
@@ -244,25 +267,46 @@ async function main() {
 
   // 5. CROSS-CHECK: ranking z funkcji vs zatwierdzona macierz RANK_MATRIX.
   //    Jeśli ktoś zmieni logikę seedowania, skrypt przerwie zamiast zapisać złe pary.
+  //
+  //    UWAGA na indeksowanie: pozycję w grupie bierzemy z `positionInGroup` (liczy ją
+  //    computeStandings wg regulaminowych tiebreakerów), a NIE z kolejności wierszy
+  //    `group.players`. GroupPlayer.finalPosition jest dla rund ROUND_ROBIN zawsze NULL
+  //    (ustawiają je tylko playoff/create, simulate i importer historyczny), więc
+  //    `orderBy: { finalPosition: 'asc' }` sortuje po samych NULL-ach = kolejność
+  //    nieokreślona. Indeksowanie macierzy tą kolejnością dawało fałszywe rozbieżności.
+  const groupIndexByName = new Map(lastRR.groups.map((g, i) => [g.name, i]))
   const mismatches: string[] = []
-  for (let gIdx = 0; gIdx < 10; gIdx++) {
-    const group = lastRR.groups[gIdx]
-    for (let pos = 0; pos < 5; pos++) {
-      const gp = group.players[pos]
-      const expectedSeed = RANK_MATRIX[gIdx][pos]
-      const actual = ranking.find((r) => r.playerId === gp.playerId)
-      if (!actual) {
-        mismatches.push(`${gp.player.firstName} ${gp.player.lastName} — brak w rankingu`)
-        continue
-      }
-      const actualSeed = actual.rank <= 48 ? actual.rank : null
-      if (actualSeed !== expectedSeed) {
-        mismatches.push(
-          `${gp.player.firstName} ${gp.player.lastName} (${group.name} pos${pos + 1}): ` +
-          `oczekiwany seed ${expectedSeed ?? 'poza playoff'}, otrzymany ${actualSeed ?? `poza playoff (${actual.rank})`}`
-        )
-      }
+  const checked = new Set<number>()
+
+  for (const p of ranking) {
+    const label = `${p.firstName} ${p.lastName}`
+    const gIdx = groupIndexByName.get(p.groupName)
+    if (gIdx === undefined) {
+      mismatches.push(`${label} — nieznana grupa "${p.groupName}"`)
+      continue
     }
+    const pos = p.positionInGroup
+    if (pos < 1 || pos > 5) {
+      mismatches.push(`${label} (${p.groupName}): pozycja w grupie ${pos} poza zakresem 1-5`)
+      continue
+    }
+    const expectedSeed = RANK_MATRIX[gIdx][pos - 1]
+    const actualSeed = p.rank <= 48 ? p.rank : null
+    if (actualSeed !== expectedSeed) {
+      mismatches.push(
+        `${label} (${p.groupName} pos${pos}): ` +
+        `oczekiwany seed ${expectedSeed ?? 'poza playoff'}, otrzymany ${actualSeed ?? `poza playoff (${p.rank})`}`
+      )
+    }
+    checked.add(gIdx * 10 + pos)
+  }
+
+  // Każda z 50 komórek macierzy musi być pokryta dokładnie raz — inaczej dwóch zawodników
+  // dostało tę samą pozycję w grupie (remis nierozstrzygnięty) albo kogoś brakuje.
+  if (checked.size !== 50 && mismatches.length === 0) {
+    mismatches.push(
+      `Pokryto ${checked.size}/50 komórek macierzy — zduplikowane lub brakujące pozycje w grupach`
+    )
   }
   if (mismatches.length > 0) {
     throw new Error(

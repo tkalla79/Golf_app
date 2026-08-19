@@ -30,6 +30,7 @@ interface Match {
   played: boolean
   isWalkover: boolean
   scheduledDate: string | null
+  holes: number | null
 }
 
 interface Standing {
@@ -414,7 +415,10 @@ export default function AdminGroupPage({
                     Wynik
                   </label>
                   <div className="grid grid-cols-3 gap-2">
-                    {(group?.round.type === 'PLAYOFF' && group?.round.holes === 18
+                    {/* Zestaw kodów wg dołków TEGO meczu — drabinki playoff mają różną
+                        długość (18 / 9 / 9), a Round.holes jest jedno na całą rundę.
+                        Fallback na Round.holes dla rund grupowych, gdzie Match.holes jest null. */}
+                    {((editingMatch.holes ?? group?.round.holes) === 18
                       ? RESULT_CODES_18
                       : RESULT_CODES
                     ).filter((c) => c !== 'A/S').map((code) => (
