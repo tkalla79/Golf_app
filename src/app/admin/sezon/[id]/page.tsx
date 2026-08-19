@@ -154,7 +154,15 @@ export default function AdminSeasonDetailPage({
   }
 
   const handleCompleteRound = async (roundId: number) => {
-    if (!confirm('Zakończyć rundę? Upewnij się, że wszystkie mecze zostały rozegrane.')) return
+    // Mecze bez wyniku NIE blokują zakończenia rundy — Regulamin §III.2 mówi
+    // „Nierozegrany mecz: 0 pkt dla obu graczy", a computeStandings je pomija.
+    // Zakończenie rundy jest właśnie formalnym spisaniem ich jako nierozegranych.
+    if (!confirm(
+      'Zakończyć rundę?\n\n' +
+      'Wyniki zostaną zablokowane — nie będzie już można ich wpisywać ani zmieniać.\n\n' +
+      'Mecze bez wyniku zostaną potraktowane jako nierozegrane: 0 pkt dla obu graczy ' +
+      '(Regulamin §III.2). Tabele już to uwzględniają, więc kolejność w grupach się nie zmieni.'
+    )) return
     await fetch(`/api/rounds/${roundId}/status`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
