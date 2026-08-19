@@ -36,8 +36,8 @@ export default function RegulaminPage() {
             <li><strong>Faza Playoff:</strong>
               <ul className="regulamin-sublist">
                 <li>Pierwsza Liga Playoff (1–16): <strong>18 dołków</strong></li>
-                <li>Druga Liga Playoff (17–32): <strong>9 lub 18 dołków</strong> (do wyboru graczy po wzajemnym uzgodnieniu)</li>
-                <li>Trzecia Liga Playoff (33–48): <strong>9 dołków</strong></li>
+                <li>Druga Liga Playoff (17–32): <strong>18 dołków</strong></li>
+                <li>Trzecia Liga Playoff (33–48): <strong>9 lub 18 dołków</strong> (do wyboru graczy po wzajemnym uzgodnieniu)</li>
               </ul>
             </li>
             <li>Format: <strong>Match play brutto</strong> zgodnie z regułami R&amp;A Rules Limited oraz regulaminem lokalnym pola KGP.</li>
@@ -224,7 +224,7 @@ export default function RegulaminPage() {
             </div>
           </div>
 
-          <h4 className="regulamin-h4">Druga Liga Playoff (9/18 dołków)</h4>
+          <h4 className="regulamin-h4">Druga Liga Playoff (18 dołków)</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div className="bg-[var(--color-primary)]/[0.03] rounded-lg p-4 border border-[var(--color-border)]">
               <div className="text-xs font-bold uppercase tracking-wider text-[var(--color-primary)]/50 mb-2">Górna połowa</div>
@@ -242,7 +242,7 @@ export default function RegulaminPage() {
             </div>
           </div>
 
-          <h4 className="regulamin-h4">Trzecia Liga Playoff (9 dołków)</h4>
+          <h4 className="regulamin-h4">Trzecia Liga Playoff (9/18 dołków)</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div className="bg-[var(--color-primary)]/[0.03] rounded-lg p-4 border border-[var(--color-border)]">
               <div className="text-xs font-bold uppercase tracking-wider text-[var(--color-primary)]/50 mb-2">Górna połowa</div>

@@ -5,7 +5,7 @@ import { useState } from 'react'
 import BracketMatchCard from './BracketMatchCard'
 import { PL } from '@/constants/pl'
 import type { BracketSlot } from '@/lib/playoff'
-import { PLACEMENT_LABELS } from '@/lib/playoff'
+import { bracketHolesLabel } from '@/lib/playoff'
 import Link from 'next/link'
 
 interface BracketData {
@@ -17,12 +17,6 @@ interface BracketData {
 
 interface Props {
   brackets: BracketData[]
-}
-
-const HOLES_LABELS: Record<string, string> = {
-  '1-16': PL.playoff.holes18,
-  '17-32': PL.playoff.holes918,
-  '33-48': PL.playoff.holes9,
 }
 
 export default function PlayoffBracket({ brackets }: Props) {
@@ -70,7 +64,7 @@ export default function PlayoffBracket({ brackets }: Props) {
           >
             {b.name}
             <span className="block text-[0.6rem] font-normal normal-case tracking-normal text-[var(--color-text-body)]/40">
-              {HOLES_LABELS[b.bracketKey] ?? ''}
+              {bracketHolesLabel(b.bracketKey)}
             </span>
           </button>
         ))}

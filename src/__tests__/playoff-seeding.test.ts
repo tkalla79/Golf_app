@@ -7,6 +7,7 @@ import {
   BRACKET_HOLES_OPTIONS,
   BRACKET_DISPLAY_NAMES,
   bracketKeyFromGroupName,
+  bracketHolesLabel,
 } from '@/lib/playoff'
 
 /**
@@ -231,6 +232,18 @@ describe('Długość meczów w drabinkach — ustalenie Zarządu z 19.08.2026', 
   it('bracketKeyFromGroupName zwraca null dla grup fazy zasadniczej', () => {
     expect(bracketKeyFromGroupName('Grupa 7')).toBeNull()
     expect(bracketKeyFromGroupName('')).toBeNull()
+  })
+
+  // Regresja: publiczna drabinka miała własną mapę etykiet, która po zmianie
+  // ustalenia Zarządu pokazywała 17-32 jako "9/18" a 33-48 jako "9" — odwrotnie.
+  it('etykieta długości na publicznej drabince zgadza się z dopuszczalnymi wariantami', () => {
+    expect(bracketHolesLabel('1-16')).toBe('18 dołków')
+    expect(bracketHolesLabel('17-32')).toBe('18 dołków')
+    expect(bracketHolesLabel('33-48')).toBe('9/18 dołków')
+  })
+
+  it('etykieta jest pusta dla nieznanej drabinki zamiast rzucać', () => {
+    expect(bracketHolesLabel('brak-takiej')).toBe('')
   })
 })
 

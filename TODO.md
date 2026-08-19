@@ -67,7 +67,12 @@ Nie zmienione świadomie:
 
 **Ustalenie Zarządu:** Pierwsza i Druga Liga grają **18 dołków**, Trzecia ma **wybór 9 albo 18** (uzgodnienie graczy przed meczem).
 
-Regulamin zaktualizowany tego samego dnia (§I.1 i §IV.1) — wcześniej mówił „17–32: 9 lub 18 do wyboru" i „33–48: 9 dołków". Dokument, kod i testy są teraz zgodne.
+Regulamin zaktualizowany tego samego dnia (§I.1 i §IV.1) — wcześniej mówił „17–32: 9 lub 18 do wyboru" i „33–48: 9 dołków".
+
+Domknięte w review 19.08.2026 — zmiana ustalenia nie objęła dwóch miejsc w aplikacji, przez co zawodnik widziałby publicznie coś innego niż panel i regulamin:
+
+- `src/components/PlayoffBracket.tsx` miał własną mapę `HOLES_LABELS` z wartościami zamienionymi miejscami (17–32 jako „9/18", 33–48 jako „9"). Etykieta wyprowadzona teraz z `BRACKET_HOLES_OPTIONS` przez `bracketHolesLabel()` — jedno źródło prawdy, 2 testy regresyjne.
+- `src/app/(public)/regulamin/page.tsx` (§I.1 i nagłówki §IV.1) nadal opisywał stary podział — zsynchronizowany z `.docx`. Uwaga na przyszłość: `src/lib/standings.ts` ma w nagłówku „KEEP IN SYNC z regulamin/page.tsx", ale sam plik `.docx` nie jest tam wymieniony — zmiana regulaminu dotyka **trzech** miejsc: docx, strony w aplikacji i stałych w kodzie.
 
 - `BRACKET_HOLES['17-32']`: `9` → `18`
 - Nowe `BRACKET_HOLES_OPTIONS` — dopuszczalne warianty per drabinka

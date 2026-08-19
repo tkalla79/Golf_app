@@ -1,5 +1,6 @@
 import { prisma } from './db'
 import { computeStandings } from './standings'
+import { PL } from '@/constants/pl'
 
 // ═══ CONSTANTS ═══
 
@@ -55,6 +56,20 @@ export const BRACKET_HOLES_OPTIONS: Record<string, number[]> = {
   '1-16': [18],
   '17-32': [18],
   '33-48': [9, 18],
+}
+
+/**
+ * Etykieta długości meczu dla drabinki, wyprowadzona z `BRACKET_HOLES_OPTIONS`.
+ *
+ * Publiczna drabinka miała wcześniej własną, ręcznie utrzymywaną mapę etykiet
+ * (`HOLES_LABELS` w PlayoffBracket.tsx) i po ustaleniu Zarządu z 19.08.2026
+ * pokazywała zawodnikom wartości zamienione miejscami. Jedno źródło prawdy.
+ */
+export function bracketHolesLabel(bracketKey: string): string {
+  const options = BRACKET_HOLES_OPTIONS[bracketKey]
+  if (!options || options.length === 0) return ''
+  if (options.length > 1) return PL.playoff.holes918
+  return options[0] === 18 ? PL.playoff.holes18 : PL.playoff.holes9
 }
 
 /** Odwrotność BRACKET_DISPLAY_NAMES: "Trzecia Liga Playoff" → "33-48". */
