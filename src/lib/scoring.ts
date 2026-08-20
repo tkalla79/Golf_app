@@ -46,11 +46,34 @@ export const DEFAULT_SEASON_CONFIG: SeasonConfig = {
     '4&3': [7, -7],
     '5&3': [8, -8],
     '5&4': [9, -9],
+    // ─── Marginesy osiągalne tylko na 18 dołkach ───
+    // Regulamin §III.4.c wylicza wartości do 5&4=±9. Reguła, którą realizuje ta lista,
+    // to suma X+Y dla kodu „X&Y" — odtwarza WSZYSTKIE pozycje z regulaminu co do jednej
+    // i przedłuża je w nieprzerwany ciąg 1…18 (bo możliwe są tylko X=Y+1 i X=Y+2).
+    '6&4': [10, -10],
+    '6&5': [11, -11],
+    '7&5': [12, -12],
+    '7&6': [13, -13],
+    '8&6': [14, -14],
+    '8&7': [15, -15],
+    '9&7': [16, -16],
+    '9&8': [17, -17],
+    '10&8': [18, -18],
     // Ret = opponent retired during the round (historical code).
     // Awards same big points as a win, zero small points (margin unknown).
     'Ret': [0, 0],
   },
 }
+
+/**
+ * Małe punkty za wygraną w dogrywce. Zwycięzca wygrywa dodatkowym dołkiem, czyli
+ * najmniejszą możliwą różnicą — stąd ±1, tak jak `1Up`. Zero jest zastrzeżone dla
+ * remisu (`A/S`).
+ *
+ * Praktycznie bez wpływu na tabele: dogrywka występuje wyłącznie w playoff
+ * (Regulamin §IV.3), a małe punkty są tiebreakerem fazy grupowej (§III.4.c).
+ */
+export const EXTRA_HOLE_SMALL_POINTS: [number, number] = [1, -1]
 
 export function computePoints(
   input: MatchResultInput,
@@ -80,7 +103,11 @@ export function computePoints(
   }
 
   const p1Wins = input.winnerId === player1Id
-  const smallPoints = small_points_map[input.resultCode] ?? [0, 0]
+  // Kody dogrywki są generowane dynamicznie z długości meczu (19th, 20th, 10th…),
+  // więc nie da się ich wypisać w `small_points_map` — rozpoznajemy je wzorcem.
+  const smallPoints = isExtraHoleCode(input.resultCode)
+    ? EXTRA_HOLE_SMALL_POINTS
+    : small_points_map[input.resultCode] ?? [0, 0]
   const [winnerSmall, loserSmall] = smallPoints
 
   return {
@@ -108,17 +135,68 @@ export const RESULT_CODES = [
   'Ret',
 ] as const
 
-// 18-hole match play result codes (includes all 9-hole codes plus extended margins)
+/**
+ * Kody 18-dołkowe = wszystkie 9-dołkowe plus marginesy osiągalne dopiero na dłuższym meczu.
+ *
+ * Które kody „X&Y" są w ogóle możliwe? Mecz kończy się w chwili, gdy przewaga przekracza
+ * liczbę pozostałych dołków. Żeby skończyć się DOKŁADNIE przy X do góry i Y pozostałych,
+ * dołek wcześniej przewaga musiała wynosić najwyżej Y+1 (inaczej mecz zamknąłby się
+ * wcześniej), a zmienia się o najwyżej 1 na dołek. Stąd **X = Y+1 albo X = Y+2** — nic innego.
+ *
+ * Dlatego np. `6&3` (to Y+3) jest niemożliwe, podobnie `6&1` czy `7&1`. Zestaw dla 18 dołków
+ * kończy się naturalnie na `10&8`, bo dla Y=9 potrzebne X=10 przekracza 18−9=9 rozegranych dołków.
+ */
 export const RESULT_CODES_18 = [
   ...RESULT_CODES,
-  '6&5',
   '6&4',
-  '6&3',
-  '7&6',
+  '6&5',
   '7&5',
-  '8&7',
+  '7&6',
   '8&6',
-  '9&8',
+  '8&7',
   '9&7',
+  '9&8',
   '10&8',
 ] as const
+
+/**
+ * Kody dogrywki („nagła śmierć" od dołka 1 — Regulamin §IV.3, tylko playoff).
+ * Numer odpowiada faktycznemu dołkowi rozstrzygającemu, liczonemu od początku meczu:
+ * mecz 18-dołkowy → `19th`, `20th`, `21st`…, mecz 9-dołkowy → `10th`, `11th`, `12th`…
+ *
+ * Zwraca pełną dodatkową dziewiątkę — tyle wystarcza w praktyce, a zakres łatwo rozszerzyć.
+ */
+export function extraHoleCodes(matchHoles: number): string[] {
+  return Array.from({ length: 9 }, (_, i) => ordinal(matchHoles + i + 1))
+}
+
+/** 1st, 2nd, 3rd, 4th… 21st, 22nd, 23rd — reguła angielska z wyjątkiem na 11-13. */
+function ordinal(n: number): string {
+  const lastTwo = n % 100
+  if (lastTwo >= 11 && lastTwo <= 13) return `${n}th`
+  switch (n % 10) {
+    case 1: return `${n}st`
+    case 2: return `${n}nd`
+    case 3: return `${n}rd`
+    default: return `${n}th`
+  }
+}
+
+/** True dla kodu dogrywki (np. „19th", „10th"). */
+export function isExtraHoleCode(code: string | null | undefined): boolean {
+  return !!code && /^\d+(st|nd|rd|th)$/.test(code.trim())
+}
+
+/**
+ * Kody wyniku dostępne dla meczu o danej długości.
+ * `allowHalved` — faza grupowa dopuszcza remis; playoff nie (rozstrzyga dogrywka),
+ * dlatego tam zamiast `A/S` pojawiają się kody dogrywki.
+ */
+export function resultCodesForHoles(
+  matchHoles: number,
+  opts: { allowHalved: boolean }
+): string[] {
+  const base = matchHoles >= 18 ? [...RESULT_CODES_18] : [...RESULT_CODES]
+  const codes = opts.allowHalved ? base : base.filter((c) => c !== 'A/S')
+  return opts.allowHalved ? codes : [...codes, ...extraHoleCodes(matchHoles)]
+}

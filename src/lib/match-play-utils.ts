@@ -5,7 +5,11 @@
  * - "A/S"  — halved (draw), margin 0
  * - "1Up"  — won by 1 hole on the 18th/9th
  * - "2Up"  — won by 2 holes (same as "2up" through course)
- * - "X&Y"  — won X holes up with Y holes remaining to play (classic match-play shorthand)
+ * - "X&Y"  — won X holes up with Y holes remaining to play (classic match-play shorthand).
+ *            Tylko X=Y+1 i X=Y+2 są osiągalne — przy większej przewadze mecz zakończyłby
+ *            się dołek wcześniej. Stąd zestaw 18-dołkowy kończy się na "10&8".
+ * - "19th" / "10th" — dogrywka: numer dołka rozstrzygającego liczony od początku meczu
+ *            (18-dołkowy → 19th+, 9-dołkowy → 10th+). Margines 1, najciaśniejszy możliwy.
  * - "Ret"  — opponent retired during the round, margin unknown but a win
  *
  * These helpers are used by stats code, UI rendering, and OCR import validation.
@@ -38,6 +42,10 @@ export function parseMargin(code: string | null | undefined): number | null {
   if (normalized === 'A/S') return 0
   if (normalized === 'Ret' || normalized === 'WO') return null
 
+  // Dogrywka: "19th", "21st", "10th" — wygrana dodatkowym dołkiem, czyli marginesem 1.
+  // Musi być sprawdzona PRZED wzorcem "XUp", bo oba zaczynają się od cyfr.
+  if (isExtraHole(normalized)) return 1
+
   // "1Up" / "2Up" / "1up" / "2up"
   const upMatch = /^(\d+)\s*[Uu]p$/.exec(normalized)
   if (upMatch) return parseInt(upMatch[1], 10)
@@ -47,6 +55,25 @@ export function parseMargin(code: string | null | undefined): number | null {
   if (ampMatch) return parseInt(ampMatch[1], 10)
 
   return null
+}
+
+/**
+ * True dla kodu dogrywki („nagła śmierć" — Regulamin §IV.3): numer dołka
+ * rozstrzygającego liczony od początku meczu, np. "19th" (18-dołkowy),
+ * "10th" (9-dołkowy).
+ */
+export function isExtraHole(code: string | null | undefined): boolean {
+  return !!code && /^\d+(st|nd|rd|th)$/.test(code.trim())
+}
+
+/**
+ * Numer dołka, na którym rozstrzygnęła się dogrywka. `null` dla innych kodów.
+ * parseExtraHoleNumber("21st") → 21
+ */
+export function parseExtraHoleNumber(code: string | null | undefined): number | null {
+  if (!code) return null
+  const m = /^(\d+)(?:st|nd|rd|th)$/.exec(code.trim())
+  return m ? parseInt(m[1], 10) : null
 }
 
 /**
@@ -171,6 +198,10 @@ export function formatResultCodePl(code: string | null | undefined, holesPlayed?
   if (code === 'A/S') return 'A/S (remis)'
   if (code === 'Ret') return 'Poddał się'
   if (code === 'WO') return 'Walkower'
+  // Dogrywka — bez tego kod „19th" opisywałby się jako „1 dołek przewagi",
+  // bo parseMargin zwraca dla niego 1.
+  const extraHole = parseExtraHoleNumber(code)
+  if (extraHole !== null) return `${code} (dogrywka, dołek ${extraHole})`
   const m = parseMargin(code)
   if (m !== null && m > 0) {
     const holesRem = /^\d+&(\d+)$/.exec(code)?.[1]

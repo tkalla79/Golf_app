@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { PL } from '@/constants/pl'
-import { RESULT_CODES, RESULT_CODES_18 } from '@/lib/scoring'
+import { resultCodesForHoles, isExtraHoleCode } from '@/lib/scoring'
 import { BRACKET_HOLES_OPTIONS, bracketKeyFromGroupName } from '@/lib/playoff'
 import { use } from 'react'
 
@@ -149,6 +149,13 @@ export default function AdminGroupPage({
   // (nazwa grupy nie odpowiada żadnej drabince) — przełącznik się wtedy nie pokazuje.
   const bracketKey = bracketKeyFromGroupName(group.name)
   const holesOptions = bracketKey ? BRACKET_HOLES_OPTIONS[bracketKey] ?? [] : []
+
+  // Kody wyniku: w playoff remis nie istnieje (rozstrzyga dogrywka), więc zamiast A/S
+  // dochodzą kody dołków dogrywki. Rozdzielone, bo w UI to dwie osobne sekcje.
+  const isPlayoffGroup = group.round.type === 'PLAYOFF'
+  const allCodes = resultCodesForHoles(resultForm.holes, { allowHalved: !isPlayoffGroup })
+  const regulationCodes = allCodes.filter((c) => !isExtraHoleCode(c) && c !== 'A/S')
+  const extraCodes = allCodes.filter((c) => isExtraHoleCode(c))
 
   return (
     <div>
@@ -455,13 +462,11 @@ export default function AdminGroupPage({
                   <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--color-text-body)]/60 mb-3">
                     Wynik
                   </label>
+                  {/* Zestaw kodów zależy od długości wybranej w formularzu (domyślnie z Match.holes,
+                      bo Round.holes jest jedno na całą rundę PLAYOFF, a drabinki grają 18/18/9)
+                      oraz od fazy: w playoff nie ma remisu, więc dochodzą kody dogrywki. */}
                   <div className="grid grid-cols-3 gap-2">
-                    {/* Zestaw kodów wg długości wybranej w formularzu (domyślnie z Match.holes,
-                        bo Round.holes jest jedno na całą rundę PLAYOFF, a drabinki grają 18/18/9). */}
-                    {(resultForm.holes === 18
-                      ? RESULT_CODES_18
-                      : RESULT_CODES
-                    ).filter((c) => c !== 'A/S').map((code) => (
+                    {regulationCodes.map((code) => (
                       <button
                         key={code}
                         onClick={() => setResultForm({ ...resultForm, resultCode: code })}
@@ -475,6 +480,33 @@ export default function AdminGroupPage({
                       </button>
                     ))}
                   </div>
+
+                  {extraCodes.length > 0 && (
+                    <div className="mt-4">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--color-text-body)]/60 mb-2">
+                        Dogrywka — dołek rozstrzygający
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {extraCodes.map((code) => (
+                          <button
+                            key={code}
+                            onClick={() => setResultForm({ ...resultForm, resultCode: code })}
+                            className={`py-2 px-3 rounded-lg border font-bold text-sm transition-colors ${
+                              resultForm.resultCode === code
+                                ? 'bg-[var(--color-secondary)] text-white border-[var(--color-secondary)]'
+                                : 'border-[var(--color-border)] text-[var(--color-text-dark)] hover:border-[var(--color-secondary)]'
+                            }`}
+                          >
+                            {code}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-[var(--color-text-body)]/50 italic mt-2">
+                        Nagła śmierć od dołka nr 1 (Regulamin §IV.3). Numer liczony od początku meczu —
+                        pierwszy dołek dogrywki to {extraCodes[0]}.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
