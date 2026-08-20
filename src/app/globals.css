@@ -540,6 +540,17 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(213, 182, 101, 0.06);
 }
 
+/* Termin uzgodniony przez graczy — widoczny tylko na meczach jeszcze nierozegranych,
+   dlatego stonowany w stosunku do kodu wyniku (ten jest finalną informacją). */
+.bracket-match-date {
+  text-align: center;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--color-text-body);
+  opacity: 0.55;
+  padding: 1px 0;
+}
+
 /* Regulamin page styles */
 .regulamin-h2 {
   font-size: 1.4rem;

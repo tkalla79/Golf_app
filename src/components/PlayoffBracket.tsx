@@ -5,8 +5,16 @@ import { useState } from 'react'
 import BracketMatchCard from './BracketMatchCard'
 import { PL } from '@/constants/pl'
 import type { BracketSlot } from '@/lib/playoff'
-import { bracketHolesLabel } from '@/lib/playoff'
+import { bracketHolesLabel, ROUND_DEADLINES } from '@/lib/playoff'
 import Link from 'next/link'
+
+/** Krótkie nazwy rund do paska terminów — ROUND_NAMES są za długie na jedną linię. */
+const ROUND_LABELS: Record<number, string> = {
+  1: '1/8 finału',
+  2: 'ćwierćfinały',
+  3: 'półfinały',
+  4: 'finały',
+}
 
 interface BracketData {
   groupId: number
@@ -67,6 +75,22 @@ export default function PlayoffBracket({ brackets }: Props) {
               {bracketHolesLabel(b.bracketKey)}
             </span>
           </button>
+        ))}
+      </div>
+
+      {/* Terminy rozegrania rund (Regulamin §IV.2). Stałe dla całego playoffu,
+          więc jeden pasek zamiast powtarzania daty przy każdej sekcji. */}
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mb-6 text-xs text-[var(--color-text-body)]/60">
+        <span className="font-semibold uppercase tracking-wider text-[var(--color-text-body)]/45">
+          {PL.playoff.deadlines}
+        </span>
+        {([1, 2, 3, 4] as const).map((round) => (
+          <span key={round}>
+            {ROUND_LABELS[round]}{' '}
+            <span className="font-semibold text-[var(--color-primary)]">
+              {PL.playoff.deadline} {ROUND_DEADLINES[round]}
+            </span>
+          </span>
         ))}
       </div>
 

@@ -10,9 +10,12 @@ export default function Navbar({ hasPlayoff = false }: { hasPlayoff?: boolean })
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
 
+  // Playoff pierwszy, gdy trwa — jest wtedy strona startowa (patrz src/app/page.tsx),
+  // a faza grupowa staje się archiwum dostępnym z zakładki.
   const links = [
-    { href: '/grupy', label: PL.nav.groups },
     ...(hasPlayoff ? [{ href: '/playoff', label: PL.nav.playoff }] : []),
+    { href: '/grupy', label: PL.nav.groups },
+    { href: '/klasyfikacja-birdie', label: PL.nav.birdieRanking },
     { href: '/zawodnicy', label: PL.nav.players },
     { href: '/aktualnosci', label: PL.nav.news },
     { href: '/galeria-slaw', label: PL.nav.hallOfFame },

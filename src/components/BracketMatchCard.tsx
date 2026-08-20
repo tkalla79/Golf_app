@@ -60,8 +60,24 @@ export default function BracketMatchCard({ slot, compact, showLabel }: Props) {
       {slot.played && slot.resultCode && slot.resultCode !== 'BYE' && (
         <div className="bracket-result-code">{slot.resultCode}</div>
       )}
+      {/* Termin uzgodniony przez graczy — pokazujemy tylko dopóki mecz nie jest rozegrany,
+          bo potem liczy się już wynik, nie data. */}
+      {!slot.played && slot.scheduledDate && (
+        <div className="bracket-match-date">{formatMatchDate(slot.scheduledDate)}</div>
+      )}
     </div>
   )
+}
+
+/** „2026-09-03T14:30:00Z" → „3.09, 16:30". Godzina tylko gdy ustawiona na inną niż 00:00. */
+function formatMatchDate(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const date = d.toLocaleDateString('pl-PL', { day: 'numeric', month: '2-digit' })
+  const hasTime = d.getHours() !== 0 || d.getMinutes() !== 0
+  if (!hasTime) return date
+  const time = d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+  return `${date}, ${time}`
 }
 
 function PlayerRow({

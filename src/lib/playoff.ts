@@ -227,6 +227,8 @@ export interface BracketSlot {
   isWalkover: boolean
   holes: number | null
   deadline: string
+  /** Termin uzgodniony przez graczy (Match.scheduledDate), ISO lub null. */
+  scheduledDate: string | null
   placementLabel: string | null // e.g. "Miejsca 1-2" for R4 matches
   player1Birdies: number
   player2Birdies: number
@@ -436,6 +438,7 @@ export async function buildBracketSlots(groupId: number): Promise<BracketSlot[]>
           isWalkover: match.isWalkover,
           holes: match.holes,
           deadline: ROUND_DEADLINES[round] ?? '',
+          scheduledDate: match.scheduledDate ? match.scheduledDate.toISOString() : null,
           placementLabel: round === 4 ? (PLACEMENT_LABELS[pos] ?? null) : null,
           player1Birdies: match.player1Birdies,
           player2Birdies: match.player2Birdies,
@@ -470,6 +473,7 @@ export async function buildBracketSlots(groupId: number): Promise<BracketSlot[]>
           isWalkover: false,
           holes: null,
           deadline: ROUND_DEADLINES[round] ?? '',
+          scheduledDate: null,
           placementLabel: round === 4 ? (PLACEMENT_LABELS[pos] ?? null) : null,
           player1Birdies: 0,
           player2Birdies: 0,
