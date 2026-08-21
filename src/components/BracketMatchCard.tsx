@@ -69,15 +69,24 @@ export default function BracketMatchCard({ slot, compact, showLabel }: Props) {
   )
 }
 
-/** „2026-09-03T14:30:00Z" → „3.09, 16:30". Godzina tylko gdy ustawiona na inną niż 00:00. */
+/**
+ * „2026-09-03T14:30:00Z" → „3.09, 16:30". Godzina tylko gdy ustawiona na inną niż 00:00.
+ *
+ * Strefa przypięta na sztywno do Europe/Warsaw — tak jak w pozostałych miejscach
+ * pokazujących `scheduledDate` (/grupy, /zawodnik, panel grupy). Bez tego karta
+ * renderuje się na serwerze w UTC, a hydratuje w strefie przeglądarki i godzina
+ * przeskakuje po załadowaniu strony (kontener produkcyjny chodzi w UTC).
+ *
+ * Mecz uzgodniony dokładnie na północ pokaże samą datę — świadomy kompromis,
+ * bo daty bez godziny trafiają do bazy jako 00:00.
+ */
 function formatMatchDate(iso: string): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
-  const date = d.toLocaleDateString('pl-PL', { day: 'numeric', month: '2-digit' })
-  const hasTime = d.getHours() !== 0 || d.getMinutes() !== 0
-  if (!hasTime) return date
-  const time = d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
-  return `${date}, ${time}`
+  const opts = { timeZone: 'Europe/Warsaw' } as const
+  const date = d.toLocaleDateString('pl-PL', { ...opts, day: 'numeric', month: '2-digit' })
+  const time = d.toLocaleTimeString('pl-PL', { ...opts, hour: '2-digit', minute: '2-digit', hour12: false })
+  return time === '00:00' ? date : `${date}, ${time}`
 }
 
 function PlayerRow({
