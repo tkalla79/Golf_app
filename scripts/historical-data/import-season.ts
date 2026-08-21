@@ -16,6 +16,7 @@
  */
 
 import { PrismaClient, Prisma } from '@prisma/client'
+import { smallPointsMargin, DEFAULT_SEASON_CONFIG } from '../../src/lib/scoring'
 import { readFileSync } from 'fs'
 import path from 'path'
 
@@ -258,25 +259,8 @@ function computeMatchData(
   const p1Wins = m.winner === m.p1
   const winnerId = p1Wins ? player1Id : player2Id
 
-  // Small points map (margin → small points)
-  const smallPointsMap: Record<string, number> = {
-    'A/S': 0,
-    '1Up': 1,
-    '2Up': 2,
-    '3Up': 3,
-    '4Up': 4,
-    '5Up': 5,
-    '2&1': 3,
-    '3&1': 4,
-    '3&2': 5,
-    '4&2': 6,
-    '4&3': 7,
-    '5&3': 8,
-    '5&4': 9,
-    Ret: 0,
-    WO: 0,
-  }
-  const margin = smallPointsMap[m.code] ?? 0
+  // Margines z jedynej definicji „kod → małe punkty" (src/lib/scoring.ts).
+  const margin = smallPointsMargin(m.code)
 
   return {
     played: true,
@@ -326,22 +310,9 @@ async function importSeason(files: string[], dryRun: boolean) {
       walkover_winner: 1,
       walkover_loser: 0,
     },
-    small_points_map: {
-      'A/S': [0, 0],
-      '1Up': [1, -1],
-      '2Up': [2, -2],
-      '3Up': [3, -3],
-      '4Up': [4, -4],
-      '5Up': [5, -5],
-      '2&1': [3, -3],
-      '3&1': [4, -4],
-      '3&2': [5, -5],
-      '4&2': [6, -6],
-      '4&3': [7, -7],
-      '5&3': [8, -8],
-      '5&4': [9, -9],
-      Ret: [0, 0],
-    },
+    // Mapa marginesów jest wspólna z aplikacją — sezony historyczne różnią się tylko
+    // punktacją dużych punktów (1/0.5/0 zamiast 3/2/1), nie małymi punktami.
+    small_points_map: DEFAULT_SEASON_CONFIG.small_points_map,
   }
 
   await prisma.$transaction(
@@ -430,12 +401,7 @@ async function importSeason(files: string[], dryRun: boolean) {
               }
               const winnerIsP1 = winnerId === p1.id
 
-              const smallPointsMap: Record<string, number> = {
-                'A/S': 0, '1Up': 1, '2Up': 2, '3Up': 3, '4Up': 4, '5Up': 5,
-                '2&1': 3, '3&1': 4, '3&2': 5, '4&2': 6, '4&3': 7, '5&3': 8, '5&4': 9,
-                Ret: 0, WO: 0,
-              }
-              const margin = smallPointsMap[m.code] ?? 0
+              const margin = smallPointsMargin(m.code)
 
               await tx.match.create({
                 data: {

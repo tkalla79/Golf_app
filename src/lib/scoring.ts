@@ -1,3 +1,10 @@
+import { isExtraHoleCode } from './match-play-utils'
+
+// Re-eksport dla wygody: kody dogrywki są częścią zestawu wyników, więc konsumenci
+// `scoring` (panel wyników, testy) sięgają po ten predykat tutaj. Definicja mieszka
+// w `match-play-utils` razem z resztą parsowania kodów.
+export { isExtraHoleCode }
+
 export interface SeasonConfig {
   scoring: {
     win: number
@@ -75,6 +82,25 @@ export const DEFAULT_SEASON_CONFIG: SeasonConfig = {
  */
 export const EXTRA_HOLE_SMALL_POINTS: [number, number] = [1, -1]
 
+/**
+ * Małe punkty zwycięzcy za dany kod wyniku (margines). Przegrany dostaje wartość przeciwną.
+ *
+ * Jedyne miejsce, które rozstrzyga „kod → margines" — używa go `computePoints` oraz
+ * importer sezonów historycznych (`scripts/historical-data/import-season.ts`), żeby
+ * definicja nie żyła w kilku kopiach naraz.
+ *
+ * Nieznany kod daje 0 (np. `Ret`/`WO` — margines nieznany).
+ */
+export function smallPointsMargin(
+  resultCode: string,
+  map: Record<string, [number, number]> = DEFAULT_SEASON_CONFIG.small_points_map,
+): number {
+  // Kody dogrywki są generowane dynamicznie z długości meczu (19th, 20th, 10th…),
+  // więc nie da się ich wypisać w mapie — rozpoznajemy je wzorcem.
+  if (isExtraHoleCode(resultCode)) return EXTRA_HOLE_SMALL_POINTS[0]
+  return map[resultCode]?.[0] ?? 0
+}
+
 export function computePoints(
   input: MatchResultInput,
   player1Id: number,
@@ -103,12 +129,8 @@ export function computePoints(
   }
 
   const p1Wins = input.winnerId === player1Id
-  // Kody dogrywki są generowane dynamicznie z długości meczu (19th, 20th, 10th…),
-  // więc nie da się ich wypisać w `small_points_map` — rozpoznajemy je wzorcem.
-  const smallPoints = isExtraHoleCode(input.resultCode)
-    ? EXTRA_HOLE_SMALL_POINTS
-    : small_points_map[input.resultCode] ?? [0, 0]
-  const [winnerSmall, loserSmall] = smallPoints
+  const winnerSmall = smallPointsMargin(input.resultCode, small_points_map)
+  const loserSmall = -winnerSmall
 
   return {
     player1BigPoints: p1Wins ? scoring.win : scoring.loss,
@@ -180,11 +202,6 @@ function ordinal(n: number): string {
     case 3: return `${n}rd`
     default: return `${n}th`
   }
-}
-
-/** True dla kodu dogrywki (np. „19th", „10th"). */
-export function isExtraHoleCode(code: string | null | undefined): boolean {
-  return !!code && /^\d+(st|nd|rd|th)$/.test(code.trim())
 }
 
 /**

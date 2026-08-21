@@ -44,7 +44,7 @@ export function parseMargin(code: string | null | undefined): number | null {
 
   // Dogrywka: "19th", "21st", "10th" — wygrana dodatkowym dołkiem, czyli marginesem 1.
   // Musi być sprawdzona PRZED wzorcem "XUp", bo oba zaczynają się od cyfr.
-  if (isExtraHole(normalized)) return 1
+  if (isExtraHoleCode(normalized)) return 1
 
   // "1Up" / "2Up" / "1up" / "2up"
   const upMatch = /^(\d+)\s*[Uu]p$/.exec(normalized)
@@ -61,10 +61,15 @@ export function parseMargin(code: string | null | undefined): number | null {
  * True dla kodu dogrywki („nagła śmierć" — Regulamin §IV.3): numer dołka
  * rozstrzygającego liczony od początku meczu, np. "19th" (18-dołkowy),
  * "10th" (9-dołkowy).
+ *
+ * Jedyna definicja tego wzorca — `scoring.ts` re-eksportuje ją zamiast powtarzać.
  */
-export function isExtraHole(code: string | null | undefined): boolean {
-  return !!code && /^\d+(st|nd|rd|th)$/.test(code.trim())
+export function isExtraHoleCode(code: string | null | undefined): boolean {
+  return EXTRA_HOLE_PATTERN.test((code ?? '').trim())
 }
+
+/** Wzorzec kodu dogrywki. Współdzielony z `parseExtraHoleNumber`, żeby nie rozjechały się definicje. */
+const EXTRA_HOLE_PATTERN = /^\d+(st|nd|rd|th)$/
 
 /**
  * Numer dołka, na którym rozstrzygnęła się dogrywka. `null` dla innych kodów.
